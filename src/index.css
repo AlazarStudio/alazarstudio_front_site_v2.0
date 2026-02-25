@@ -18,14 +18,31 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
   outline: none;
-  font-family: 'Montserrat', sans-serif;
-}
-
-html,
-body {
-  height: 100%;
+  font-family: 'Montserrat', sans-serif !important;
+  color: #fff;
 }
 
 a {
   text-decoration: none;
+}
+
+
+body {
+  background-color: #000;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  padding-bottom: 80px;
+}
+
+.centerBlock {
+  display: flex;
+  justify-content: space-between;
+  width: 1400px;
 }

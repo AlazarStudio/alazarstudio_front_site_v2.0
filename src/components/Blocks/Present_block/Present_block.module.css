@@ -1,0 +1,135 @@
+.present_block {
+    width: 100%;
+    height: 100vh;
+    background-color: #000;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.present_block_center {
+    width: 1400px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: -150px;
+}
+
+.present_block_ellipce {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    pointer-events: none;
+}
+
+.present_block_ellipce img {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    z-index: 3;
+}
+
+.present_block_line {
+    height: 100%;
+    position: absolute;
+    border: 1px solid #ED3A8678;
+    z-index: 1;
+}
+
+.line1 {
+    left: 13%;
+}
+
+.line2 {
+    left: 29%;
+}
+
+.line3 {
+    right: 29%;
+}
+
+.line4 {
+    right: 13%;
+}
+
+.present_block_left {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    z-index: 2;
+    width: 67%;
+}
+
+.present_block_right{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    z-index: 2;
+    width: 33%;
+}
+
+.present_block_right img{
+    height: 250px;
+    object-fit: contain;
+}
+
+.present_block_right img:nth-child(1){
+    margin-top: -50px;
+    margin-left: -250px;
+}
+.present_block_right img:nth-child(2){
+    margin-top: -50px;
+    margin-right: -250px;
+}
+
+.present_block_left_text {
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 90.39px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    position: relative;
+    z-index: 1;
+}
+
+.present_block_left_text_second {
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 90.39px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    padding-left: 300px;
+    padding-top: 50px;
+    position: relative;
+    z-index: 1;
+}
+
+.present_block_left_text_min {
+    font-weight: 600;
+    font-style: SemiBold;
+    font-size: 20px;
+    line-height: 150%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    width: 400px;
+    margin-left: 305px;
+    margin-top: 60px;
+}
+
+.present_block_left_text_large {
+    font-weight: 500;
+    font-style: Medium;
+    font-size: 225.25px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #E5097F99;
+
+    position: absolute;
+    right: 200px;
+    top: 10px;
+}

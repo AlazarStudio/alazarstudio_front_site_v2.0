@@ -1,0 +1,151 @@
+.discussContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 150px;
+}
+
+.discuss {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.discuss_form {
+    position: relative;
+    width: 40%;
+}
+
+.discuss_form form {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    padding: 35px 55px;
+    border-radius: 20px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background-color: #000;
+}
+
+.discuss_form form input {
+    margin-bottom: 30px;
+    background-color: #000;
+    border: none;
+    border-bottom: 1px solid #FFFFFF69;
+    height: 40px;
+    outline: none;
+    width: 100%;
+}
+
+.discuss_form form input:focus {
+    border-bottom: 1px solid #E5097F;
+}
+
+.discuss_form form label {
+    font-weight: 500;
+    font-style: Medium;
+    font-size: 14.99px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: #787878;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.discuss_form form label span {
+    color: #E5097F;
+}
+
+.discuss_form form .formTitle {
+    font-weight: 500;
+    font-style: Medium;
+    font-size: 30.89px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.discuss_form form .formInclude {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.discuss_form form .formInclude input {
+    width: 20px;
+    margin-bottom: 0;
+}
+
+.formTitle span {
+    color: #E5097F;
+}
+
+.discuss_form form button {
+    width: 250px;
+    height: 48px;
+    border-radius: 30px;
+    border: none;
+    background-color: #E5097F;
+    color: #fff;
+    font-weight: 600;
+    font-style: SemiBold;
+    font-size: 14px;
+    line-height: 120%;
+    letter-spacing: 0%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.formBG {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.discuss_img {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    position: relative;
+    /* z-index: 999999; */
+}
+
+.discuss_img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.discuss_img canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+.hiddenBlock {
+    position: absolute;
+    width: 200px;
+    height: 60px;
+    background-color: #000;
+    bottom: 0;
+    right: 0;
+    pointer-events: none;
+}

@@ -1,0 +1,113 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: opacity 0.3s ease-in;
+}
+
+.modalOverlay_closing {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modalOverlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: -1;
+    transition: opacity 0.3s ease-in, backdrop-filter 0.3s ease-in;
+}
+
+.modalOverlay_closing::before {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+}
+
+.modalContent {
+    width: 100%;
+    height: calc(100vh - 82px);
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.3s ease-out;
+}
+
+.modalContent_closing {
+    animation: slideDown 0.3s ease-in;
+}
+
+.closeButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #111;
+    font-size: 28px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.closeButton:hover {
+    transform: scale(1.03);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.closeButton:active {
+    transform: scale(0.98);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(100%);
+    }
+}
+
+/* Для темной темы, если нужно */
+@media (prefers-color-scheme: dark) {
+    .modalContent {
+        background: #1a1a1a;
+    }
+
+    .closeButton {
+        border-color: rgba(255, 255, 255, 0.14);
+        background: rgba(26, 26, 26, 0.8);
+        color: #fff;
+    }
+}

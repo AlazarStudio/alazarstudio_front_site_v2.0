@@ -1,0 +1,36 @@
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    position: fixed;
+    width: 100%;
+    background-color: transparent;
+    z-index: 999;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.header_withBackground {
+    background-color: #00000057;
+    backdrop-filter: blur(10px);
+}
+
+.header_links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 100px;
+}
+
+.header_links a {
+    color: #fff;
+    text-transform: uppercase;
+    text-transform: uppercase;
+}
+
+.header_links_user {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 55px;
+}

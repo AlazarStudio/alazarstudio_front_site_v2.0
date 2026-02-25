@@ -1,0 +1,389 @@
+/* ==================== КАСТОМНЫЙ КУРСОР ==================== */
+/* 
+  Настройки:
+  - Измените --cursor-bg для изменения цвета курсора
+  - Размеры настраиваются в компоненте CustomCursor.jsx в объекте CONFIG
+*/
+
+:root {
+  --cursor-bg: #E5097F;
+  --cursor-bg-blue: #4009e5;
+}
+
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  /* mix-blend-mode: difference; */
+  will-change: transform;
+}
+
+.cursor-inner {
+  width: 25px;
+  height: 25px;
+  background-color: var(--cursor-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+              height 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+              background-color 0.3s ease,
+              border 0.3s ease;
+}
+
+/* Скрываем все режимы по умолчанию */
+.cursor-media-content,
+.cursor-drag-content,
+.cursor-slider-content,
+.cursor-case-content,
+.cursor-filter-content,
+.cursor-filter_blue-content,
+.cursor-banner-content,
+.cursor-shop-content,
+.cursor-new-content,
+.cursor-card-content,
+.cursor-scrollToCases-content {
+  display: none;
+}
+
+/* ==================== РЕЖИМ: DEFAULT ==================== */
+.custom-cursor[data-mode="default"] .cursor-inner {
+  width: 20px;
+  height: 20px;
+  background-color: var(--cursor-bg);
+}
+
+/* ==================== РЕЖИМ: LINK ==================== */
+.custom-cursor[data-mode="link"] .cursor-inner {
+  width: 50px;
+  height: 50px;
+  background-color: var(--cursor-bg);
+  border: 2px solid var(--cursor-bg);
+}
+
+/* ==================== РЕЖИМ: MEDIA ==================== */
+.custom-cursor[data-mode="media"] .cursor-inner {
+  width: 80px;
+  height: 80px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="media"] .cursor-media-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cursor-play-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.cursor-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: SLIDER ==================== */
+.custom-cursor[data-mode="slider"] .cursor-inner {
+  width: 50px;
+  height: 50px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="slider"] .cursor-slider-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cursor-arrow-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.cursor-arrow-icon .arrow-left {
+  display: none;
+}
+
+.cursor-arrow-icon .arrow-right {
+  display: block;
+}
+
+.custom-cursor[data-slider-direction="left"] .cursor-arrow-icon .arrow-left {
+  display: block;
+}
+
+.custom-cursor[data-slider-direction="left"] .cursor-arrow-icon .arrow-right {
+  display: none;
+}
+
+/* ==================== РЕЖИМ: DRAG ==================== */
+.custom-cursor[data-mode="drag"] .cursor-inner {
+  width: 60px;
+  height: 60px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="drag"] .cursor-drag-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-cursor[data-mode="drag"] .cursor-drag-content .cursor-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ==================== РЕЖИМ: CASE ==================== */
+.custom-cursor[data-mode="case"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="case"] .cursor-case-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="case"] .cursor-case-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+}
+
+/* ==================== РЕЖИМ: FILTER ==================== */
+.custom-cursor[data-mode="filter"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="filter"] .cursor-filter-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.cursor-filter-content img{
+  width: 40%;
+  height: 40%;
+  color: #fff;
+  object-fit: contain;
+}
+
+/* ==================== РЕЖИМ: filter_blue ==================== */
+.custom-cursor[data-mode="filter_blue"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg-blue);
+  color: #000;
+}
+
+.custom-cursor[data-mode="filter_blue"] .cursor-filter_blue-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.cursor-filter_blue-content img{
+  width: 40%;
+  height: 40%;
+  color: #fff;
+  object-fit: contain;
+}
+
+/* ==================== РЕЖИМ: banner ==================== */
+.custom-cursor[data-mode="banner"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg-blue);
+  color: #000;
+}
+
+.custom-cursor[data-mode="banner"] .cursor-banner-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="banner"] .cursor-banner-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: shop ==================== */
+.custom-cursor[data-mode="shop"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg-blue);
+  color: #000;
+}
+
+.custom-cursor[data-mode="shop"] .cursor-shop-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="shop"] .cursor-shop-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: new ==================== */
+.custom-cursor[data-mode="new"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="new"] .cursor-new-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="new"] .cursor-new-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: card ==================== */
+.custom-cursor[data-mode="card"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg-blue);
+  color: #000;
+}
+
+.custom-cursor[data-mode="card"] .cursor-card-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="card"] .cursor-card-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: scrollToCases ==================== */
+.custom-cursor[data-mode="scrollToCases"] .cursor-inner {
+  width: 100px;
+  height: 100px;
+  background-color: var(--cursor-bg);
+  color: #000;
+}
+
+.custom-cursor[data-mode="scrollToCases"] .cursor-scrollToCases-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.custom-cursor[data-mode="scrollToCases"] .cursor-scrollToCases-content .cursor-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  color: #fff;
+  text-align: center;
+}
+
+/* ==================== РЕЖИМ: HIDDEN ==================== */
+.custom-cursor[data-mode="hidden"] {
+  opacity: 0;
+}
+
