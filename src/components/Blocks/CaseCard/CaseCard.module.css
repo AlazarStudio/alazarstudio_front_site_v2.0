@@ -94,6 +94,7 @@
     text-align: center;
     vertical-align: middle;
     transition: all 0.3s ease-in-out;
+    color: #fff;
 }
 
 /* .case_img_tag:hover {
@@ -122,6 +123,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #fff;
 }
 
 .case_bottom_desc {
@@ -165,6 +167,7 @@
     line-height: 150%;
     letter-spacing: 0%;
     vertical-align: middle;
+    color: #fff;
 }
 
 .banner_desc {
@@ -242,6 +245,7 @@
 
     display: flex;
     align-items: center;
+    color: #fff;
 }
 
 .shop_bottom_desc {
@@ -276,6 +280,7 @@
     text-align: center;
     vertical-align: middle;
     transition: all 0.3s ease-in-out;
+    color: #fff;
 }
 
 .shop_img_tag:hover {
@@ -288,6 +293,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: #fff;
 }
 
 .shop_card {
@@ -373,6 +379,7 @@
     letter-spacing: 0%;
     vertical-align: middle;
     text-align: center;
+    color: #fff;
 }
 
 .new_container_desc {
