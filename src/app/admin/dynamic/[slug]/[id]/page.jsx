@@ -606,10 +606,18 @@ export default function DynamicRecordEditPage() {
     return Object.values(obj).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   };
 
+  const isUploadableFile = (value) =>
+    Boolean(
+      value &&
+      (value instanceof Blob ||
+        (typeof value === 'object' && typeof value.arrayBuffer === 'function' && typeof value.size === 'number'))
+    );
+
   const uploadFileAndGetUrl = async (file) => {
-    if (!(file instanceof Blob)) return null;
+    if (!isUploadableFile(file)) return null;
     const formData = new FormData();
-    formData.append('file', file);
+    const fileName = typeof file?.name === 'string' && file.name.trim() ? file.name : 'upload.bin';
+    formData.append('file', file, fileName);
     const res = await mediaAPI.upload(formData);
     return res.data?.url || null;
   };
@@ -672,13 +680,21 @@ export default function DynamicRecordEditPage() {
     return nextBlocks;
   };
 
-  // Бэкенд сгенерированных ресурсов часто ожидает String-поля.
-  // Приводим значения редактора (объекты блоков) к скалярным/string-значениям.
+  const normalizeNumberForSave = (raw) => {
+    if (raw === null || raw === undefined || raw === '') return null;
+    if (typeof raw === 'number') return Number.isFinite(raw) ? Math.trunc(raw) : null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+  };
+
+  // Бэкенд сгенерированных ресурсов часто ожидает скалярные поля.
+  // Приводим значения редактора к типам, совместимым со схемой Prisma.
   const normalizeFieldValueForSave = (field, value) => {
     if (value === undefined) return null;
     if (value === null) return null;
 
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      if (field.type === 'number') return normalizeNumberForSave(value);
       return value;
     }
 
@@ -701,6 +717,9 @@ export default function DynamicRecordEditPage() {
               icon: typeof value.icon === 'string' ? value.icon : '',
               iconType: value.iconType === 'upload' ? 'upload' : 'library',
             });
+          }
+          if (field.type === 'number') {
+            return normalizeNumberForSave(value.value);
           }
           return typeof value.value === 'string' || typeof value.value === 'number' ? value.value : '';
         case 'boolean':
@@ -812,12 +831,12 @@ export default function DynamicRecordEditPage() {
         const blockId = structureFieldToBlockId(field);
         const pending = pendingFilesToSave?.[blockId];
         if (!pending) return false;
-        if (field.type === 'image') return pending.url instanceof Blob;
+        if (field.type === 'image') return isUploadableFile(pending.url);
         if (field.type === 'gallery') {
           const pendingImages = Array.isArray(pending.images) ? pending.images : [];
-          return pendingImages.some((file) => file instanceof Blob);
+          return pendingImages.some((file) => isUploadableFile(file));
         }
-        if (field.type === 'file') return pending.documentFile instanceof Blob;
+        if (field.type === 'file') return isUploadableFile(pending.documentFile);
         return false;
       };
 
@@ -910,7 +929,7 @@ export default function DynamicRecordEditPage() {
         if (field.type === 'image') {
           const blockId = structureFieldToBlockId(field);
           const pendingImage = pendingFilesToSave?.[blockId]?.url;
-          if (pendingImage instanceof Blob) {
+          if (isUploadableFile(pendingImage)) {
             try {
               const uploadedUrl = await uploadFileAndGetUrl(pendingImage);
               dataToSave[fieldKey] = uploadedUrl;
@@ -960,7 +979,7 @@ export default function DynamicRecordEditPage() {
           const uploadedUrls = [];
           try {
             for (const file of pendingImages) {
-              if (!(file instanceof Blob)) continue;
+              if (!isUploadableFile(file)) continue;
               const uploadedUrl = await uploadFileAndGetUrl(file);
               if (uploadedUrl) uploadedUrls.push(uploadedUrl);
             }
@@ -977,7 +996,7 @@ export default function DynamicRecordEditPage() {
         } else if (field.type === 'file') {
           const blockId = structureFieldToBlockId(field);
           const pendingDocument = pendingFilesToSave?.[blockId]?.documentFile;
-          if (pendingDocument instanceof Blob) {
+          if (isUploadableFile(pendingDocument)) {
             try {
               const uploadedUrl = await uploadFileAndGetUrl(pendingDocument);
               dataToSave[fieldKey] = uploadedUrl;

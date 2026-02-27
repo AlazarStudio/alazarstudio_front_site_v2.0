@@ -443,6 +443,14 @@ function slugToResourceRoute(slug) {
     .toLowerCase();
 }
 
+function normalizePublicItemsResponse(data, key) {
+  if (!data || typeof data !== 'object') return [];
+  if (Array.isArray(data[key])) return data[key];
+  if (Array.isArray(data.items)) return data.items;
+  const firstArrayValue = Object.values(data).find((value) => Array.isArray(value));
+  return Array.isArray(firstArrayValue) ? firstArrayValue : [];
+}
+
 function extractRecordsList(data, slug) {
   if (!data || typeof data !== 'object') return [];
   if (Array.isArray(data.records)) return data.records;
@@ -482,6 +490,40 @@ export const dynamicPageRecordsAPI = {
     const resourceRoute = slugToResourceRoute(slug);
     return api.delete(`/${resourceRoute}/${recordId}`);
   },
+};
+
+// Public dynamic resources API (без авторизации)
+export const publicCasesAPI = {
+  getAll: (params = {}) =>
+    api.get('/cases/public', { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        cases: normalizePublicItemsResponse(response.data, 'cases'),
+      },
+    })),
+};
+
+export const publicTagsAPI = {
+  getAll: (params = {}) =>
+    api.get('/tags/public', { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        tags: normalizePublicItemsResponse(response.data, 'tags'),
+      },
+    })),
+};
+
+export const publicTeamAPI = {
+  getAll: (params = {}) =>
+    api.get('/team/public', { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        team: normalizePublicItemsResponse(response.data, 'team'),
+      },
+    })),
 };
 
 // Users API (admin — для управления пользователями)

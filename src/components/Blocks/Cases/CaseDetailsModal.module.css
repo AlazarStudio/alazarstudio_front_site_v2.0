@@ -1,0 +1,162 @@
+.modalInner {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  padding: 28px 120px 20px;
+  background: #ffffff;
+}
+
+.heroTags {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  color: #9e9e9e;
+  font-size: 16px;
+}
+
+.tag {
+  white-space: nowrap;
+}
+
+.logoWrap {
+  margin-top: 25px;
+}
+
+.logo {
+  height: 85px;
+  object-fit: contain;
+}
+
+.metaRow {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.metaLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b8b8b;
+}
+
+.date {
+  margin-left: 24px;
+}
+
+.metaRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shareLabel {
+  color: #8b8b8b;
+}
+
+.socialBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: #e5097e;
+  color: #0d0d0d;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.darkSection {
+  background: #0a0a0f;
+  color: #fff;
+  padding: 34px 120px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 150px;
+}
+
+.sectionTitle {
+  margin: 0 0 34px;
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.pink {
+  color: #e5097e;
+}
+
+.sectionText {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.teamList {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 50px;
+}
+
+.teamCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.teamAvatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.teamName {
+  font-size: 20px;
+  /* text-transform: uppercase; */
+}
+
+.teamRole {
+  margin-top: 15px;
+  color: #e5097e;
+  font-size: 20px;
+}
+
+.imagesSection {
+  /* background: #0a0a0f; */
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.imageItem {
+  width: 100%;
+  pointer-events: none;
+}
+
+.additionalImage {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 1200px) {
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+
+  .imagesSection {
+    padding: 0;
+  }
+}

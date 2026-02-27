@@ -1,9 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { filterCategories, elementTypes, casesData, bannersData, newsData, shopData } from '../../../data/casesData.jsx';
+import { filterCategories, elementTypes, bannersData, newsData } from '../../../data/casesData.jsx';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
+import CaseDetailsModal from './CaseDetailsModal';
+import { isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from './casesHelpers';
+import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
 
 function Cases({ children, ...props }) {
     // Состояния для фильтрации
@@ -15,7 +18,44 @@ function Cases({ children, ...props }) {
     const [isCasesEnded, setIsCasesEnded] = useState(false); // Достиг ли пользователь конца кейсов
     const [isModalOpen, setIsModalOpen] = useState(false); // Состояние модального окна
     const [selectedItem, setSelectedItem] = useState(null); // Выбранный элемент для модального окна
+    const [casesFromApi, setCasesFromApi] = useState([]);
+    const [teamFromApi, setTeamFromApi] = useState([]);
+    const [isCasesLoaded, setIsCasesLoaded] = useState(false);
     const navigate = useNavigate();
+    const casesData = useMemo(
+        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => !isCaseForShop(item)).map(mapCaseRecordToCard) : []),
+        [casesFromApi]
+    );
+    const shopData = useMemo(
+        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => isCaseForShop(item)).map(mapCaseRecordToShopCard) : []),
+        [casesFromApi]
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const [casesRes, teamRes] = await Promise.all([
+                    publicCasesAPI.getAll({ page: 1, limit: 500 }),
+                    publicTeamAPI.getAll({ page: 1, limit: 500 }),
+                ]);
+                if (cancelled) return;
+                setCasesFromApi(Array.isArray(casesRes.data?.cases) ? casesRes.data.cases : []);
+                setTeamFromApi(Array.isArray(teamRes.data?.team) ? teamRes.data.team : []);
+            } catch (error) {
+                if (cancelled) return;
+                setCasesFromApi([]);
+                setTeamFromApi([]);
+            } finally {
+                if (!cancelled) setIsCasesLoaded(true);
+            }
+        };
+        load();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     const location = useLocation();
     const { type: routeType, url_text: routeUrlText } = useParams();
     const filterRef = useRef(null);
@@ -228,7 +268,7 @@ function Cases({ children, ...props }) {
     const handleItemClick = (item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-        if (item?.type && item?.url_text) {
+        if (item?.type && item?.url_text && item.type !== 'shop') {
             navigate(`/${item.type}/${item.url_text}`, {
                 state: { modalBackground: location.pathname },
             });
@@ -248,6 +288,7 @@ function Cases({ children, ...props }) {
         const hasRouteModal = Boolean(routeType && routeUrlText);
 
         if (hasRouteModal) {
+            if (!isCasesLoaded) return;
             const itemFromUrl = findItemByUrlText(routeUrlText);
             // Если url_text не найден (невалидный URL) — закрываем и возвращаем на главную
             if (!itemFromUrl || (routeType && itemFromUrl.type !== routeType)) {
@@ -267,7 +308,7 @@ function Cases({ children, ...props }) {
             setIsModalOpen(false);
             setSelectedItem(null);
         }
-    }, [routeType, routeUrlText, navigate]);
+    }, [routeType, routeUrlText, navigate, isCasesLoaded, casesData]);
 
     // Прокрутка к карточке при открытии по URL
     useEffect(() => {
@@ -397,14 +438,16 @@ function Cases({ children, ...props }) {
 
             {/* Модальное окно */}
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                {selectedItem && (
-                    <div style={{ padding: '40px' }}>
-                        {/* Здесь можно рендерить любой контент в зависимости от типа элемента */}
-                        <h2>{selectedItem.title}</h2>
-                        <p>{selectedItem.description}</p>
-                        {/* Добавьте здесь нужный контент для модального окна */}
-                    </div>
-                )}
+            {selectedItem && (
+                (selectedItem.type === 'case' || selectedItem.type === 'shop')
+                    ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    : (
+                        <div style={{ padding: '40px' }}>
+                            <h2>{selectedItem.title}</h2>
+                            <p>{selectedItem.description}</p>
+                        </div>
+                    )
+            )}
             </Modal>
         </div>
     );

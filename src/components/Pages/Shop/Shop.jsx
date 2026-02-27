@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import classes from './Shop.module.css';
-import { shopData, filterCategories } from '../../../data/casesData.jsx';
+import { filterCategories } from '../../../data/casesData.jsx';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
+import { isCaseForShop, mapCaseRecordToShopCard } from '../../Blocks/Cases/casesHelpers';
+import CaseDetailsModal from '../../Blocks/Cases/CaseDetailsModal';
 
 // Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
@@ -35,7 +38,9 @@ function Shop({ children, ...props }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isFilterVisible, setIsFilterVisible] = useState(true);
     const [isCasesEnded, setIsCasesEnded] = useState(false);
-    const [filteredItems, setFilteredItems] = useState(shopData);
+    const [casesFromApi, setCasesFromApi] = useState([]);
+    const [teamFromApi, setTeamFromApi] = useState([]);
+    const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,9 +48,36 @@ function Shop({ children, ...props }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
+    const shopData = useMemo(
+        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => isCaseForShop(item)).map(mapCaseRecordToShopCard) : []),
+        [casesFromApi]
+    );
+
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const [casesResponse, teamResponse] = await Promise.all([
+                    publicCasesAPI.getAll({ page: 1, limit: 1000 }),
+                    publicTeamAPI.getAll({ page: 1, limit: 500 }),
+                ]);
+                if (cancelled) return;
+                setCasesFromApi(Array.isArray(casesResponse.data?.cases) ? casesResponse.data.cases : []);
+                setTeamFromApi(Array.isArray(teamResponse.data?.team) ? teamResponse.data.team : []);
+            } catch (error) {
+                if (cancelled) return;
+                setCasesFromApi([]);
+                setTeamFromApi([]);
+            }
+        };
+        load();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Получаем все уникальные теги из shopData
-    const allTags = [...new Set(shopData.flatMap(item => item.tags))];
+    const allTags = [...new Set(shopData.flatMap(item => item.tags || []))];
 
     // Отслеживание видимости фильтра и конца кейсов при скролле
     useEffect(() => {
@@ -133,7 +165,7 @@ function Shop({ children, ...props }) {
         }
 
         setFilteredItems(filtered);
-    }, [selectedCategory, selectedTag, searchQuery]);
+    }, [selectedCategory, selectedTag, searchQuery, shopData]);
 
     // Обработчик выбора категории
     const handleCategorySelect = (category) => {
@@ -184,7 +216,7 @@ function Shop({ children, ...props }) {
             return;
         }
 
-        const itemFromUrl = shopData.find(n => n.url_text === routeUrlText);
+        const itemFromUrl = shopData.find((n) => n.url_text === routeUrlText);
         if (!itemFromUrl) {
             setIsModalOpen(false);
             setSelectedItem(null);
@@ -194,7 +226,7 @@ function Shop({ children, ...props }) {
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
-    }, [routeUrlText, navigate]);
+    }, [routeUrlText, navigate, shopData]);
 
     // Скролл к карточке товара при открытии по URL
     useEffect(() => {
@@ -327,10 +359,7 @@ function Shop({ children, ...props }) {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
                 {selectedItem && (
-                    <div style={{ padding: '40px' }}>
-                        <h2>{selectedItem.title}</h2>
-                        <p>{selectedItem.description}</p>
-                    </div>
+                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
                 )}
             </Modal>
         </div>
