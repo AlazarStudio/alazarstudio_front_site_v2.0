@@ -383,7 +383,7 @@ run().catch(console.error);`;
     <div className={styles.adminContainer}>
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : styles.closed}`}>
         <div className={styles.sidebarHeader}>
-          <Link to="/admin" className={styles.logo}>Админ панель</Link>
+          <Link to="/" target='_blank' className={styles.logo}>Админ панель</Link>
           <button 
             className={styles.toggleBtn}
             onClick={() => setSidebarOpen(!sidebarOpen)}
