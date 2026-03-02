@@ -7,7 +7,7 @@ import VideoStart from "../Blocks/VideoStart/VideoStart";
 function Main_Page({ children, ...props }) {
     return (
         <>
-            <VideoStart />
+            {/* <VideoStart /> */}
             <Cases />
             <Discuss />
         </>
