@@ -100,6 +100,7 @@ export default function PlaceEditPage() {
   const [cropModalImageSrc, setCropModalImageSrc] = useState(null);
   const cropModalFileUrlRef = useRef(null);
   const [pendingImages, setPendingImages] = useState({});
+  const [missingPreviewFile, setMissingPreviewFile] = useState(false);
   const [pendingSliderVideo, setPendingSliderVideo] = useState(null);
   const [pendingGallery, setPendingGallery] = useState([]);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -337,6 +338,7 @@ export default function PlaceEditPage() {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    setMissingPreviewFile(false);
     if (cropModalFileUrlRef.current) URL.revokeObjectURL(cropModalFileUrlRef.current);
     const url = URL.createObjectURL(file);
     cropModalFileUrlRef.current = url;
@@ -378,6 +380,7 @@ export default function PlaceEditPage() {
   };
 
   const clearPreview = () => {
+    setMissingPreviewFile(false);
     setPendingImages((prev) => {
       const next = { ...prev };
       if (next.image) {
@@ -967,40 +970,76 @@ export default function PlaceEditPage() {
               className={`${styles.previewItem} ${styles.previewItemMain}`}
               style={{ width: 330, aspectRatio: '330 / 390', position: 'relative', overflow: 'hidden', borderRadius: 8 }}
             >
-              <img src={getImageSrc('image')} alt="Превью" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              <span className={styles.previewItemBadge}>Превью</span>
-              <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'row', gap: 6 }}>
-                <button
-                  type="button"
-                  onClick={openPreviewCropModal}
-                  className={styles.removeImage}
-                  style={{ position: 'relative', top: 0, right: 0 }}
-                  aria-label="Обрезать"
-                  title="Обрезать"
+              {!missingPreviewFile ? (
+                <>
+                  <img
+                    src={getImageSrc('image')}
+                    alt="Превью"
+                    onError={() => {
+                      if (!pendingImages.image && formData.image) setMissingPreviewFile(true);
+                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <span className={styles.previewItemBadge}>Превью</span>
+                  <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'row', gap: 6 }}>
+                    <button
+                      type="button"
+                      onClick={openPreviewCropModal}
+                      className={styles.removeImage}
+                      style={{ position: 'relative', top: 0, right: 0 }}
+                      aria-label="Обрезать"
+                      title="Обрезать"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => previewUploadRef.current?.click()}
+                      className={styles.removeImage}
+                      style={{ position: 'relative', top: 0, right: 0 }}
+                      aria-label="Заменить файл"
+                      title="Заменить файл"
+                    >
+                      <Upload size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearPreview}
+                      className={styles.removeImage}
+                      style={{ position: 'relative', top: 0, right: 0 }}
+                      aria-label="Удалить"
+                      title="Удалить"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    padding: 16,
+                    textAlign: 'center',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    color: '#ef4444'
+                  }}
                 >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => previewUploadRef.current?.click()}
-                  className={styles.removeImage}
-                  style={{ position: 'relative', top: 0, right: 0 }}
-                  aria-label="Заменить файл"
-                  title="Заменить файл"
-                >
-                  <Upload size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={clearPreview}
-                  className={styles.removeImage}
-                  style={{ position: 'relative', top: 0, right: 0 }}
-                  aria-label="Удалить"
-                  title="Удалить"
-                >
-                  <X size={14} />
-                </button>
-              </div>
+                  <div>Не удалось найти файл превью</div>
+                  <button
+                    type="button"
+                    onClick={() => previewUploadRef.current?.click()}
+                    className={styles.replaceBtn}
+                  >
+                    Заменить
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className={styles.imageUpload} onClick={() => previewUploadRef.current?.click()} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') previewUploadRef.current?.click(); }}>

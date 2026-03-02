@@ -584,6 +584,7 @@
 .imagePreview {
   position: relative;
   max-width: 400px;
+  min-height: 50px;
   border-radius: 8px;
   overflow: hidden;
 }

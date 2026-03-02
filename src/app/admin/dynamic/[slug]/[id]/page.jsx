@@ -246,6 +246,7 @@ export default function DynamicRecordEditPage() {
   const [additionalBlocks, setAdditionalBlocks] = useState([]);
   const [isPublished, setIsPublished] = useState(true);
   const [pendingFiles, setPendingFiles] = useState({});
+  const [missingFileFields, setMissingFileFields] = useState({});
   const [infoModal, setInfoModal] = useState(null);
   const [invalidStructureFieldKeys, setInvalidStructureFieldKeys] = useState([]);
   const [invalidAdditionalBlockIds, setInvalidAdditionalBlockIds] = useState([]);
@@ -455,6 +456,12 @@ export default function DynamicRecordEditPage() {
       ...prev,
       [fieldType]: value
     }));
+    setMissingFileFields((prev) => {
+      if (!prev[fieldType]) return prev;
+      const next = { ...prev };
+      delete next[fieldType];
+      return next;
+    });
     setInvalidStructureFieldKeys((prev) => prev.filter((key) => key !== fieldType));
     setPulseStructureFieldKeys((prev) => prev.filter((key) => key !== fieldType));
   };
@@ -1314,6 +1321,7 @@ export default function DynamicRecordEditPage() {
 
       case 'image':
         const imageItem = value && typeof value === 'object' ? value : (value ? { type: 'url', value } : null);
+        const isMissingImageFile = Boolean(missingFileFields[fieldKey] && imageItem?.type === 'url');
         return (
           <div key={fieldKey} ref={(el) => { structureFieldRefs.current[fieldKey] = el; }} className={fieldClassName}>
             <label className={styles.blockLabel}>{label}</label>
@@ -1333,17 +1341,49 @@ export default function DynamicRecordEditPage() {
             {imageItem && (
               <div className={styles.imagePreview} style={{ marginTop: 12 }}>
                 <div className={styles.previewItem} style={{ aspectRatio: 'auto', height: 'auto' }}>
-                  <img 
-                    src={imageItem.type === 'url' ? getImageUrl(imageItem.value) : imageItem.preview} 
-                    alt="" 
-                    style={{ width: '100%', height: 'auto', maxHeight: 300, borderRadius: '8px', display: 'block', objectFit: 'contain' }} 
-                  />
+                  {!isMissingImageFile ? (
+                    <img
+                      src={imageItem.type === 'url' ? getImageUrl(imageItem.value) : imageItem.preview}
+                      alt=""
+                      onError={() => {
+                        if (imageItem.type === 'url') {
+                          setMissingFileFields((prev) => ({ ...prev, [fieldKey]: true }));
+                        }
+                      }}
+                      style={{ width: '100%', height: 'auto', maxHeight: 300, borderRadius: '8px', display: 'block', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        minHeight: 84,
+                        borderRadius: 8,
+                        border: '1px dashed rgba(239, 68, 68, 0.5)',
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        color: '#ef4444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        fontSize: 13,
+                        padding: '10px 12px'
+                      }}
+                    >
+                      Не удалось найти файл. Загрузите новый.
+                    </div>
+                  )}
                   <button 
                     type="button" 
                     onClick={() => {
                       if (imageItem.type === 'file' && imageItem.preview) {
                         URL.revokeObjectURL(imageItem.preview);
                       }
+                      setMissingFileFields((prev) => {
+                        if (!prev[fieldKey]) return prev;
+                        const next = { ...prev };
+                        delete next[fieldKey];
+                        return next;
+                      });
                       handleFieldChange(fieldKey, null);
                     }} 
                     className={styles.removeImage} 
@@ -1352,6 +1392,11 @@ export default function DynamicRecordEditPage() {
                   >
                     <XIcon size={14} />
                   </button>
+                </div>
+                <div className={styles.imageActions} style={{ marginTop: 8 }}>
+                  <label htmlFor={`field-img-${fieldKey}`} className={styles.replaceBtn}>
+                    Заменить
+                  </label>
                 </div>
               </div>
             )}
