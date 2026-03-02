@@ -3,11 +3,11 @@
     justify-content: center;
     position: relative;
     z-index: 3;
-    padding-top: 140px;
+    padding-top: 120px;
 }
 
 .filterContainer {
-    margin-bottom: 50px;
+    /* margin-bottom: 50px; */
     display: flex;
     flex-direction: column;
     gap: 25px;
