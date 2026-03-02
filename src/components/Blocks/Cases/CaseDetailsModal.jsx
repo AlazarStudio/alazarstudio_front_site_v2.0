@@ -8,7 +8,7 @@ import {
   getCaseTaskHtml,
   getCaseViews,
   mapTeamItems,
-} from './casesHelpers';
+} from '@/components/Blocks/Cases/casesHelpers';
 import classes from './CaseDetailsModal.module.css';
 
 function SocialButton({ icon: Icon, label }) {

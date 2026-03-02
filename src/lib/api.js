@@ -327,7 +327,14 @@ export const newsAPI = {
 
 // News API (public — для страницы «Новости и статьи»)
 export const publicNewsAPI = {
-  getAll: (params) => api.get('/news', { params }),
+  getAll: (params = {}) =>
+    api.get('/news/public', { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        news: normalizePublicItemsResponse(response.data, 'news'),
+      },
+    })),
   getByIdOrSlug: (idOrSlug) => api.get(`/news/${idOrSlug}`),
 };
 
@@ -522,6 +529,17 @@ export const publicTeamAPI = {
       data: {
         ...response.data,
         team: normalizePublicItemsResponse(response.data, 'team'),
+      },
+    })),
+};
+
+export const publicStocksAPI = {
+  getAll: (params = {}) =>
+    api.get('/stocks/public', { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        stocks: normalizePublicItemsResponse(response.data, 'stocks'),
       },
     })),
 };

@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { filterCategories, elementTypes, bannersData, newsData } from '../../../data/casesData.jsx';
+import { filterCategories, elementTypes } from '../../../data/casesData.jsx';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
 import CaseDetailsModal from './CaseDetailsModal';
-import { isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from './casesHelpers';
-import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
+import NewsDetailsModal from './NewsDetailsModal';
+import ShopDetailsModal from './ShopDetailsModal';
+import { isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
+import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
+import { publicCasesAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 
 function Cases({ children, ...props }) {
     // Состояния для фильтрации
@@ -19,6 +22,8 @@ function Cases({ children, ...props }) {
     const [isModalOpen, setIsModalOpen] = useState(false); // Состояние модального окна
     const [selectedItem, setSelectedItem] = useState(null); // Выбранный элемент для модального окна
     const [casesFromApi, setCasesFromApi] = useState([]);
+    const [newsFromApi, setNewsFromApi] = useState([]);
+    const [stocksFromApi, setStocksFromApi] = useState([]);
     const [teamFromApi, setTeamFromApi] = useState([]);
     const [isCasesLoaded, setIsCasesLoaded] = useState(false);
     const navigate = useNavigate();
@@ -30,21 +35,35 @@ function Cases({ children, ...props }) {
         () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => isCaseForShop(item)).map(mapCaseRecordToShopCard) : []),
         [casesFromApi]
     );
+    const newsData = useMemo(
+        () => (Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : []),
+        [newsFromApi]
+    );
+    const bannersData = useMemo(
+        () => (Array.isArray(stocksFromApi) ? stocksFromApi.filter(isStockActual).map(mapStockRecordToCard) : []),
+        [stocksFromApi]
+    );
 
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
             try {
-                const [casesRes, teamRes] = await Promise.all([
+                const [casesRes, newsRes, stocksRes, teamRes] = await Promise.all([
                     publicCasesAPI.getAll({ page: 1, limit: 500 }),
+                    publicNewsAPI.getAll({ page: 1, limit: 500 }),
+                    publicStocksAPI.getAll({ page: 1, limit: 500 }),
                     publicTeamAPI.getAll({ page: 1, limit: 500 }),
                 ]);
                 if (cancelled) return;
                 setCasesFromApi(Array.isArray(casesRes.data?.cases) ? casesRes.data.cases : []);
+                setNewsFromApi(Array.isArray(newsRes.data?.news) ? newsRes.data.news : []);
+                setStocksFromApi(Array.isArray(stocksRes.data?.stocks) ? stocksRes.data.stocks : []);
                 setTeamFromApi(Array.isArray(teamRes.data?.team) ? teamRes.data.team : []);
             } catch (error) {
                 if (cancelled) return;
                 setCasesFromApi([]);
+                setNewsFromApi([]);
+                setStocksFromApi([]);
                 setTeamFromApi([]);
             } finally {
                 if (!cancelled) setIsCasesLoaded(true);
@@ -308,7 +327,7 @@ function Cases({ children, ...props }) {
             setIsModalOpen(false);
             setSelectedItem(null);
         }
-    }, [routeType, routeUrlText, navigate, isCasesLoaded, casesData]);
+    }, [routeType, routeUrlText, navigate, isCasesLoaded, casesData, newsData, shopData, bannersData]);
 
     // Прокрутка к карточке при открытии по URL
     useEffect(() => {
@@ -439,8 +458,12 @@ function Cases({ children, ...props }) {
             {/* Модальное окно */}
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
             {selectedItem && (
-                (selectedItem.type === 'case' || selectedItem.type === 'shop')
+                (selectedItem.type === 'case')
                     ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    : (selectedItem.type === 'shop')
+                        ? <ShopDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    : (selectedItem.type === 'new' || selectedItem.type === 'banner')
+                        ? <NewsDetailsModal item={selectedItem} />
                     : (
                         <div style={{ padding: '40px' }}>
                             <h2>{selectedItem.title}</h2>

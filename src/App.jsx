@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Main from '@/app/Main/Main'
-import Main_Page from "./Components/Pages/Main_Page";
-import Non_Found_Page from "./Components/Pages/Non_Found_Page";
-import Layout from "./Components/Standart/Layout/Layout";
-import CustomCursor from "./Components/Cursor/CustomCursor"
-import About from "./Components/Pages/About/About";
-import Blog from "./Components/Pages/Blog/Blog";
-import Shop from "./Components/Pages/Shop/Shop";
-import Contacts from "./Components/Pages/Contacts/Contacts";
+import Main_Page from "./components/Pages/Main_Page";
+import Non_Found_Page from "./components/Pages/Non_Found_Page";
+import Layout from "./components/Standart/Layout/Layout";
+import CustomCursor from "./components/Cursor/CustomCursor"
+import About from "./components/Pages/About/About";
+import Blog from "./components/Pages/Blog/Blog";
+import Shop from "./components/Pages/Shop/Shop";
+import Contacts from "./components/Pages/Contacts/Contacts";
 
 import NotFound from '@/app/NotFound'
 import AdminLayout from '@/app/admin/layout'

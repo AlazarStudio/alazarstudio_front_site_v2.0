@@ -60,16 +60,20 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
                 onClick={(e) => e.stopPropagation()}
             >
                 {showCloseButton && (
-                    <button
-                        type="button"
-                        className={classes.closeButton}
-                        onClick={handleClose}
-                        aria-label={closeButtonAriaLabel}
-                    >
-                        ×
-                    </button>
+                    <div className={classes.closeButtonWrap}>
+                        <button
+                            type="button"
+                            className={classes.closeButton}
+                            onClick={handleClose}
+                            aria-label={closeButtonAriaLabel}
+                        >
+                            ×
+                        </button>
+                    </div>
                 )}
-                {children}
+                <div className={classes.modalBody}>
+                    {children}
+                </div>
             </div>
         </div>
     );

@@ -157,7 +157,16 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
 
                     <div className={classes.banner_img}>
                         <div className={classes.banner_img_container}>
-                            <img src={imgSrc} alt="" />
+                            <img
+                                src={imgSrc}
+                                alt=""
+                                style={{
+                                    transform: isHovered
+                                        ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
+                                        : 'scale(1) translate(0, 0)',
+                                    transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
@@ -205,7 +214,16 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                         <div className={classes.new_container_title}>{title}</div>
                         <div className={classes.new_container_desc}>{description}</div>
                         <div className={classes.new_container_img}>
-                            <img src={imgSrc} alt="" />
+                            <img
+                                src={imgSrc}
+                                alt=""
+                                style={{
+                                    transform: isHovered
+                                        ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
+                                        : 'scale(1) translate(0, 0)',
+                                    transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

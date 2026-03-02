@@ -1,22 +1,47 @@
 import React, { useState, useEffect } from "react";
 import classes from './Blog.module.css';
-import { newsData } from '../../../data/casesData.jsx';
 import { IconButton, Tooltip } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { publicNewsAPI } from '@/lib/api';
+import { mapNewsRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
+import NewsDetailsModal from '../../Blocks/Cases/NewsDetailsModal';
 
 function Blog({ children, ...props }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState('newest'); // 'newest' или 'oldest'
     const [isLoading, setIsLoading] = useState(false);
-    const [filteredNews, setFilteredNews] = useState(newsData);
+    const [filteredNews, setFilteredNews] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [newsFromApi, setNewsFromApi] = useState([]);
+    const [isNewsLoaded, setIsNewsLoaded] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
+    const newsData = Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : [];
+
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const response = await publicNewsAPI.getAll({ page: 1, limit: 500 });
+                if (cancelled) return;
+                setNewsFromApi(Array.isArray(response.data?.news) ? response.data.news : []);
+            } catch (error) {
+                if (cancelled) return;
+                setNewsFromApi([]);
+            } finally {
+                if (!cancelled) setIsNewsLoaded(true);
+            }
+        };
+        load();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Фильтрация, поиск и сортировка
     useEffect(() => {
@@ -62,7 +87,7 @@ function Blog({ children, ...props }) {
             setFilteredNews(filtered);
             setIsLoading(false);
         }
-    }, [searchQuery, sortOrder]);
+    }, [searchQuery, sortOrder, newsData]);
 
     // Обработчик изменения поиска
     const handleSearchChange = (e) => {
@@ -105,13 +130,13 @@ function Blog({ children, ...props }) {
         if (!itemFromUrl) {
             setIsModalOpen(false);
             setSelectedItem(null);
-            navigate("/blog", { replace: true });
+            navigate("/news", { replace: true });
             return;
         }
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
-    }, [routeUrlText, navigate]);
+    }, [routeUrlText, navigate, newsData, isNewsLoaded]);
 
     // Скролл к карточке новости при открытии по URL
     useEffect(() => {
@@ -222,10 +247,7 @@ function Blog({ children, ...props }) {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
                 {selectedItem && (
-                    <div style={{ padding: '40px' }}>
-                        <h2>{selectedItem.title}</h2>
-                        <p>{selectedItem.description}</p>
-                    </div>
+                    <NewsDetailsModal item={selectedItem} />
                 )}
             </Modal>
         </div>

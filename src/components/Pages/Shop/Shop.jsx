@@ -4,9 +4,9 @@ import { filterCategories } from '../../../data/casesData.jsx';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
-import { isCaseForShop, mapCaseRecordToShopCard } from '../../Blocks/Cases/casesHelpers';
-import CaseDetailsModal from '../../Blocks/Cases/CaseDetailsModal';
+import { publicCasesAPI } from '@/lib/api';
+import { isCaseForShop, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
+import ShopDetailsModal from '@/components/Blocks/Cases/ShopDetailsModal';
 
 // Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
@@ -39,7 +39,6 @@ function Shop({ children, ...props }) {
     const [isFilterVisible, setIsFilterVisible] = useState(true);
     const [isCasesEnded, setIsCasesEnded] = useState(false);
     const [casesFromApi, setCasesFromApi] = useState([]);
-    const [teamFromApi, setTeamFromApi] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
@@ -57,17 +56,12 @@ function Shop({ children, ...props }) {
         let cancelled = false;
         const load = async () => {
             try {
-                const [casesResponse, teamResponse] = await Promise.all([
-                    publicCasesAPI.getAll({ page: 1, limit: 1000 }),
-                    publicTeamAPI.getAll({ page: 1, limit: 500 }),
-                ]);
+                const casesResponse = await publicCasesAPI.getAll({ page: 1, limit: 1000 });
                 if (cancelled) return;
                 setCasesFromApi(Array.isArray(casesResponse.data?.cases) ? casesResponse.data.cases : []);
-                setTeamFromApi(Array.isArray(teamResponse.data?.team) ? teamResponse.data.team : []);
             } catch (error) {
                 if (cancelled) return;
                 setCasesFromApi([]);
-                setTeamFromApi([]);
             }
         };
         load();
@@ -359,7 +353,7 @@ function Shop({ children, ...props }) {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
                 {selectedItem && (
-                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    <ShopDetailsModal item={selectedItem} />
                 )}
             </Modal>
         </div>

@@ -138,12 +138,11 @@ function resolvePreviewImage(record) {
 }
 
 function resolveDescription(record) {
-  const parts = [];
-  const zadacha = extractPlainText(resolveField(record, 'zadacha'));
-  const reshenie = extractPlainText(resolveField(record, 'reshenie'));
-  if (zadacha) parts.push(zadacha);
-  if (reshenie) parts.push(reshenie);
-  return parts.join(' ').trim();
+  return extractPlainText(resolveField(record, 'reshenie'));
+}
+
+function resolveShopCardDescription(record) {
+  return extractPlainText(resolveField(record, 'reshenie'));
 }
 
 export function mapCaseRecordToCard(record) {
@@ -183,8 +182,80 @@ export function mapCaseRecordToShopCard(record) {
   return {
     ...base,
     type: 'shop',
-    price: extractPlainText(resolveField(record, 'stoimost')) || 0,
+    description: resolveShopCardDescription(record || {}),
+    price: getShopPrice(record),
   };
+}
+
+export function getShopPrice(record) {
+  const priceCandidates = [
+    resolveField(record, 'tsena'),
+    resolveField(record, 'stoimost'),
+    resolveField(record, 'price'),
+  ];
+  return (
+    priceCandidates
+      .map((value) => extractPlainText(value?.value ?? value))
+      .find((value) => value && String(value).trim().length > 0) || 0
+  );
+}
+
+function prettySpecLabel(key) {
+  const map = {
+    kolichestvo_stranic: 'Количество страниц',
+    tip: 'Тип',
+    podderzhka: 'Поддержка',
+    srok: 'Срок',
+    format: 'Формат',
+  };
+  if (map[key]) return map[key];
+  return String(key || '')
+    .replace(/_/g, ' ')
+    .replace(/^\w/, (char) => char.toUpperCase());
+}
+
+export function getShopSpecs(record) {
+  if (!record || typeof record !== 'object') return [];
+  const skip = new Set([
+    'id', '_id', 'created_at', 'createdAt', 'updated_at', 'updatedAt', 'isPublished',
+    'additionalBlocks', 'nazvanie', 'title', 'zadacha', 'reshenie', 'opisanie',
+    'description', 'text', 'content', 'prev_yu', 'prevyu', 'preview', 'logotip',
+    'tegi', 'komanda', 'dlya_magazina', 'tsena', 'stoimost', 'price', 'prosmotry',
+    'data',
+  ]);
+
+  return Object.entries(record)
+    .filter(([key]) => !skip.has(key))
+    .map(([key, raw]) => {
+      const value = resolveField(record, key);
+      const plain = extractPlainText(value?.value ?? value?.text ?? value?.content ?? value);
+      return {
+        key,
+        label: prettySpecLabel(key),
+        value: plain,
+      };
+    })
+    .filter((item) => item.value);
+}
+
+export function getShopDescriptionHtml(record) {
+  const direct = resolveField(record, 'opisanie')
+    || resolveField(record, 'description')
+    || resolveField(record, 'text')
+    || resolveField(record, 'content');
+  if (direct && typeof direct === 'object' && typeof direct.content === 'string') return direct.content;
+  if (typeof direct === 'string' && direct.trim()) return direct;
+
+  const additionalBlocksRaw = resolveField(record, 'additionalBlocks');
+  const blocks = asArray(additionalBlocksRaw).filter((block) => block && typeof block === 'object');
+  for (const block of blocks) {
+    const type = String(block?.type || '').toLowerCase();
+    const data = parseMaybeJson(block?.data);
+    if (type === 'text' || type === 'quote') {
+      if (typeof data?.content === 'string' && data.content.trim()) return data.content;
+    }
+  }
+  return '';
 }
 
 export function getCaseLogoUrl(caseRecord) {

@@ -6,9 +6,14 @@ function Header({ children, ...props }) {
     const [hasBackground, setHasBackground] = useState(false);
     const { pathname } = useLocation();
     const section = pathname.split("/")[1] || "/";
+    const isBlog = pathname === '/news' || pathname.startsWith('/news/');
+    const isShop = pathname === '/shop' || pathname.startsWith('/shop/');
+    const isAbout = pathname === '/about' || pathname.startsWith('/about/');
+    const isContacts = pathname === '/contacts' || pathname.startsWith('/contacts/');
+    const isCases = !isBlog && !isShop && !isAbout && !isContacts && !pathname.startsWith('/admin');
 
     
-    let scrollNumber = 400
+    let scrollNumber = 50
     if (section == 'news'){
         scrollNumber = 100
     }
@@ -41,11 +46,11 @@ function Header({ children, ...props }) {
 
                 <div className={classes.header_links}>
                     {/* <Link to={'/'}>Главная</Link> */}
-                    <Link to={'/'}>Кейсы</Link>
-                    <Link to={'/news'}>Блог</Link>
-                    <Link to={'/shop'}>Магазин</Link>
-                    <Link to={'/about'}>О нас</Link>
-                    <Link to={'/contacts'}>Контакты</Link>
+                    <Link to={'/'} className={isCases ? classes.linkActive : ''}>Кейсы</Link>
+                    <Link to={'/news'} className={isBlog ? classes.linkActive : ''}>Блог</Link>
+                    <Link to={'/shop'} className={isShop ? classes.linkActive : ''}>Магазин</Link>
+                    <Link to={'/about'} className={isAbout ? classes.linkActive : ''}>О нас</Link>
+                    <Link to={'/contacts'} className={isContacts ? classes.linkActive : ''}>Контакты</Link>
                 </div>
 
                 {/* <div className={classes.header_links_user}>

@@ -6,7 +6,7 @@
     position: fixed;
     width: 100%;
     background-color: transparent;
-    z-index: 999;
+    z-index: 10;
     transition: background-color 0.3s ease-in-out;
 }
 
@@ -26,6 +26,28 @@
     color: #fff;
     text-transform: uppercase;
     text-transform: uppercase;
+    position: relative;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.header_links a:hover {
+    opacity: 1;
+}
+
+.linkActive {
+    opacity: 1 !important;
+}
+
+.linkActive::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    background: #e5097e;
+    border-radius: 999px;
 }
 
 .header_links_user {
