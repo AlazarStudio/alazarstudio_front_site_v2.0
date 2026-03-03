@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import classes from './Header.module.css';
 import { Link, useLocation } from "react-router-dom";
 
 function Header({ children, ...props }) {
     const [hasBackground, setHasBackground] = useState(false);
+    const [hoveredLinkKey, setHoveredLinkKey] = useState(null);
+    const [leavingLinkKeys, setLeavingLinkKeys] = useState([]);
+    const leaveTimersRef = useRef({});
+    const hoverStartedAtRef = useRef({});
     const { pathname } = useLocation();
     const section = pathname.split("/")[1] || "/";
+    const isHome = pathname === '/' || pathname.startsWith('/case/') || pathname.startsWith('/new/') || pathname.startsWith('/banner/');
     const isBlog = pathname === '/news' || pathname.startsWith('/news/');
     const isShop = pathname === '/shop' || pathname.startsWith('/shop/');
+    const isCases = pathname === '/cases' || pathname.startsWith('/cases/');
     const isAbout = pathname === '/about' || pathname.startsWith('/about/');
     const isContacts = pathname === '/contacts' || pathname.startsWith('/contacts/');
-    const isCases = !isBlog && !isShop && !isAbout && !isContacts && !pathname.startsWith('/admin');
 
     
     let scrollNumber = 50
@@ -18,6 +23,9 @@ function Header({ children, ...props }) {
         scrollNumber = 100
     }
     if (section == 'shop'){
+        scrollNumber = 100
+    }
+    if (section == 'cases'){
         scrollNumber = 100
     }
 
@@ -39,18 +47,80 @@ function Header({ children, ...props }) {
         };
     }, [scrollNumber]);
 
+    useEffect(() => {
+        return () => {
+            Object.values(leaveTimersRef.current).forEach((timerId) => {
+                clearTimeout(timerId);
+            });
+            leaveTimersRef.current = {};
+        };
+    }, []);
+
+    const handleLinkEnter = (key) => {
+        hoverStartedAtRef.current[key] = Date.now();
+
+        const activeTimer = leaveTimersRef.current[key];
+        if (activeTimer) {
+            clearTimeout(activeTimer);
+            delete leaveTimersRef.current[key];
+        }
+
+        setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
+        setHoveredLinkKey(key);
+    };
+
+    const handleLinkLeave = (key, shouldRunLeaveAnimation = true) => {
+        setHoveredLinkKey((prev) => (prev === key ? null : prev));
+
+        if (!shouldRunLeaveAnimation) {
+            setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
+            return;
+        }
+
+        setLeavingLinkKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));
+
+        const existingTimer = leaveTimersRef.current[key];
+        if (existingTimer) {
+            clearTimeout(existingTimer);
+        }
+        leaveTimersRef.current[key] = setTimeout(() => {
+            setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
+            delete leaveTimersRef.current[key];
+        }, 760);
+    };
+
+    const navItems = [
+        { key: 'home', to: '/', label: 'Главная', active: isHome },
+        { key: 'cases', to: '/cases', label: 'Кейсы', active: isCases },
+        { key: 'news', to: '/news', label: 'Блог', active: isBlog },
+        { key: 'shop', to: '/shop', label: 'Магазин', active: isShop },
+        { key: 'about', to: '/about', label: 'О нас', active: isAbout },
+        { key: 'contacts', to: '/contacts', label: 'Контакты', active: isContacts },
+    ];
+
     return (
         <header className={`${classes.header} ${hasBackground ? classes.header_withBackground : ''}`}>
             <div className={'centerBlock'}>
                 <Link to={'/'}><img src="/alazar-logo.png" alt="Alazar Studio logo" /></Link>
 
                 <div className={classes.header_links}>
-                    {/* <Link to={'/'}>Главная</Link> */}
-                    <Link to={'/'} className={isCases ? classes.linkActive : ''}>Кейсы</Link>
-                    <Link to={'/news'} className={isBlog ? classes.linkActive : ''}>Блог</Link>
-                    <Link to={'/shop'} className={isShop ? classes.linkActive : ''}>Магазин</Link>
-                    <Link to={'/about'} className={isAbout ? classes.linkActive : ''}>О нас</Link>
-                    <Link to={'/contacts'} className={isContacts ? classes.linkActive : ''}>Контакты</Link>
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.key}
+                            to={item.to}
+                            data-text={item.label}
+                            onMouseEnter={() => handleLinkEnter(item.key)}
+                            onMouseLeave={() => handleLinkLeave(item.key, !item.active)}
+                            className={[
+                                item.active ? classes.linkActive : '',
+                                !item.active && hoveredLinkKey === item.key ? classes.linkHovering : '',
+                                !item.active && leavingLinkKeys.includes(item.key) ? classes.linkLeaving : '',
+                                hoveredLinkKey && hoveredLinkKey !== item.key ? classes.linkDimmed : '',
+                            ].filter(Boolean).join(' ')}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
                 </div>
 
                 {/* <div className={classes.header_links_user}>

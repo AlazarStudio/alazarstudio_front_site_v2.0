@@ -7,6 +7,7 @@ import CustomCursor from "./components/Cursor/CustomCursor"
 import About from "./components/Pages/About/About";
 import Blog from "./components/Pages/Blog/Blog";
 import Shop from "./components/Pages/Shop/Shop";
+import CasesCatalog from "./components/Pages/Cases/CasesCatalog";
 import Contacts from "./components/Pages/Contacts/Contacts";
 
 import NotFound from '@/app/NotFound'
@@ -22,6 +23,8 @@ export default function App() {
 
       <Route path="/" element={<Layout />}>
         <Route index element={<Main_Page />} />
+        <Route path="/cases" element={<CasesCatalog />} />
+        <Route path="/cases/:url_text" element={<CasesCatalog />} />
         <Route path="/:type/:url_text" element={<Main_Page />} />
         <Route path="/news" element={<Blog />} />
         <Route path="/news/:url_text" element={<Blog />} />

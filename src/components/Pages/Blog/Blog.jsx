@@ -22,6 +22,7 @@ function Blog({ children, ...props }) {
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
     const newsData = Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : [];
+    const shouldShowLoader = !isNewsLoaded || isLoading;
 
     useEffect(() => {
         let cancelled = false;
@@ -126,6 +127,8 @@ function Blog({ children, ...props }) {
             return;
         }
 
+        if (!isNewsLoaded) return;
+
         const itemFromUrl = newsData.find(n => n.url_text === routeUrlText);
         if (!itemFromUrl) {
             setIsModalOpen(false);
@@ -216,14 +219,14 @@ function Blog({ children, ...props }) {
                     </div>
 
                     {/* Прелоадер */}
-                    {isLoading && (
+                    {shouldShowLoader && (
                         <div className={classes.loaderContainer}>
                             <div className={classes.loader}></div>
                         </div>
                     )}
 
                     {/* Результаты */}
-                    {!isLoading && (
+                    {!shouldShowLoader && (
                         <>
                             {filteredNews.length > 0 ? (
                                 <div className={classes.newsGrid}>

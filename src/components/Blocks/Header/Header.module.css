@@ -25,21 +25,14 @@
 .header_links a {
     color: #fff;
     text-transform: uppercase;
-    text-transform: uppercase;
     position: relative;
     opacity: 0.8;
-    transition: opacity 0.2s ease;
+    transition: opacity 1.5s ease;
+    display: inline-block;
+    isolation: isolate;
 }
 
-.header_links a:hover {
-    opacity: 1;
-}
-
-.linkActive {
-    opacity: 1 !important;
-}
-
-.linkActive::after {
+.header_links a::before {
     content: '';
     position: absolute;
     left: 0;
@@ -48,6 +41,158 @@
     height: 2px;
     background: #e5097e;
     border-radius: 999px;
+    opacity: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.header_links a::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #e5097e;
+    white-space: nowrap;
+    clip-path: inset(100% 0 0 0);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.header_links a:hover {
+    opacity: 1;
+}
+
+.linkHovering::before {
+    animation: linkLineSweep 0.48s linear 1 forwards;
+}
+
+.linkHovering::after {
+    color: #e5097e;
+    text-shadow: 0 0 0 #e5097e;
+    animation: linkTextSweep 0.48s linear 1 forwards;
+}
+
+.linkHovering,
+.linkLeaving {
+    opacity: 1 !important;
+}
+
+.linkDimmed {
+    opacity: 0.3 !important;
+}
+
+.linkLeaving::before {
+    animation: linkLineSweepReverse 0.48s linear 1 forwards;
+}
+
+.linkLeaving::after {
+    color: #e5097e;
+    text-shadow: 0 0 0 #e5097e;
+    animation: linkTextSweepReverse 0.48s linear 1 forwards;
+}
+
+.linkActive {
+    color: #e5097e !important;
+    opacity: 1 !important;
+}
+
+.linkActive.linkDimmed {
+    opacity: 0.3 !important;
+}
+
+.linkActive::before {
+    opacity: 1 !important;
+    bottom: -6px !important;
+    height: 2px !important;
+    z-index: 2 !important;
+    animation: none !important;
+}
+
+.linkActive::after {
+    clip-path: inset(0 0 0 0) !important;
+    animation: none !important;
+}
+
+@keyframes linkLineSweep {
+    0% {
+        bottom: -6px;
+        opacity: 0.95;
+    }
+
+    60% {
+        bottom: calc(100% - 1px);
+        opacity: 0.95;
+    }
+
+    74% {
+        bottom: calc(100% + 2px);
+        opacity: 0;
+    }
+
+    75% {
+        bottom: -18px;
+        opacity: 0;
+    }
+
+    100% {
+        bottom: -6px;
+        opacity: 0.95;
+    }
+}
+
+@keyframes linkTextSweep {
+    0% {
+        clip-path: inset(100% 0 0 0);
+    }
+
+    60% {
+        clip-path: inset(0 0 0 0);
+    }
+
+    100% {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes linkLineSweepReverse {
+    0% {
+        bottom: -6px;
+        opacity: 0.95;
+    }
+
+    24% {
+        bottom: -18px;
+        opacity: 0;
+    }
+
+    25% {
+        bottom: calc(100% + 2px);
+        opacity: 0;
+    }
+
+    58% {
+        bottom: calc(100% - 1px);
+        opacity: 0.95;
+    }
+
+    100% {
+        bottom: -6px;
+        opacity: 0.95;
+    }
+}
+
+@keyframes linkTextSweepReverse {
+    0% {
+        clip-path: inset(0 0 0 0);
+    }
+
+    58% {
+        clip-path: inset(0 0 0 0);
+    }
+
+    100% {
+        clip-path: inset(100% 0 0 0);
+    }
 }
 
 .header_links_user {

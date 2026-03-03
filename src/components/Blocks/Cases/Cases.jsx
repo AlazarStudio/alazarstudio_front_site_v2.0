@@ -355,6 +355,7 @@ function Cases({ children, ...props }) {
     const rows = createRows();
     const currentCategory = filterCategories[selectedCategory];
     const availableTags = currentCategory ? currentCategory.tags : [];
+    const shouldShowLoader = !isCasesLoaded || isLoading;
 
     // Функция для рендеринга фильтра
     const renderFilter = (containerClass = classes.filterContainer) => (
@@ -417,14 +418,14 @@ function Cases({ children, ...props }) {
                     <div ref={casesRef}></div>
 
                     {/* Лоадер */}
-                    {isLoading && (
+                    {shouldShowLoader && (
                         <div className={classes.loaderContainer}>
                             <div className={classes.loader}></div>
                         </div>
                     )}
 
                     {/* Результаты или сообщение об отсутствии результатов */}
-                    {!isLoading && (
+                    {!shouldShowLoader && (
                         <>
                             {rows.length > 0 ? (
                                 rows.map((row, rowIndex) => (

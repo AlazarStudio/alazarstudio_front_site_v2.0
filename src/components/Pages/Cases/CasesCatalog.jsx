@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import classes from './Shop.module.css';
+import classes from '../Shop/Shop.module.css';
 import { filterCategories } from '../../../data/casesData.jsx';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { publicCasesAPI } from '@/lib/api';
-import { isCaseForShop, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
-import ShopDetailsModal from '@/components/Blocks/Cases/ShopDetailsModal';
+import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
+import { isCaseForShop, mapCaseRecordToCard } from '@/components/Blocks/Cases/casesHelpers';
+import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
 
-// Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
     if (typeof element === 'string') {
         return element;
@@ -31,41 +30,53 @@ function extractTextFromJSX(element) {
     return '';
 }
 
-function Shop({ children, ...props }) {
-    const [selectedCategory, setSelectedCategory] = useState('all'); // По умолчанию "Все"
+function CasesCatalog({ children, ...props }) {
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedTag, setSelectedTag] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isFilterVisible, setIsFilterVisible] = useState(true);
     const [isCasesEnded, setIsCasesEnded] = useState(false);
     const [casesFromApi, setCasesFromApi] = useState([]);
+    const [teamFromApi, setTeamFromApi] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    const [isShopLoaded, setIsShopLoaded] = useState(false);
+    const [isCasesLoaded, setIsCasesLoaded] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
-    const shopData = useMemo(
-        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => isCaseForShop(item)).map(mapCaseRecordToShopCard) : []),
+    const casesData = useMemo(
+        () => (
+            Array.isArray(casesFromApi)
+                ? casesFromApi
+                    .filter((item) => !isCaseForShop(item))
+                    .map(mapCaseRecordToCard)
+                : []
+        ),
         [casesFromApi]
     );
-    const shouldShowLoader = !isShopLoaded || isLoading;
+    const shouldShowLoader = !isCasesLoaded || isLoading;
 
     useEffect(() => {
         let cancelled = false;
         const load = async () => {
             try {
-                const casesResponse = await publicCasesAPI.getAll({ page: 1, limit: 1000 });
+                const [casesResponse, teamResponse] = await Promise.all([
+                    publicCasesAPI.getAll({ page: 1, limit: 1000 }),
+                    publicTeamAPI.getAll({ page: 1, limit: 500 }),
+                ]);
                 if (cancelled) return;
                 setCasesFromApi(Array.isArray(casesResponse.data?.cases) ? casesResponse.data.cases : []);
+                setTeamFromApi(Array.isArray(teamResponse.data?.team) ? teamResponse.data.team : []);
             } catch (error) {
                 if (cancelled) return;
                 setCasesFromApi([]);
+                setTeamFromApi([]);
             } finally {
-                if (!cancelled) setIsShopLoaded(true);
+                if (!cancelled) setIsCasesLoaded(true);
             }
         };
         load();
@@ -74,10 +85,6 @@ function Shop({ children, ...props }) {
         };
     }, []);
 
-    // Получаем все уникальные теги из shopData
-    const allTags = [...new Set(shopData.flatMap(item => item.tags || []))];
-
-    // Отслеживание видимости фильтра и конца кейсов при скролле
     useEffect(() => {
         const handleScroll = () => {
             if (filterRef.current) {
@@ -103,23 +110,18 @@ function Shop({ children, ...props }) {
         };
     }, []);
 
-    // Показ лоадера при изменении фильтров
     useEffect(() => {
         const hasActiveFilters = selectedTag !== null || searchQuery.trim() !== '';
-        
         if (hasActiveFilters) {
             setIsLoading(true);
             const timer = setTimeout(() => {
                 setIsLoading(false);
             }, 1000);
             return () => clearTimeout(timer);
-        } else {
-            // Если нет фильтров, сразу скрываем лоадер
-            setIsLoading(false);
         }
+        setIsLoading(false);
     }, [selectedTag, searchQuery]);
 
-    // Прокрутка к началу фильтров при выборе тега
     useEffect(() => {
         if (selectedTag !== null && filterRef.current) {
             const filterElement = filterRef.current;
@@ -132,43 +134,30 @@ function Shop({ children, ...props }) {
         }
     }, [selectedTag]);
 
-    // Фильтрация, поиск и сортировка
     useEffect(() => {
-        let filtered = [...shopData];
+        let filtered = [...casesData];
 
-        // Фильтр по тегу
         if (selectedTag !== null) {
             filtered = filtered.filter(item => item.tags.includes(selectedTag));
         }
 
-        // Поиск по всем полям
         if (searchQuery.trim() !== '') {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(item => {
-                // Поиск по title (с учетом JSX)
                 const titleText = extractTextFromJSX(item.title).toLowerCase();
                 const titleMatch = titleText.includes(query);
-
-                // Поиск по description
                 const descMatch = item.description.toLowerCase().includes(query);
-
-                // Поиск по тегам
                 const tagsMatch = item.tags.some(tag => tag.toLowerCase().includes(query));
 
-                // Поиск по цене
-                const priceMatch = String(item.price).includes(query);
-
-                return titleMatch || descMatch || tagsMatch || priceMatch;
+                return titleMatch || descMatch || tagsMatch;
             });
         }
 
         setFilteredItems(filtered);
-    }, [selectedCategory, selectedTag, searchQuery, shopData]);
+    }, [selectedCategory, selectedTag, searchQuery, casesData]);
 
-    // Обработчик выбора категории
     const handleCategorySelect = (category) => {
         if (category === selectedCategory) {
-            // Если нажимаем на уже выбранную категорию, сбрасываем выбор
             setSelectedCategory(null);
             setSelectedTag(null);
         } else {
@@ -177,12 +166,10 @@ function Shop({ children, ...props }) {
         }
     };
 
-    // Обработчик выбора тега
     const handleTagSelect = (tag) => {
         setSelectedTag(prev => prev === tag ? null : tag);
     };
 
-    // Обработчик изменения поиска
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
     };
@@ -191,8 +178,8 @@ function Shop({ children, ...props }) {
         setSelectedItem(item);
         setIsModalOpen(true);
         if (item?.url_text) {
-            navigate(`/shop/${item.url_text}`, {
-                state: { modalBackground: "/shop" },
+            navigate(`/cases/${item.url_text}`, {
+                state: { modalBackground: "/cases" },
             });
         }
     };
@@ -200,11 +187,10 @@ function Shop({ children, ...props }) {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedItem(null);
-        const background = location.state?.modalBackground || "/shop";
+        const background = location.state?.modalBackground || "/cases";
         navigate(background, { replace: true });
     };
 
-    // Синхронизация модалки с URL для магазина
     useEffect(() => {
         if (!routeUrlText) {
             if (isModalOpen || selectedItem) {
@@ -214,21 +200,20 @@ function Shop({ children, ...props }) {
             return;
         }
 
-        if (!isShopLoaded) return;
+        if (!isCasesLoaded) return;
 
-        const itemFromUrl = shopData.find((n) => n.url_text === routeUrlText);
+        const itemFromUrl = casesData.find((n) => n.url_text === routeUrlText);
         if (!itemFromUrl) {
             setIsModalOpen(false);
             setSelectedItem(null);
-            navigate("/shop", { replace: true });
+            navigate("/cases", { replace: true });
             return;
         }
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
-    }, [routeUrlText, navigate, shopData]);
+    }, [routeUrlText, navigate, casesData]);
 
-    // Скролл к карточке товара при открытии по URL
     useEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
 
@@ -250,14 +235,12 @@ function Shop({ children, ...props }) {
         return () => clearTimeout(timer);
     }, [selectedItem]);
 
-    // Функция для рендеринга фильтра
     const renderFilter = (containerClass = classes.filterContainer) => {
         const currentCategory = filterCategories[selectedCategory];
         const availableTags = currentCategory ? currentCategory.tags : [];
 
         return (
             <div className={containerClass}>
-                {/* Верхние категории */}
                 <div className={classes.filterCategories}>
                     {Object.keys(filterCategories).map((key) => (
                         <button
@@ -270,7 +253,6 @@ function Shop({ children, ...props }) {
                     ))}
                 </div>
 
-                {/* Нижние теги */}
                 {availableTags.length > 0 && (
                     <div className={classes.filterTags}>
                         {availableTags.map((tag) => (
@@ -291,10 +273,9 @@ function Shop({ children, ...props }) {
     return (
         <div className={classes.blogContainer}>
             <div className={classes.blogContent}>
-                {/* Заголовок */}
                 <div className={classes.blogTitle}>
                     <div className={classes.blogTitle_text}>
-                        Магазин
+                        Кейсы
 
                         <div className={classes.sideLight_right}>
                             <img src="/sideLight.png" alt="" />
@@ -306,30 +287,26 @@ function Shop({ children, ...props }) {
                 </div>
 
                 <div className={classes.blogContent_info} ref={casesContainerRef}>
-                    {/* Поиск */}
                     <div className={classes.searchRow}>
                         <input
                             type="text"
-                            placeholder="Поиск по магазину..."
+                            placeholder="Поиск по кейсам..."
                             value={searchQuery}
                             onChange={handleSearchChange}
                             className={classes.searchInput}
                         />
                     </div>
 
-                    {/* Фильтры */}
                     <div ref={filterRef} data-filter-container="true">
                         {renderFilter()}
                     </div>
 
-                    {/* Прелоадер */}
                     {shouldShowLoader && (
                         <div className={classes.loaderContainer}>
                             <div className={classes.loader}></div>
                         </div>
                     )}
 
-                    {/* Результаты */}
                     {!shouldShowLoader && (
                         <>
                             {filteredItems.length > 0 ? (
@@ -351,7 +328,6 @@ function Shop({ children, ...props }) {
                     )}
                 </div>
 
-                {/* Фиксированный фильтр внизу экрана */}
                 <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
                     {renderFilter(classes.filterContainerFixed)}
                 </div>
@@ -359,11 +335,11 @@ function Shop({ children, ...props }) {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
                 {selectedItem && (
-                    <ShopDetailsModal item={selectedItem} />
+                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
                 )}
             </Modal>
         </div>
     );
 }
 
-export default Shop;
+export default CasesCatalog;
