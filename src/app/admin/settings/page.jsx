@@ -114,6 +114,28 @@ export default function AdminSettingsPage() {
     return `/admin/${normalized}`;
   }, []);
 
+  const resolvePublicUrlTemplate = useCallback((item) => {
+    if (!item || typeof item !== 'object') return '';
+    if (typeof item.publicUrlTemplate === 'string' && item.publicUrlTemplate.trim()) {
+      return item.publicUrlTemplate.trim();
+    }
+    if (item.additionalBlocks && typeof item.additionalBlocks === 'object' && !Array.isArray(item.additionalBlocks)) {
+      return String(item.additionalBlocks.publicUrlTemplate || '').trim();
+    }
+    return '';
+  }, []);
+
+  const buildAdditionalBlocksWithTemplate = useCallback((item, template) => {
+    const current =
+      item?.additionalBlocks && typeof item.additionalBlocks === 'object' && !Array.isArray(item.additionalBlocks)
+        ? item.additionalBlocks
+        : {};
+    return {
+      ...current,
+      publicUrlTemplate: String(template || '').trim(),
+    };
+  }, []);
+
   // Транслитерация кириллицы в латиницу
   const transliterate = useCallback((text) => {
     const map = {
@@ -323,6 +345,7 @@ export default function AdminSettingsPage() {
         id: item.id,
         label: item.label?.trim() || '',
         url: item.url?.trim() || '',
+        publicUrlTemplate: resolvePublicUrlTemplate(item),
         order: item.order || 0,
         isVisible: item.isVisible !== false,
         icon: item.icon || '',
@@ -413,7 +436,8 @@ export default function AdminSettingsPage() {
           isVisible: item.isVisible !== false,
           icon: icon,
           iconType: iconType,
-          isSystem: isSystem
+          isSystem: isSystem,
+          additionalBlocks: buildAdditionalBlocksWithTemplate(item, resolvePublicUrlTemplate(item)),
         };
       });
       
@@ -822,11 +846,16 @@ export default function AdminSettingsPage() {
             id: item.id,
             label: item.label || '',
             url: item.url || '',
+            publicUrlTemplate: resolvePublicUrlTemplate(item),
             order: item.order || 0,
             isVisible: item.isVisible !== false,
             icon: icon,
             iconType: iconType,
-            isSystem: isSystem
+            isSystem: isSystem,
+            additionalBlocks:
+              item.additionalBlocks && typeof item.additionalBlocks === 'object' && !Array.isArray(item.additionalBlocks)
+                ? item.additionalBlocks
+                : null,
           });
         });
       
@@ -1034,6 +1063,7 @@ export default function AdminSettingsPage() {
         icon,
         iconType,
         isSystem: false,
+        additionalBlocks: buildAdditionalBlocksWithTemplate(null, ''),
       };
       
       updatedItems = [...menuItems, newItem];
@@ -1086,6 +1116,7 @@ export default function AdminSettingsPage() {
           icon,
           iconType,
           isSystem,
+          additionalBlocks: buildAdditionalBlocksWithTemplate(item, resolvePublicUrlTemplate(item)),
         };
       });
 

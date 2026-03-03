@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Eye, EyeOff, Plus, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Eye, EyeOff, ExternalLink, Plus, Pencil, RotateCcw, Settings, Trash2, X } from 'lucide-react';
 import { dynamicPagesAPI, menuAPI, dynamicPageRecordsAPI, structureAPI, getImageUrl } from '@/lib/api';
 import { AdminHeaderRightContext, AdminBreadcrumbContext } from '../../layout';
 import { ConfirmModal } from '../../components';
@@ -14,6 +14,60 @@ const MAX_TABLE_COLUMNS = 4;
 const VISIBILITY_COLUMN_WIDTH_PX = 140;
 const ACTIONS_COLUMN_WIDTH_PX = 200;
 const DEFAULT_LIMIT = 10;
+const ADMIN_UI_VERSION = 1;
+
+const DEFAULT_ADMIN_UI = {
+  version: ADMIN_UI_VERSION,
+  actions: {
+    showVisibilityToggle: true,
+    showEdit: true,
+    showDelete: true,
+    showOpenOnSite: false,
+    showBooleanInline: false,
+  },
+  table: {
+    mode: 'auto', // auto | custom
+    visibleFieldKeys: [],
+    hiddenFieldKeys: [],
+  },
+  publicLink: {
+    template: '',
+  },
+};
+
+function normalizeStringArray(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+}
+
+function sanitizeAdminUiConfig(raw) {
+  const input = raw && typeof raw === 'object' ? raw : {};
+  const actions = input.actions && typeof input.actions === 'object' ? input.actions : {};
+  const table = input.table && typeof input.table === 'object' ? input.table : {};
+  const publicLink = input.publicLink && typeof input.publicLink === 'object' ? input.publicLink : {};
+  const mode = table.mode === 'custom' ? 'custom' : 'auto';
+
+  return {
+    version: Number(input.version) || ADMIN_UI_VERSION,
+    actions: {
+      showVisibilityToggle: actions.showVisibilityToggle !== false,
+      showEdit: actions.showEdit !== false,
+      showDelete: actions.showDelete !== false,
+      showOpenOnSite: actions.showOpenOnSite === true,
+      showBooleanInline: actions.showBooleanInline === true,
+    },
+    table: {
+      mode,
+      visibleFieldKeys: normalizeStringArray(table.visibleFieldKeys),
+      hiddenFieldKeys: normalizeStringArray(table.hiddenFieldKeys),
+    },
+    publicLink: {
+      template: String(publicLink.template || '').trim(),
+    },
+  };
+}
 
 function getBlockLabel(field) {
   if (field.label && String(field.label).trim()) return field.label;
@@ -72,7 +126,15 @@ function buildVisibleTableFields(fields) {
     selectedKeys.add(field.fieldKey);
   }
 
-  return selected.slice(0, MAX_TABLE_COLUMNS);
+  // Переключатели должны быть видны в таблице всегда, чтобы не заходить в карточку записи.
+  for (const field of fields) {
+    if (field.type !== 'boolean') continue;
+    if (selectedKeys.has(field.fieldKey)) continue;
+    selected.push(field);
+    selectedKeys.add(field.fieldKey);
+  }
+
+  return selected;
 }
 
 function getDynamicColumnClass(field) {
@@ -145,11 +207,117 @@ function toComparableValue(value, fieldType) {
     return text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
+  if (fieldType === 'boolean') {
+    if (typeof value === 'boolean') return value ? 1 : 0;
+    if (value && typeof value === 'object' && 'value' in value) {
+      const inner = value.value;
+      if (typeof inner === 'boolean') return inner ? 1 : 0;
+      if (typeof inner === 'string') return inner.toLowerCase() === 'true' ? 1 : 0;
+      return Number(Boolean(inner));
+    }
+    if (typeof value === 'string') return value.toLowerCase() === 'true' ? 1 : 0;
+    return Number(Boolean(value));
+  }
+
   if (value == null) return '';
   if (typeof value === 'number' || typeof value === 'boolean') return value;
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.length;
   return JSON.stringify(value);
+}
+
+function resolveBooleanCellValue(value) {
+  if (typeof value === 'boolean') return value;
+  if (value && typeof value === 'object' && 'value' in value) {
+    const inner = value.value;
+    if (typeof inner === 'boolean') return inner;
+    if (typeof inner === 'string') return inner.toLowerCase() === 'true';
+    return Boolean(inner);
+  }
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return Boolean(value);
+}
+
+function extractTextValue(value) {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(extractTextValue).find(Boolean) || '';
+  if (typeof value === 'object') {
+    if ('text' in value) return extractTextValue(value.text);
+    if ('content' in value) return extractTextValue(value.content);
+    if ('value' in value) return extractTextValue(value.value);
+    if ('label' in value) return extractTextValue(value.label);
+  }
+  return '';
+}
+
+function buildPublicRecordUrlByTemplate(template, record) {
+  const rawTemplate = String(template || '').trim();
+  if (!rawTemplate) return null;
+
+  const normalizedTemplate = rawTemplate.startsWith('/') ? rawTemplate : `/${rawTemplate}`;
+  const directSlug = String(record?.url_text || record?.slug || '').trim();
+  const titleCandidates = [
+    record?.nazvanie,
+    record?.title,
+    record?.zagolovok,
+    record?.name,
+  ];
+  const titleValue = titleCandidates.map(extractTextValue).find((value) => value && value.trim()) || '';
+  const slugValue = directSlug || slugFromText(titleValue);
+
+  return normalizedTemplate
+    .replace(/:url_text/g, slugValue || '')
+    .replace(/:slug/g, slugValue || '')
+    .replace(/:id/g, String(record?.id || ''))
+    .replace(/\/\/+/g, '/');
+}
+
+function normalizeTemplatePath(raw) {
+  const source = String(raw || '').trim();
+  if (!source) return '';
+
+  let path = source;
+  try {
+    if (/^https?:\/\//i.test(source)) {
+      path = new URL(source).pathname || '';
+    } else if (!source.startsWith('/')) {
+      path = new URL(`https://${source}`).pathname || '';
+    }
+  } catch (_) {
+    path = source;
+  }
+
+  path = String(path || '')
+    .split('#')[0]
+    .split('?')[0]
+    .trim()
+    .replace(/\/{2,}/g, '/');
+
+  if (!path) return '';
+  if (!path.startsWith('/')) path = `/${path}`;
+  return path;
+}
+
+function buildTemplateFromAnyPathInput(rawInput) {
+  const normalizedPath = normalizeTemplatePath(rawInput);
+  if (!normalizedPath) return '';
+
+  if (/:slug|:url_text|:id/.test(normalizedPath)) {
+    return normalizedPath.replace(/\/+$/, '') || '';
+  }
+
+  const segments = normalizedPath.split('/').filter(Boolean);
+  if (segments.length === 0) return '';
+  if (segments.length === 1) return `/${segments[0]}/:slug`;
+  return `/${segments.slice(0, -1).join('/')}/:slug`;
+}
+
+function withToggledBooleanValue(currentValue, nextBool) {
+  if (currentValue && typeof currentValue === 'object' && !Array.isArray(currentValue) && 'value' in currentValue) {
+    return { ...currentValue, value: nextBool };
+  }
+  return nextBool;
 }
 
 export default function DynamicPageEditor() {
@@ -161,14 +329,52 @@ export default function DynamicPageEditor() {
   const [structureFields, setStructureFields] = useState([]);
   const [records, setRecords] = useState([]);
   const [visibilityUpdatingId, setVisibilityUpdatingId] = useState(null);
+  const [booleanUpdatingKey, setBooleanUpdatingKey] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
+  const [publicUrlTemplate, setPublicUrlTemplate] = useState('');
+  const [menuItemId, setMenuItemId] = useState(null);
+  const [adminUiConfig, setAdminUiConfig] = useState(DEFAULT_ADMIN_UI);
+  const [uiSettingsDraft, setUiSettingsDraft] = useState(DEFAULT_ADMIN_UI);
+  const [isUiSettingsOpen, setIsUiSettingsOpen] = useState(false);
+  const [isUiSettingsSaving, setIsUiSettingsSaving] = useState(false);
+  const [pathAcceptMessage, setPathAcceptMessage] = useState('');
   const setHeaderRight = useContext(AdminHeaderRightContext)?.setHeaderRight;
   const setBreadcrumbLabel = useContext(AdminBreadcrumbContext)?.setBreadcrumbLabel;
-  const tableFields = buildVisibleTableFields(structureFields);
+  const setBreadcrumbAction = useContext(AdminBreadcrumbContext)?.setBreadcrumbAction;
+  const tableFields = useMemo(() => {
+    const autoFields = buildVisibleTableFields(structureFields);
+    const config = sanitizeAdminUiConfig(adminUiConfig);
+    const fieldsMap = new Map(structureFields.map((field) => [field.fieldKey, field]));
+
+    const withBoolean =
+      config.actions.showBooleanInline
+        ? autoFields
+        : autoFields.filter((field) => field.type !== 'boolean');
+
+    if (config.table.mode !== 'custom') {
+      const hidden = new Set(config.table.hiddenFieldKeys);
+      return withBoolean.filter((field) => !hidden.has(field.fieldKey));
+    }
+
+    const selected = config.table.visibleFieldKeys
+      .map((key) => fieldsMap.get(key))
+      .filter(Boolean);
+
+    if (config.actions.showBooleanInline) {
+      const selectedKeys = new Set(selected.map((field) => field.fieldKey));
+      for (const field of structureFields) {
+        if (field.type !== 'boolean') continue;
+        if (selectedKeys.has(field.fieldKey)) continue;
+        selected.push(field);
+      }
+    }
+
+    return selected.length > 0 ? selected : withBoolean;
+  }, [structureFields, adminUiConfig]);
   const returnPageStorageKey = `admin_dynamic_return_page_${slug}`;
 
   const sortedRecords = useMemo(() => {
@@ -360,6 +566,27 @@ export default function DynamicPageEditor() {
       // Используем найденный пункт меню или создаем заглушку
       const title = menuItem?.label || slug.charAt(0).toUpperCase() + slug.slice(1);
       setPageTitle(title);
+      setMenuItemId(menuItem?.id || null);
+      const normalizedUi = sanitizeAdminUiConfig({
+        ...(menuItem?.additionalBlocks?.adminUi || {}),
+        publicLink: {
+          ...(menuItem?.additionalBlocks?.adminUi?.publicLink || {}),
+          template: String(
+            menuItem?.additionalBlocks?.adminUi?.publicLink?.template
+            || menuItem?.additionalBlocks?.publicUrlTemplate
+            || ''
+          ).trim(),
+        },
+      });
+      setAdminUiConfig(normalizedUi);
+      setUiSettingsDraft(normalizedUi);
+      const templateFromMenu = String(
+        normalizedUi?.publicLink?.template
+        || menuItem?.publicUrlTemplate
+        || menuItem?.additionalBlocks?.publicUrlTemplate
+        || ''
+      ).trim();
+      setPublicUrlTemplate(templateFromMenu);
       
       // Загружаем структуру полей:
       // 1) основной источник — отдельный structure endpoint
@@ -404,6 +631,49 @@ export default function DynamicPageEditor() {
     }
   };
 
+  const saveUiSettings = async () => {
+    if (!menuItemId || isUiSettingsSaving) return;
+
+    setIsUiSettingsSaving(true);
+    try {
+      const normalizedDraft = sanitizeAdminUiConfig(uiSettingsDraft);
+      const menuRes = await menuAPI.get();
+      const menuItems = Array.isArray(menuRes?.data?.items) ? menuRes.data.items : [];
+
+      const updatedItems = menuItems.map((item) => {
+        if (item.id !== menuItemId) return item;
+        const existingAdditional =
+          item?.additionalBlocks && typeof item.additionalBlocks === 'object' && !Array.isArray(item.additionalBlocks)
+            ? item.additionalBlocks
+            : {};
+
+        return {
+          ...item,
+          additionalBlocks: {
+            ...existingAdditional,
+            publicUrlTemplate: normalizedDraft.publicLink.template || existingAdditional.publicUrlTemplate || '',
+            adminUi: normalizedDraft,
+          },
+        };
+      });
+
+      await menuAPI.update(updatedItems);
+
+      setAdminUiConfig(normalizedDraft);
+      setPublicUrlTemplate(normalizedDraft.publicLink.template || '');
+      setIsUiSettingsOpen(false);
+      window.dispatchEvent(new CustomEvent('menuUpdated'));
+      // После успешного сохранения перезагружаем страницу, чтобы гарантированно
+      // подтянуть актуальную конфигурацию и таблицу из источника данных.
+      window.location.reload();
+    } catch (error) {
+      console.error('Ошибка сохранения настроек интерфейса:', error);
+      alert('Не удалось сохранить настройки таблицы');
+    } finally {
+      setIsUiSettingsSaving(false);
+    }
+  };
+
   const handleDelete = (recordId) => {
     setConfirmModal({
       open: true,
@@ -445,6 +715,36 @@ export default function DynamicPageEditor() {
       alert('Не удалось изменить видимость записи');
     } finally {
       setVisibilityUpdatingId(null);
+    }
+  };
+
+  const handleToggleBooleanField = async (record, field) => {
+    if (!record?.id || !field?.fieldKey || booleanUpdatingKey) return;
+
+    const updateKey = `${record.id}:${field.fieldKey}`;
+    const currentValue = getRecordFieldValue(record, field);
+    const nextBool = !resolveBooleanCellValue(currentValue);
+    const nextFieldValue = withToggledBooleanValue(currentValue, nextBool);
+
+    setBooleanUpdatingKey(updateKey);
+    try {
+      await dynamicPageRecordsAPI.update(slug, record.id, {
+        ...record,
+        [field.fieldKey]: nextFieldValue,
+      });
+
+      setRecords((prev) =>
+        prev.map((item) =>
+          item.id === record.id
+            ? { ...item, [field.fieldKey]: nextFieldValue }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Ошибка изменения переключателя:', error);
+      alert('Не удалось изменить значение переключателя');
+    } finally {
+      setBooleanUpdatingKey(null);
     }
   };
 
@@ -535,6 +835,31 @@ export default function DynamicPageEditor() {
     
     return () => setHeaderRight(null);
   }, [setHeaderRight, structureFields.length, slug, navigate, currentPage, returnPageStorageKey]);
+
+  useEffect(() => {
+    if (!setBreadcrumbAction || !structureFields.length) {
+      if (setBreadcrumbAction) setBreadcrumbAction(null);
+      return;
+    }
+
+    setBreadcrumbAction(
+      <button
+        type="button"
+        className={styles.breadcrumbHelpBtn}
+        onClick={() => {
+          setUiSettingsDraft(sanitizeAdminUiConfig(adminUiConfig));
+          setPathAcceptMessage('');
+          setIsUiSettingsOpen(true);
+        }}
+        title="Настройки раздела"
+        aria-label="Настройки раздела"
+      >
+        <Settings size={16} />
+      </button>
+    );
+
+    return () => setBreadcrumbAction(null);
+  }, [setBreadcrumbAction, structureFields.length, adminUiConfig]);
 
   if (isLoading) {
     return (
@@ -629,6 +954,7 @@ export default function DynamicPageEditor() {
                       const isGallery = field.type === 'gallery' && Array.isArray(val);
                       const isHeading = field.type === 'heading';
                       const isText = field.type === 'text';
+                      const isBoolean = field.type === 'boolean';
                       
                       // Для heading: объект {text: "..."} или строка
                       const headingText = isHeading && val
@@ -647,6 +973,7 @@ export default function DynamicPageEditor() {
                       const imageUrl = isImage && val
                         ? (typeof val === 'string' ? getImageUrl(val) : (val?.url ? getImageUrl(val.url) : (val?.value ? getImageUrl(val.value) : null)))
                         : null;
+                      const booleanValue = isBoolean ? resolveBooleanCellValue(val) : false;
                       
                       return (
                         <td key={field.fieldKey} className={getDynamicColumnClass(field)}>
@@ -665,6 +992,19 @@ export default function DynamicPageEditor() {
                               `${val.length} фото`
                             ) : headingText ? (
                               <span className={styles.dynamicTextClamp}>{headingText || '-'}</span>
+                            ) : isBoolean ? (
+                              <label className={styles.tableBooleanToggle}>
+                                <input
+                                  type="checkbox"
+                                  checked={booleanValue}
+                                  onChange={() => handleToggleBooleanField(record, field)}
+                                  disabled={booleanUpdatingKey === `${record.id}:${field.fieldKey}`}
+                                />
+                                <span className={styles.tableBooleanSwitch}></span>
+                                <span className={styles.tableBooleanLabel}>
+                                  {booleanValue ? 'Да' : 'Нет'}
+                                </span>
+                              </label>
                             ) : plainRichText ? (
                               <span className={styles.dynamicTextClamp}>
                                 {(plainRichText.length > 120 ? `${plainRichText.slice(0, 120)}…` : plainRichText) || '-'}
@@ -690,34 +1030,64 @@ export default function DynamicPageEditor() {
                     <td className={`${styles.actionsCell} ${styles.dynamicActionsCell}`}>
                       <div className={styles.cellInner}>
                         <div className={styles.actions}>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleVisibility(record)}
-                            className={record.isPublished !== false ? styles.deleteBtn : styles.viewBtn}
-                            title={record.isPublished !== false ? 'Скрыть на сайте' : 'Показать на сайте'}
-                            disabled={visibilityUpdatingId === record.id}
-                          >
-                            {record.isPublished !== false ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              localStorage.setItem(returnPageStorageKey, String(currentPage));
-                              navigate(`/admin/dynamic/${slug}/${record.id}`);
-                            }}
-                            className={styles.editBtn}
-                            title="Редактировать"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(record.id)}
-                            className={styles.deleteBtn}
-                            title="Удалить"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {sanitizeAdminUiConfig(adminUiConfig).actions.showVisibilityToggle && (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleVisibility(record)}
+                              className={record.isPublished !== false ? styles.deleteBtn : styles.viewBtn}
+                              title={record.isPublished !== false ? 'Скрыть на сайте' : 'Показать на сайте'}
+                              disabled={visibilityUpdatingId === record.id}
+                            >
+                              {record.isPublished !== false ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                          )}
+                          {sanitizeAdminUiConfig(adminUiConfig).actions.showEdit && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                localStorage.setItem(returnPageStorageKey, String(currentPage));
+                                navigate(`/admin/dynamic/${slug}/${record.id}`);
+                              }}
+                              className={styles.editBtn}
+                              title="Редактировать"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          )}
+                          {sanitizeAdminUiConfig(adminUiConfig).actions.showOpenOnSite && (() => {
+                            const publicUrl = buildPublicRecordUrlByTemplate(publicUrlTemplate, record);
+                            const isPublished = record.isPublished !== false;
+                            const canOpenPublic = Boolean(publicUrl) && isPublished;
+
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!canOpenPublic) return;
+                                  window.open(publicUrl, '_blank', 'noopener,noreferrer');
+                                }}
+                                className={`${styles.viewBtn} ${!canOpenPublic ? styles.siteOpenBtnDisabled : ''}`}
+                                title={
+                                  !publicUrl
+                                    ? 'Ссылка на сайт не настроена'
+                                    : (canOpenPublic ? 'Открыть на сайте' : 'Доступно только для опубликованных записей')
+                                }
+                                disabled={!canOpenPublic}
+                              >
+                                <ExternalLink size={16} className={!canOpenPublic ? styles.siteOpenIconDisabled : ''} />
+                              </button>
+                            );
+                          })()}
+                          {sanitizeAdminUiConfig(adminUiConfig).actions.showDelete && (
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(record.id)}
+                              className={styles.deleteBtn}
+                              title="Удалить"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -742,7 +1112,254 @@ export default function DynamicPageEditor() {
           message={confirmModal.message}
           onConfirm={confirmModal.onConfirm}
           onCancel={confirmModal.onCancel}
+          overlayStyle={{ zIndex: 13000 }}
         />
+      )}
+
+      {isUiSettingsOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => e.target === e.currentTarget && !isUiSettingsSaving && setIsUiSettingsOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Настройки таблицы"
+        >
+          <div className={styles.modalDialog} style={{ maxWidth: 760 }}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Настройки раздела</h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => !isUiSettingsSaving && setIsUiSettingsOpen(false)}
+                aria-label="Закрыть"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <label className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                  <span className={styles.visibilityLabel}>Показывать «Видимость»</span>
+                  <input
+                    type="checkbox"
+                    checked={uiSettingsDraft.actions.showVisibilityToggle !== false}
+                    onChange={(e) =>
+                      setUiSettingsDraft((prev) => ({
+                        ...prev,
+                        actions: { ...prev.actions, showVisibilityToggle: e.target.checked },
+                      }))
+                    }
+                  />
+                  <span className={styles.visibilitySwitch} />
+                </label>
+                <label className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                  <span className={styles.visibilityLabel}>Показывать «Редактировать»</span>
+                  <input
+                    type="checkbox"
+                    checked={uiSettingsDraft.actions.showEdit !== false}
+                    onChange={(e) =>
+                      setUiSettingsDraft((prev) => ({
+                        ...prev,
+                        actions: { ...prev.actions, showEdit: e.target.checked },
+                      }))
+                    }
+                  />
+                  <span className={styles.visibilitySwitch} />
+                </label>
+                <label className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                  <span className={styles.visibilityLabel}>Показывать «Удалить»</span>
+                  <input
+                    type="checkbox"
+                    checked={uiSettingsDraft.actions.showDelete !== false}
+                    onChange={(e) =>
+                      setUiSettingsDraft((prev) => ({
+                        ...prev,
+                        actions: { ...prev.actions, showDelete: e.target.checked },
+                      }))
+                    }
+                  />
+                  <span className={styles.visibilitySwitch} />
+                </label>
+                <label className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                  <span className={styles.visibilityLabel}>Показывать «Открыть на сайте»</span>
+                  <input
+                    type="checkbox"
+                    checked={uiSettingsDraft.actions.showOpenOnSite !== false}
+                    onChange={(e) =>
+                      setUiSettingsDraft((prev) => {
+                        const next = {
+                          ...prev,
+                          actions: { ...prev.actions, showOpenOnSite: e.target.checked },
+                        };
+                        if (e.target.checked && !String(next.publicLink?.template || '').trim()) {
+                          setPathAcceptMessage('Вставьте путь до любой записи. После распознавания появится "Путь принят."');
+                        } else {
+                          setPathAcceptMessage('');
+                        }
+                        return next;
+                      })
+                    }
+                  />
+                  <span className={styles.visibilitySwitch} />
+                </label>
+                {uiSettingsDraft.actions.showOpenOnSite && (
+                  <div>
+                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 6 }}>
+                      Путь до страницы записи
+                    </div>
+                    <input
+                      type="text"
+                      value={uiSettingsDraft.publicLink?.template || ''}
+                      onChange={(e) => {
+                        const parsedTemplate = buildTemplateFromAnyPathInput(e.target.value);
+                        setUiSettingsDraft((prev) => ({
+                          ...prev,
+                          publicLink: { ...(prev.publicLink || {}), template: parsedTemplate },
+                        }));
+                        setPathAcceptMessage(parsedTemplate ? 'Путь принят.' : 'Не удалось распознать путь.');
+                      }}
+                      className={styles.formInput}
+                      placeholder="Вставьте URL записи, например: https://site.ru/cases/my-case"
+                      autoComplete="off"
+                    />
+                    <div
+                      style={{
+                        fontSize: '0.78rem',
+                        marginTop: 6,
+                        color: pathAcceptMessage === 'Путь принят.' ? '#16a34a' : '#64748b',
+                      }}
+                    >
+                      {pathAcceptMessage || 'Система автоматически сохранит шаблон вида /раздел/:slug'}
+                    </div>
+                  </div>
+                )}
+                <label className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                  <span className={styles.visibilityLabel}>Показывать boolean как переключатели в таблице</span>
+                  <input
+                    type="checkbox"
+                    checked={uiSettingsDraft.actions.showBooleanInline !== false}
+                    onChange={(e) =>
+                      setUiSettingsDraft((prev) => ({
+                        ...prev,
+                        actions: { ...prev.actions, showBooleanInline: e.target.checked },
+                      }))
+                    }
+                  />
+                  <span className={styles.visibilitySwitch} />
+                </label>
+
+                <div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 6 }}>Режим колонок таблицы</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className={`${styles.docsTabBtn} ${uiSettingsDraft.table?.mode !== 'custom' ? styles.docsTabBtnActive : ''}`}
+                      onClick={() =>
+                        setUiSettingsDraft((prev) => ({
+                          ...prev,
+                          table: { ...(prev.table || {}), mode: 'auto' },
+                        }))
+                      }
+                      aria-pressed={uiSettingsDraft.table?.mode !== 'custom'}
+                    >
+                      Авто
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.docsTabBtn} ${uiSettingsDraft.table?.mode === 'custom' ? styles.docsTabBtnActive : ''}`}
+                      onClick={() =>
+                        setUiSettingsDraft((prev) => ({
+                          ...prev,
+                          table: {
+                            ...(prev.table || {}),
+                            mode: 'custom',
+                            // Подхватываем текущее отображение таблицы,
+                            // чтобы ручной режим стартовал с понятного состояния.
+                            visibleFieldKeys: tableFields.map((field) => field.fieldKey),
+                          },
+                        }))
+                      }
+                      aria-pressed={uiSettingsDraft.table?.mode === 'custom'}
+                    >
+                      Ручной выбор
+                    </button>
+                  </div>
+                </div>
+
+                {uiSettingsDraft.table?.mode === 'custom' && (
+                  <div>
+                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 8 }}>
+                      Какие поля показывать в таблице (включены текущие)
+                    </div>
+                    <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #e2e8f0', borderRadius: 10, padding: 10, display: 'grid', gap: 8 }}>
+                      {structureFields.map((field) => {
+                        const selected = (uiSettingsDraft.table?.visibleFieldKeys || []).includes(field.fieldKey);
+                        const currentlyShown = tableFields.some((item) => item.fieldKey === field.fieldKey);
+                        return (
+                          <label key={field.fieldKey} className={styles.visibilityToggle} style={{ justifyContent: 'space-between' }}>
+                            <span className={styles.visibilityLabel}>
+                              {getBlockLabel(field)} ({field.type}){currentlyShown ? ' - сейчас в таблице' : ''}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={(e) => {
+                                setUiSettingsDraft((prev) => {
+                                  const prevKeys = normalizeStringArray(prev.table?.visibleFieldKeys);
+                                  const nextKeys = e.target.checked
+                                    ? [...prevKeys, field.fieldKey]
+                                    : prevKeys.filter((key) => key !== field.fieldKey);
+                                  return {
+                                    ...prev,
+                                    table: {
+                                      ...(prev.table || {}),
+                                      mode: 'custom',
+                                      visibleFieldKeys: nextKeys,
+                                    },
+                                  };
+                                });
+                              }}
+                            />
+                            <span className={styles.visibilitySwitch} />
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={() => setIsUiSettingsOpen(false)}
+                disabled={isUiSettingsSaving}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className={styles.submitBtn}
+                onClick={() => {
+                  setConfirmModal({
+                    open: true,
+                    title: 'Сохранить настройки раздела?',
+                    message: 'Изменения будут применены к таблице и действиям. Продолжить?',
+                    onConfirm: async () => {
+                      setConfirmModal(null);
+                      await saveUiSettings();
+                    },
+                    onCancel: () => setConfirmModal(null),
+                  });
+                }}
+                disabled={isUiSettingsSaving || !menuItemId}
+              >
+                {isUiSettingsSaving ? 'Сохранение...' : 'Сохранить'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

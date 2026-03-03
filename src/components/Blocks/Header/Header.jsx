@@ -9,8 +9,9 @@ function Header({ children, ...props }) {
     const leaveTimersRef = useRef({});
     const hoverStartedAtRef = useRef({});
     const { pathname } = useLocation();
+
     const section = pathname.split("/")[1] || "/";
-    const isHome = pathname === '/' || pathname.startsWith('/case/') || pathname.startsWith('/new/') || pathname.startsWith('/banner/');
+    const isHome = pathname === '/' || pathname.startsWith('/case/') || pathname.startsWith('/new/') || pathname.startsWith('/banner/') || pathname.startsWith('/shopitem/');
     const isBlog = pathname === '/news' || pathname.startsWith('/news/');
     const isShop = pathname === '/shop' || pathname.startsWith('/shop/');
     const isCases = pathname === '/cases' || pathname.startsWith('/cases/');

@@ -87,6 +87,26 @@ function Cases({ children, ...props }) {
         return allItems.find((x) => String(x.url_text) === String(urlText)) || null;
     };
 
+    const normalizeEntityType = (value) => {
+        const type = String(value || '').toLowerCase();
+        if (type === 'news') return 'new';
+        if (type === 'stock' || type === 'stocks') return 'banner';
+        if (type === 'shop-item' || type === 'shopcase' || type === 'shopitem') return 'shop';
+        return type;
+    };
+
+    const buildItemRoute = (item) => {
+        const normalizedType = normalizeEntityType(item?.type);
+        const slug = String(item?.url_text || '').trim();
+        if (!normalizedType || !slug) return null;
+
+        if (normalizedType === 'case') return `/case/${slug}`;
+        if (normalizedType === 'new') return `/new/${slug}`;
+        if (normalizedType === 'banner') return `/banner/${slug}`;
+        if (normalizedType === 'shop') return `/shopitem/${slug}`;
+        return `/${normalizedType}/${slug}`;
+    };
+
     // Отслеживание видимости фильтра и конца кейсов при скролле
     useEffect(() => {
         const handleScroll = () => {
@@ -287,9 +307,10 @@ function Cases({ children, ...props }) {
     const handleItemClick = (item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-        if (item?.type && item?.url_text && item.type !== 'shop') {
-            navigate(`/${item.type}/${item.url_text}`, {
-                state: { modalBackground: location.pathname },
+        const itemRoute = buildItemRoute(item);
+        if (itemRoute) {
+            navigate(itemRoute, {
+                state: { modalBackground: location.pathname || "/" },
             });
         }
     };
@@ -304,13 +325,16 @@ function Cases({ children, ...props }) {
 
     // Синхронизация состояния модалки с URL (ЧПУ)
     useEffect(() => {
-        const hasRouteModal = Boolean(routeType && routeUrlText);
+        const inferredRouteType = routeType || (location.pathname.startsWith('/shopitem/') ? 'shopitem' : '');
+        const normalizedRouteType = normalizeEntityType(inferredRouteType);
+        const hasRouteModal = Boolean(normalizedRouteType && routeUrlText);
 
         if (hasRouteModal) {
             if (!isCasesLoaded) return;
             const itemFromUrl = findItemByUrlText(routeUrlText);
+            const normalizedItemType = normalizeEntityType(itemFromUrl?.type);
             // Если url_text не найден (невалидный URL) — закрываем и возвращаем на главную
-            if (!itemFromUrl || (routeType && itemFromUrl.type !== routeType)) {
+            if (!itemFromUrl || (normalizedRouteType && normalizedItemType !== normalizedRouteType)) {
                 setIsModalOpen(false);
                 setSelectedItem(null);
                 navigate("/", { replace: true });
@@ -327,7 +351,7 @@ function Cases({ children, ...props }) {
             setIsModalOpen(false);
             setSelectedItem(null);
         }
-    }, [routeType, routeUrlText, navigate, isCasesLoaded, casesData, newsData, shopData, bannersData]);
+    }, [routeType, routeUrlText, location.pathname, navigate, isCasesLoaded, casesData, newsData, shopData, bannersData]);
 
     // Прокрутка к карточке при открытии по URL
     useEffect(() => {

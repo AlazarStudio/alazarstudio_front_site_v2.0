@@ -1122,6 +1122,19 @@
   background: #f3f4f6;
 }
 
+.siteOpenBtnDisabled {
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+.siteOpenBtnDisabled:hover {
+  background: #a7f3d0;
+}
+
+.siteOpenIconDisabled {
+  color: #9ca3af;
+}
+
 .deleteBtn {
   background: #fee2e2;
   color: #dc2626;
@@ -1165,6 +1178,62 @@
 .badgeDefault {
   background: #e0e7ff;
   color: #4f46e5;
+}
+
+.tableBooleanToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tableBooleanToggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.tableBooleanSwitch {
+  position: relative;
+  display: inline-flex;
+  width: 38px;
+  height: 22px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.tableBooleanSwitch::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.tableBooleanToggle input:checked + .tableBooleanSwitch {
+  background: #22c55e;
+}
+
+.tableBooleanToggle input:checked + .tableBooleanSwitch::after {
+  transform: translateX(16px);
+}
+
+.tableBooleanToggle input:disabled + .tableBooleanSwitch {
+  opacity: 0.55;
+}
+
+.tableBooleanLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+  min-width: 22px;
 }
 
 /* Form Styles */

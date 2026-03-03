@@ -12,6 +12,7 @@ export default function ConfirmModal({
   variant = 'default', // 'default' | 'danger'
   onConfirm,
   onCancel,
+  overlayStyle,
   dialogStyle,
 }) {
   if (!open) return null;
@@ -21,7 +22,7 @@ export default function ConfirmModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div className={styles.overlay} style={overlayStyle} onClick={handleOverlayClick} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <div className={styles.dialog} style={dialogStyle} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={`${styles.iconWrap} ${variant === 'danger' ? styles.iconWrapDanger : styles.iconWrapInfo}`}>

@@ -284,7 +284,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                             <div className={classes.shop_price}>
                                 {formatAmount(price)} ₽
                             </div>
-                            <div className={classes.shop_card} data-cursor="card" onClick={stopPropagation}>
+                            <div className={classes.shop_card} data-cursor="card">
                                 Добавить в корзину
                             </div>
                         </div>

@@ -53,6 +53,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [headerRight, setHeaderRight] = useState(null);
   const [breadcrumbLabel, setBreadcrumbLabel] = useState(null);
+  const [breadcrumbAction, setBreadcrumbAction] = useState(null);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [docsTab, setDocsTab] = useState('install');
   const [copiedDocBlock, setCopiedDocBlock] = useState(null);
@@ -504,6 +505,7 @@ run().catch(console.error);`;
               >
                 <CircleHelp size={16} />
               </button>
+              {breadcrumbAction}
             </div>
             {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
           </header>
@@ -511,7 +513,7 @@ run().catch(console.error);`;
         
         <div className={styles.content}>
           <AdminHeaderRightContext.Provider value={{ setHeaderRight }}>
-            <AdminBreadcrumbContext.Provider value={{ setBreadcrumbLabel }}>
+            <AdminBreadcrumbContext.Provider value={{ setBreadcrumbLabel, setBreadcrumbAction }}>
               <AdminCountsContext.Provider value={{ counts, setCounts }}>
                 <Outlet />
               </AdminCountsContext.Provider>

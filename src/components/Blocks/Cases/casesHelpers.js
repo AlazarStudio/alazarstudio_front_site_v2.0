@@ -145,16 +145,53 @@ function resolveShopCardDescription(record) {
   return extractPlainText(resolveField(record, 'reshenie'));
 }
 
+export function extractRecordTags(record) {
+  const tagsFieldCandidates = [
+    resolveField(record, 'tegi'),
+    resolveField(record, 'tags'),
+    resolveField(record, 'metki'),
+  ];
+
+  const collectFromSelectedItems = (value) => (
+    Array.isArray(value?.selectedItems)
+      ? value.selectedItems
+          .map((item) => extractPlainText(item?.label || item?.name || item?.value || item))
+          .filter(Boolean)
+      : []
+  );
+
+  const collectFromValues = (value) => (
+    Array.isArray(value?.values)
+      ? value.values.map((item) => extractPlainText(item)).filter(Boolean)
+      : []
+  );
+
+  const collectFromArray = (value) => (
+    Array.isArray(value)
+      ? value.map((item) => extractPlainText(item)).filter(Boolean)
+      : []
+  );
+
+  const collectFromCommaString = (value) => (
+    typeof value === 'string'
+      ? value.split(',').map((item) => extractPlainText(item)).filter(Boolean)
+      : []
+  );
+
+  const tags = tagsFieldCandidates.flatMap((candidate) => [
+    ...collectFromSelectedItems(candidate),
+    ...collectFromValues(candidate),
+    ...collectFromArray(candidate),
+    ...collectFromCommaString(candidate),
+  ]);
+
+  return Array.from(new Set(tags.map((tag) => String(tag).trim()).filter(Boolean)));
+}
+
 export function mapCaseRecordToCard(record) {
   const titleField = resolveField(record, 'nazvanie');
   const title = extractPlainText(titleField?.text || titleField || record?.title || 'Без названия') || 'Без названия';
-  const tagsField = resolveField(record, 'tegi');
-  const tags = Array.isArray(tagsField?.selectedItems)
-    ? tagsField.selectedItems
-        .map((item) => extractPlainText(item?.label))
-        .filter(Boolean)
-        .slice(0, 3)
-    : [];
+  const tags = extractRecordTags(record);
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
 
   const logoSrc = resolveLogoImage(record || {});
@@ -292,7 +329,7 @@ export function mapTeamItems(teamResponse, caseRecord) {
       const roleValue = roleCandidates.find((value) => extractPlainText(value).length > 0) || '';
       const name = extractPlainText((fioField && fioField.text) || fioField || fromTeam.name || fromSelected.label);
       const role = extractPlainText(roleValue);
-      const image = fromTeam.foto || fromTeam.photo || fromSelected.image || '';
+      const image = fromTeam.avatar || fromTeam.foto || fromTeam.photo || fromSelected.image || '';
       return {
         id,
         name,

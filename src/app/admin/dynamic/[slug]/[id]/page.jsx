@@ -755,6 +755,18 @@ export default function DynamicRecordEditPage() {
         case 'accordion':
         case 'tabs':
           return JSON.stringify(value);
+        case 'relatedEntities': {
+          const resourceSlug = String(value?.resourceSlug || '').trim();
+          const resourceLabel = String(value?.resourceLabel || '').trim();
+          const selectedIds = Array.isArray(value?.selectedIds)
+            ? value.selectedIds.map((id) => String(id)).filter(Boolean)
+            : [];
+          return JSON.stringify({
+            resourceSlug,
+            resourceLabel,
+            selectedIds,
+          });
+        }
         case 'list':
           if (Array.isArray(value.items)) return JSON.stringify(value.items);
           return '';

@@ -146,7 +146,7 @@
 .type_shop,
 .type_new {
     width: 32.1%;
-    height: 670px;
+    min-height: 670px;
     padding: 25px;
 }
 

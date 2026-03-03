@@ -1,5 +1,5 @@
 import { getImageUrl } from '@/lib/api';
-import { extractPlainText, transliterate } from '@/components/Blocks/Cases/casesHelpers';
+import { extractPlainText, extractRecordTags, transliterate } from '@/components/Blocks/Cases/casesHelpers';
 
 function parseMaybeJson(value) {
   if (typeof value !== 'string') return value;
@@ -108,6 +108,7 @@ export function getNewsAdditionalBlocks(record) {
 export function mapNewsRecordToCard(record) {
   const title = resolveTitle(record || {});
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
+  const tags = extractRecordTags(record || {});
   return {
     id,
     sourceRecord: record,
@@ -115,7 +116,7 @@ export function mapNewsRecordToCard(record) {
     imgSrc: resolvePreviewImage(record || {}),
     title,
     description: resolveDescription(record || {}),
-    tags: ['Новости'],
+    tags: tags.length > 0 ? tags : ['Новости'],
     date: resolveDate(record || {}),
     url_text: transliterate(title) || `news-${id}`,
   };
@@ -129,16 +130,28 @@ function resolveStockDate(record) {
 }
 
 export function isStockActual(record) {
+  const rawDateValue = resolveField(record || {}, 'data') || record?.created_at || record?.createdAt;
+  if (!rawDateValue) return true;
+
+  const rawDate = typeof rawDateValue === 'string' ? rawDateValue.trim() : rawDateValue;
   const isoDate = resolveStockDate(record || {});
   if (!isoDate) return true;
+
   const now = new Date();
   const endDate = new Date(isoDate);
+
+  // Если дата пришла без времени (YYYY-MM-DD), считаем акцию активной до конца дня.
+  if (typeof rawDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    endDate.setHours(23, 59, 59, 999);
+  }
+
   return endDate.getTime() >= now.getTime();
 }
 
 export function mapStockRecordToCard(record) {
   const title = resolveTitle(record || {});
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
+  const tags = extractRecordTags(record || {});
   return {
     id,
     sourceRecord: record,
@@ -146,7 +159,7 @@ export function mapStockRecordToCard(record) {
     imgSrc: resolvePreviewImage(record || {}),
     title,
     description: resolveDescription(record || {}),
-    tags: ['Акция'],
+    tags: tags.length > 0 ? tags : ['Акция'],
     date: resolveStockDate(record || {}),
     url_text: transliterate(title) || `stock-${id}`,
   };

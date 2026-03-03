@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   GripVertical, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Type, Image, Images, Quote, Video, Heading, Plus,
@@ -10,6 +10,7 @@ import {
 import RichTextEditor from '@/components/RichTextEditor';
 import { dynamicPageRecordsAPI, getImageUrl, menuAPI, structureAPI, mediaAPI } from '@/lib/api';
 import { MUI_ICON_NAMES, MUI_ICONS, getMuiIconComponent, getIconGroups } from '../WhatToBringIcons';
+import ImageCropModal from '../ImageCropModal';
 import styles from './NewsBlockEditor.module.css';
 
 function PendingImage({ file, alt = '', className }) {
@@ -248,6 +249,7 @@ export default function NewsBlockEditor({
   const [relatedSelectionCacheByBlockId, setRelatedSelectionCacheByBlockId] = useState({});
   const [contactIconPicker, setContactIconPicker] = useState({ open: false, blockId: null, group: 'all', search: '' });
   const [contactIconUploadingByBlockId, setContactIconUploadingByBlockId] = useState({});
+  const [imageCropState, setImageCropState] = useState({ open: false, blockId: null, preview: '', fileName: 'image.png' });
   const relatedHeadingMetaBySlugRef = useRef({});
   const relatedHeadingMetaLoadingBySlugRef = useRef({});
   const addBlockRef = useRef(null);
@@ -881,13 +883,50 @@ export default function NewsBlockEditor({
     updateBlock(index, { data: { url } });
   };
 
+  const closeImageCropModal = useCallback(() => {
+    setImageCropState((prev) => {
+      if (prev.preview) {
+        URL.revokeObjectURL(prev.preview);
+      }
+      return { open: false, blockId: null, preview: '', fileName: 'image.png' };
+    });
+  }, []);
+
+  useEffect(() => () => {
+    if (imageCropState.preview) {
+      URL.revokeObjectURL(imageCropState.preview);
+    }
+  }, [imageCropState.preview]);
+
+  const handleImageCropComplete = useCallback((blob) => {
+    if (!blob || !imageCropState.blockId) {
+      closeImageCropModal();
+      return;
+    }
+
+    // В некоторых окружениях File может быть недоступен как конструктор.
+    // Для последующей загрузки достаточно Blob (isUploadableFile это поддерживает).
+    onPendingBlockFilesChange?.(imageCropState.blockId, { url: blob, images: undefined });
+    closeImageCropModal();
+  }, [closeImageCropModal, imageCropState.blockId, onPendingBlockFilesChange]);
+
   const handleImageFileSelect = (e, index) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
     const block = sortedBlocks[index];
     if (!block) return;
-    onPendingBlockFilesChange?.(block.id, { url: file, images: undefined });
+    setImageCropState((prev) => {
+      if (prev.preview) {
+        URL.revokeObjectURL(prev.preview);
+      }
+      return {
+        open: true,
+        blockId: block.id,
+        preview: URL.createObjectURL(file),
+        fileName: file.name || 'image.png',
+      };
+    });
   };
 
   const handleGalleryFileSelect = (e, index) => {
@@ -1953,25 +1992,35 @@ export default function NewsBlockEditor({
                           const filteredRecords = excludedRecordId
                             ? allRecords.filter((record) => String(record.id) !== String(excludedRecordId))
                             : allRecords;
-                          const selectedItems = Array.isArray(block.data?.selectedItems)
+                          const selectedIdsFromData = Array.isArray(block.data?.selectedIds)
+                            ? block.data.selectedIds
+                                .map((id) => String(id))
+                                .filter((id) => id && (!excludedRecordId || String(id) !== String(excludedRecordId)))
+                            : [];
+                          const selectedItemsFromData = Array.isArray(block.data?.selectedItems)
                             ? block.data.selectedItems
-                            : (Array.isArray(block.data?.selectedIds)
-                              ? block.data.selectedIds
-                              .filter((id) => !excludedRecordId || String(id) !== String(excludedRecordId))
-                              .map((id) => {
+                            : [];
+
+                          // Важно: selectedIds — источник истины для связи.
+                          // selectedItems может быть устаревшим snapshot и используется только как fallback.
+                          const selectedItemsResolved = (selectedIdsFromData.length > 0
+                            ? selectedIdsFromData.map((id) => {
                                 const found = filteredRecords.find((record) => record.id === id);
-                                return found ? { id: found.id, label: found.label, image: found.image || '' } : { id, label: `Запись ${id}`, image: '' };
+                                if (found) return { id: found.id, label: found.label, image: found.image || '' };
+                                const fallback = selectedItemsFromData.find((item) => String(item.id) === String(id));
+                                return fallback || { id, label: `Запись ${id}`, image: '' };
                               })
-                              : []);
-                          const selectedItemsResolved = selectedItems.map((item) => {
-                            const found = filteredRecords.find((record) => record.id === item.id);
-                            if (!found) return item;
-                            return {
-                              ...item,
-                              label: found.label || item.label || `Запись ${item.id}`,
-                              image: found.image || item.image || '',
-                            };
-                          });
+                            : selectedItemsFromData
+                                .filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId))
+                                .map((item) => {
+                                  const found = filteredRecords.find((record) => record.id === item.id);
+                                  if (!found) return item;
+                                  return {
+                                    ...item,
+                                    label: found.label || item.label || `Запись ${item.id}`,
+                                    image: found.image || item.image || '',
+                                  };
+                                }));
                           const normalizedSelectedItems = excludedRecordId
                             ? selectedItemsResolved.filter((item) => String(item.id) !== String(excludedRecordId))
                             : selectedItemsResolved;
@@ -3664,6 +3713,14 @@ export default function NewsBlockEditor({
         </div>,
         document.body
       )}
+
+      <ImageCropModal
+        open={imageCropState.open}
+        imageSrc={imageCropState.preview}
+        title="Обрезка изображения"
+        onComplete={handleImageCropComplete}
+        onCancel={closeImageCropModal}
+      />
 
     </div>
   );

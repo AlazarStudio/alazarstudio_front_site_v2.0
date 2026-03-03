@@ -170,39 +170,44 @@ const CustomCursor = () => {
   useEffect(() => {
     if (!cursorRef.current) return;
 
+    const resetCursorState = () => {
+      if (!cursorRef.current) return;
+      cursorRef.current.setAttribute('data-mode', 'default');
+      cursorRef.current.removeAttribute('data-label');
+      cursorRef.current.removeAttribute('data-slider-direction');
+    };
+
+    const applyCursorFromElement = (cursorElement, clientX) => {
+      if (!cursorRef.current || !cursorElement) return;
+      const cursorMode = cursorElement.getAttribute('data-cursor');
+      const cursorLabel = cursorElement.getAttribute('data-cursor-label');
+
+      cursorRef.current.setAttribute('data-mode', cursorMode);
+
+      if (cursorLabel && (cursorMode === 'media' || cursorMode === 'case')) {
+        cursorRef.current.setAttribute('data-label', cursorLabel);
+      } else {
+        cursorRef.current.removeAttribute('data-label');
+      }
+
+      if (cursorMode === 'slider') {
+        const rect = cursorElement.getBoundingClientRect();
+        const relativeX = clientX - rect.left;
+        const direction = relativeX < rect.width / 2 ? 'left' : 'right';
+        cursorRef.current.setAttribute('data-slider-direction', direction);
+      } else {
+        cursorRef.current.removeAttribute('data-slider-direction');
+      }
+    };
+
+    const lastPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
     const handlePointerOver = (e) => {
       const target = e.target;
       const cursorElement = target.closest('[data-cursor]');
 
       if (cursorElement && cursorRef.current) {
-        const cursorMode = cursorElement.getAttribute('data-cursor');
-        const cursorLabel = cursorElement.getAttribute('data-cursor-label');
-
-        cursorRef.current.setAttribute('data-mode', cursorMode);
-
-        if (cursorLabel && (cursorMode === 'media' || cursorMode === 'case')) {
-          cursorRef.current.setAttribute('data-label', cursorLabel);
-        }
-
-        // Для slider определяем направление
-        if (cursorMode === 'slider') {
-          const rect = cursorElement.getBoundingClientRect();
-          const updateDirection = (clientX) => {
-            const relativeX = clientX - rect.left;
-            const direction = relativeX < rect.width / 2 ? 'left' : 'right';
-            if (cursorRef.current) {
-              cursorRef.current.setAttribute('data-slider-direction', direction);
-            }
-          };
-
-          updateDirection(e.clientX);
-
-          const handleMove = (moveE) => updateDirection(moveE.clientX);
-          cursorElement.addEventListener('mousemove', handleMove);
-          cursorElement.addEventListener('mouseleave', () => {
-            cursorElement.removeEventListener('mousemove', handleMove);
-          }, { once: true });
-        }
+        applyCursorFromElement(cursorElement, e.clientX);
       }
     };
 
@@ -211,17 +216,44 @@ const CustomCursor = () => {
       const cursorElement = target.closest('[data-cursor]');
 
       if (cursorElement && cursorRef.current) {
-        cursorRef.current.setAttribute('data-mode', 'default');
-        cursorRef.current.removeAttribute('data-label');
+        resetCursorState();
       }
+    };
+
+    const handlePointerMove = (e) => {
+      lastPointer.x = e.clientX;
+      lastPointer.y = e.clientY;
+    };
+
+    const syncCursorWithPointer = () => {
+      if (!cursorRef.current) return;
+      const hoveredElement = document.elementFromPoint(lastPointer.x, lastPointer.y);
+      const cursorElement = hoveredElement?.closest?.('[data-cursor]');
+      if (cursorElement) {
+        applyCursorFromElement(cursorElement, lastPointer.x);
+      } else {
+        resetCursorState();
+      }
+    };
+
+    // При клике карточка может исчезнуть до pointerout (открывается модалка/меняется route).
+    // Делаем проверку в следующем кадре и приводим режим курсора к фактическому элементу под мышью.
+    const handlePointerUp = () => {
+      requestAnimationFrame(syncCursorWithPointer);
     };
 
     document.addEventListener('pointerover', handlePointerOver);
     document.addEventListener('pointerout', handlePointerOut);
+    document.addEventListener('pointermove', handlePointerMove, { passive: true });
+    document.addEventListener('pointerup', handlePointerUp, true);
+    window.addEventListener('blur', resetCursorState);
 
     return () => {
       document.removeEventListener('pointerover', handlePointerOver);
       document.removeEventListener('pointerout', handlePointerOut);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp, true);
+      window.removeEventListener('blur', resetCursorState);
     };
   }, []);
 

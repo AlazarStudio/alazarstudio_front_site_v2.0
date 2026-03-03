@@ -8,7 +8,17 @@ import CustomCursor from "../../Cursor/CustomCursor";
 
 const PAGE_LOADER_DURATION_MS = 450;
 
-function getPageKey(pathname) {
+function getPageKey(pathname, locationState) {
+    const modalBackground = typeof locationState?.modalBackground === "string"
+        ? locationState.modalBackground
+        : "";
+    const isModalPath = /^\/(case|new|banner|shopitem)\/[^/]+$/.test(pathname);
+
+    // Если это модальный URL с фоновой страницей, не считаем это переходом страницы.
+    if (isModalPath && modalBackground) {
+        return getPageKey(modalBackground, null);
+    }
+
     if (pathname === "/") return "home";
     if (pathname.startsWith("/cases")) return "cases";
     if (pathname.startsWith("/news")) return "news";
@@ -17,7 +27,7 @@ function getPageKey(pathname) {
     if (pathname.startsWith("/contacts")) return "contacts";
 
     // Модальные URL на главной должны считаться частью главной страницы
-    if (/^\/(case|new|banner)\/[^/]+$/.test(pathname)) return "home";
+    if (/^\/(case|new|banner|shopitem)\/[^/]+$/.test(pathname)) return "home";
 
     return pathname;
 }
@@ -26,7 +36,10 @@ function Empty({ children, ...props }) {
     const location = useLocation();
     const [isPageTransitionLoading, setIsPageTransitionLoading] = useState(true);
     const loaderTimerRef = useRef(null);
-    const currentPageKey = useMemo(() => getPageKey(location.pathname), [location.pathname]);
+    const currentPageKey = useMemo(
+        () => getPageKey(location.pathname, location.state),
+        [location.pathname, location.state]
+    );
     const previousPageKeyRef = useRef(currentPageKey);
 
     useEffect(() => {
