@@ -289,14 +289,6 @@ export default function ShopDetailsModal({ item, teamItems }) {
 
   return (
     <div className={classes.modalInner}>
-      {(item.tags || []).length > 0 ? (
-        <div className={classes.heroTags}>
-          {(item.tags || []).map((tag) => (
-            <span key={tag} className={classes.heroTag}>#{tag}</span>
-          ))}
-        </div>
-      ) : null}
-
       <h2 className={classes.title}>{title}</h2>
       {dateLabel ? <div className={classes.subtitle}>Добавлено: {dateLabel}</div> : null}
 

@@ -1042,7 +1042,13 @@ export default function NewsBlockEditor({
       <div className={styles.blocksList}>
         {sortedBlocks.map((block, index) => {
           const blockDef = BLOCK_TYPES.find((b) => b.type === block.type);
-          const customBlockHeading = (block.label && String(block.label).trim()) || blockDef?.label || block.type;
+          const relatedDisplayName = String(block.data?.resourceLabel || block.data?.resourceSlug || '').trim();
+          const prettyRelatedDisplayName = relatedDisplayName
+            ? relatedDisplayName.charAt(0).toUpperCase() + relatedDisplayName.slice(1)
+            : '';
+          const customBlockHeading = block.type === 'relatedEntities' && prettyRelatedDisplayName
+            ? prettyRelatedDisplayName
+            : ((block.label && String(block.label).trim()) || blockDef?.label || block.type);
           return (
           <div 
             key={block.id}
@@ -1901,60 +1907,62 @@ export default function NewsBlockEditor({
               {block.type === 'relatedEntities' && (
                 <>
                   <label className={styles.blockLabel}>Связанные сущности</label>
-                  <select
-                    value={block.data?.resourceSlug || ''}
-                    onChange={(e) => {
-                      const resourceSlug = e.target.value;
-                      const option = resourceOptions.find((item) => item.slug === resourceSlug);
-                      const currentSelectedIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
-                      const currentSelectedItems = Array.isArray(block.data?.selectedItems) ? block.data.selectedItems : [];
+                  {block.data?.resourceLocked ? null : (
+                    <select
+                      value={block.data?.resourceSlug || ''}
+                      onChange={(e) => {
+                        const resourceSlug = e.target.value;
+                        const option = resourceOptions.find((item) => item.slug === resourceSlug);
+                        const currentSelectedIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
+                        const currentSelectedItems = Array.isArray(block.data?.selectedItems) ? block.data.selectedItems : [];
 
-                      let restoredSelectedIds = [];
-                      let restoredSelectedItems = [];
+                        let restoredSelectedIds = [];
+                        let restoredSelectedItems = [];
 
-                      if (preserveRelatedSelections && block.id) {
-                        const nextCache = {
-                          ...(relatedSelectionCacheByBlockId[block.id] || {}),
-                          ...(block.data?.resourceSlug
-                            ? {
-                              [block.data.resourceSlug]: {
-                                selectedIds: currentSelectedIds,
-                                selectedItems: currentSelectedItems,
-                              },
-                            }
-                            : {}),
-                        };
-                        setRelatedSelectionCacheByBlockId((prev) => ({
-                          ...prev,
-                          [block.id]: nextCache,
-                        }));
+                        if (preserveRelatedSelections && block.id) {
+                          const nextCache = {
+                            ...(relatedSelectionCacheByBlockId[block.id] || {}),
+                            ...(block.data?.resourceSlug
+                              ? {
+                                [block.data.resourceSlug]: {
+                                  selectedIds: currentSelectedIds,
+                                  selectedItems: currentSelectedItems,
+                                },
+                              }
+                              : {}),
+                          };
+                          setRelatedSelectionCacheByBlockId((prev) => ({
+                            ...prev,
+                            [block.id]: nextCache,
+                          }));
 
-                        const restored = nextCache[resourceSlug];
-                        restoredSelectedIds = Array.isArray(restored?.selectedIds) ? restored.selectedIds : [];
-                        restoredSelectedItems = Array.isArray(restored?.selectedItems) ? restored.selectedItems : [];
-                      }
+                          const restored = nextCache[resourceSlug];
+                          restoredSelectedIds = Array.isArray(restored?.selectedIds) ? restored.selectedIds : [];
+                          restoredSelectedItems = Array.isArray(restored?.selectedItems) ? restored.selectedItems : [];
+                        }
 
-                      updateBlock(index, {
-                        data: {
-                          ...block.data,
-                          resourceSlug,
-                          resourceLabel: option?.label || '',
-                          selectedIds: preserveRelatedSelections ? restoredSelectedIds : [],
-                          selectedItems: preserveRelatedSelections ? restoredSelectedItems : [],
-                        },
-                      });
-                      ensureResourceRecordsLoaded(resourceSlug);
-                    }}
-                    className={styles.blockInput}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <option value="">Выберите раздел</option>
-                    {resourceOptions.map((option) => (
-                      <option key={option.slug} value={option.slug}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                        updateBlock(index, {
+                          data: {
+                            ...block.data,
+                            resourceSlug,
+                            resourceLabel: option?.label || '',
+                            selectedIds: preserveRelatedSelections ? restoredSelectedIds : [],
+                            selectedItems: preserveRelatedSelections ? restoredSelectedItems : [],
+                          },
+                        });
+                        ensureResourceRecordsLoaded(resourceSlug);
+                      }}
+                      className={styles.blockInput}
+                      style={{ marginBottom: 12 }}
+                    >
+                      <option value="">Выберите раздел</option>
+                      {resourceOptions.map((option) => (
+                        <option key={option.slug} value={option.slug}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
 
                   {!!block.data?.resourceSlug && (
                     <>

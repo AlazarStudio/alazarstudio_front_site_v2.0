@@ -4,8 +4,8 @@ import { filterCategories } from '../../../data/casesData.jsx';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { publicCasesAPI, publicTeamAPI } from '@/lib/api';
-import { isCaseForShop, mapCaseRecordToCard } from '@/components/Blocks/Cases/casesHelpers';
+import { publicCasesAPI, publicDynamicPageRecordsAPI, publicTeamAPI } from '@/lib/api';
+import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard } from '@/components/Blocks/Cases/casesHelpers';
 import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
 
 function extractTextFromJSX(element) {
@@ -39,6 +39,7 @@ function CasesCatalog({ children, ...props }) {
     const [isCasesEnded, setIsCasesEnded] = useState(false);
     const [casesFromApi, setCasesFromApi] = useState([]);
     const [teamFromApi, setTeamFromApi] = useState([]);
+    const [relatedTagLabelsByKey, setRelatedTagLabelsByKey] = useState({});
     const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
@@ -48,15 +49,19 @@ function CasesCatalog({ children, ...props }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
+    const resolveRelatedTagLabel = useMemo(
+        () => (id, resourceSlug = '') => relatedTagLabelsByKey[`${String(resourceSlug || '').toLowerCase()}:${String(id)}`] || '',
+        [relatedTagLabelsByKey]
+    );
     const casesData = useMemo(
         () => (
             Array.isArray(casesFromApi)
                 ? casesFromApi
                     .filter((item) => !isCaseForShop(item))
-                    .map(mapCaseRecordToCard)
+                    .map((item) => mapCaseRecordToCard(item, resolveRelatedTagLabel))
                 : []
         ),
-        [casesFromApi]
+        [casesFromApi, resolveRelatedTagLabel]
     );
     const shouldShowLoader = !isCasesLoaded || isLoading;
 
@@ -84,6 +89,54 @@ function CasesCatalog({ children, ...props }) {
             cancelled = true;
         };
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const loadRelatedTagLabels = async () => {
+            const relationMap = new Map();
+            (Array.isArray(casesFromApi) ? casesFromApi : []).forEach((record) => {
+                extractTagRelations(record).forEach(({ resourceSlug, id }) => {
+                    const slug = String(resourceSlug || '').trim().toLowerCase();
+                    if (!slug || !id) return;
+                    if (!relationMap.has(slug)) relationMap.set(slug, new Set());
+                    relationMap.get(slug).add(String(id));
+                });
+            });
+
+            if (relationMap.size === 0) {
+                if (!cancelled) setRelatedTagLabelsByKey({});
+                return;
+            }
+
+            const requests = Array.from(relationMap.entries()).map(async ([slug, ids]) => {
+                try {
+                    const response = await publicDynamicPageRecordsAPI.getAll(slug, { page: 1, limit: 2000 });
+                    const records = Array.isArray(response.data?.records) ? response.data.records : [];
+                    const result = {};
+                    records.forEach((item) => {
+                        const itemId = String(item?.id || item?._id?.$oid || item?._id || '').trim();
+                        if (!itemId || !ids.has(itemId)) return;
+                        const label = extractPlainText(item?.nazvanie || item?.name || item?.title || item?.label || item?.value);
+                        if (label) result[`${slug}:${itemId}`] = label;
+                    });
+                    return result;
+                } catch {
+                    return {};
+                }
+            });
+
+            const resolved = await Promise.all(requests);
+            if (cancelled) return;
+            const nextMap = {};
+            resolved.forEach((part) => Object.assign(nextMap, part));
+            setRelatedTagLabelsByKey(nextMap);
+        };
+
+        loadRelatedTagLabels();
+        return () => {
+            cancelled = true;
+        };
+    }, [casesFromApi]);
 
     useEffect(() => {
         const handleScroll = () => {

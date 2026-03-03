@@ -3,7 +3,6 @@ import { Eye, Mail, MessageCircle, Share2, Send } from 'lucide-react';
 import {
   formatCaseDateRu,
   getCaseAdditionalImageUrls,
-  getCaseLogoUrl,
   getCaseSolutionHtml,
   getCaseTaskHtml,
   getCaseViews,
@@ -40,20 +39,12 @@ export default function CaseDetailsModal({ item, teamItems }) {
   const dateLabel = formatCaseDateRu(source?.created_at?.$date || source?.created_at || source?.createdAt || item.date);
   const members = mapTeamItems(teamItems, source);
   const additionalImages = getCaseAdditionalImageUrls(source);
-  const logoSrc = item.logoSrc || getCaseLogoUrl(source);
+  const caseTitle = item.title || 'Без названия';
 
   return (
     <div className={classes.modalInner}>
       <div className={classes.hero}>
-        <div className={classes.heroTags}>
-          {(item.tags || []).map((tag) => (
-            <span key={tag} className={classes.tag}>#{tag}</span>
-          ))}
-        </div>
-
-        <div className={classes.logoWrap}>
-          <img src={logoSrc} alt={item.title} className={classes.logo} />
-        </div>
+        <h2 className={classes.caseTitle}>{caseTitle}</h2>
 
         <div className={classes.metaRow}>
           <div className={classes.metaLeft}>

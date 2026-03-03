@@ -533,6 +533,19 @@ export const publicTeamAPI = {
     })),
 };
 
+export const publicDynamicPageRecordsAPI = {
+  getAll: (slug, params = {}) => {
+    const resourceRoute = slugToResourceRoute(slug);
+    return api.get(`/${resourceRoute}/public`, { params }).then((response) => ({
+      ...response,
+      data: {
+        ...response.data,
+        records: extractRecordsList(response.data, slug),
+      },
+    }));
+  },
+};
+
 export const publicStocksAPI = {
   getAll: (params = {}) =>
     api.get('/stocks/public', { params }).then((response) => ({

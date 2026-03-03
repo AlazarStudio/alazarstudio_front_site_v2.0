@@ -7,9 +7,9 @@ import CaseCard from "../CaseCard/CaseCard.jsx";
 import CaseDetailsModal from './CaseDetailsModal';
 import NewsDetailsModal from './NewsDetailsModal';
 import ShopDetailsModal from './ShopDetailsModal';
-import { isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
+import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
 import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
-import { publicCasesAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
+import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 
 function Cases({ children, ...props }) {
     // Состояния для фильтрации
@@ -25,15 +25,28 @@ function Cases({ children, ...props }) {
     const [newsFromApi, setNewsFromApi] = useState([]);
     const [stocksFromApi, setStocksFromApi] = useState([]);
     const [teamFromApi, setTeamFromApi] = useState([]);
+    const [relatedTagLabelsByKey, setRelatedTagLabelsByKey] = useState({});
     const [isCasesLoaded, setIsCasesLoaded] = useState(false);
     const navigate = useNavigate();
+    const resolveRelatedTagLabel = useMemo(
+        () => (id, resourceSlug = '') => relatedTagLabelsByKey[`${String(resourceSlug || '').toLowerCase()}:${String(id)}`] || '',
+        [relatedTagLabelsByKey]
+    );
     const casesData = useMemo(
-        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => !isCaseForShop(item)).map(mapCaseRecordToCard) : []),
-        [casesFromApi]
+        () => (Array.isArray(casesFromApi)
+            ? casesFromApi
+                .filter((item) => !isCaseForShop(item))
+                .map((item) => mapCaseRecordToCard(item, resolveRelatedTagLabel))
+            : []),
+        [casesFromApi, resolveRelatedTagLabel]
     );
     const shopData = useMemo(
-        () => (Array.isArray(casesFromApi) ? casesFromApi.filter((item) => isCaseForShop(item)).map(mapCaseRecordToShopCard) : []),
-        [casesFromApi]
+        () => (Array.isArray(casesFromApi)
+            ? casesFromApi
+                .filter((item) => isCaseForShop(item))
+                .map((item) => mapCaseRecordToShopCard(item, resolveRelatedTagLabel))
+            : []),
+        [casesFromApi, resolveRelatedTagLabel]
     );
     const newsData = useMemo(
         () => (Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : []),
@@ -74,6 +87,54 @@ function Cases({ children, ...props }) {
             cancelled = true;
         };
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const loadRelatedTagLabels = async () => {
+            const relationMap = new Map();
+            (Array.isArray(casesFromApi) ? casesFromApi : []).forEach((record) => {
+                extractTagRelations(record).forEach(({ resourceSlug, id }) => {
+                    const slug = String(resourceSlug || '').trim().toLowerCase();
+                    if (!slug || !id) return;
+                    if (!relationMap.has(slug)) relationMap.set(slug, new Set());
+                    relationMap.get(slug).add(String(id));
+                });
+            });
+
+            if (relationMap.size === 0) {
+                if (!cancelled) setRelatedTagLabelsByKey({});
+                return;
+            }
+
+            const requests = Array.from(relationMap.entries()).map(async ([slug, ids]) => {
+                try {
+                    const response = await publicDynamicPageRecordsAPI.getAll(slug, { page: 1, limit: 2000 });
+                    const records = Array.isArray(response.data?.records) ? response.data.records : [];
+                    const result = {};
+                    records.forEach((item) => {
+                        const itemId = String(item?.id || item?._id?.$oid || item?._id || '').trim();
+                        if (!itemId || !ids.has(itemId)) return;
+                        const label = extractPlainText(item?.nazvanie || item?.name || item?.title || item?.label || item?.value);
+                        if (label) result[`${slug}:${itemId}`] = label;
+                    });
+                    return result;
+                } catch {
+                    return {};
+                }
+            });
+
+            const resolved = await Promise.all(requests);
+            if (cancelled) return;
+            const nextMap = {};
+            resolved.forEach((part) => Object.assign(nextMap, part));
+            setRelatedTagLabelsByKey(nextMap);
+        };
+
+        loadRelatedTagLabels();
+        return () => {
+            cancelled = true;
+        };
+    }, [casesFromApi]);
 
     const location = useLocation();
     const { type: routeType, url_text: routeUrlText } = useParams();

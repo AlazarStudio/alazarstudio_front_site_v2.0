@@ -35,6 +35,8 @@ function buildStructureFields(raw) {
       order: f.order ?? i,
       label: f.label ?? '',
       showInCreateForm: f.showInCreateForm !== false,
+      relatedResourceSlug: f.relatedResourceSlug ?? '',
+      relatedResourceLabel: f.relatedResourceLabel ?? '',
     }))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
@@ -466,13 +468,34 @@ export default function DynamicRecordEditPage() {
     setPulseStructureFieldKeys((prev) => prev.filter((key) => key !== fieldType));
   };
 
-  const structureBlocks = structureFields.map((field, index) => ({
-    id: structureFieldToBlockId(field),
-    type: field.type,
-    order: index,
-    label: getBlockLabel(field),
-    data: toEditorBlockData(field.type, recordData[field.fieldKey]),
-  })).filter((block) => {
+  const structureBlocks = structureFields.map((field, index) => {
+    const blockData = toEditorBlockData(field.type, recordData[field.fieldKey]);
+    if (field.type === 'relatedEntities') {
+      const selectedIds = Array.isArray(blockData?.selectedIds) ? blockData.selectedIds : [];
+      const selectedItems = Array.isArray(blockData?.selectedItems) ? blockData.selectedItems : [];
+      return {
+        id: structureFieldToBlockId(field),
+        type: field.type,
+        order: index,
+        label: getBlockLabel(field),
+        data: {
+          ...blockData,
+          resourceSlug: String(blockData?.resourceSlug || field.relatedResourceSlug || ''),
+          resourceLabel: String(blockData?.resourceLabel || field.relatedResourceLabel || ''),
+          selectedIds,
+          selectedItems,
+          resourceLocked: Boolean(field.relatedResourceSlug),
+        },
+      };
+    }
+    return {
+      id: structureFieldToBlockId(field),
+      type: field.type,
+      order: index,
+      label: getBlockLabel(field),
+      data: blockData,
+    };
+  }).filter((block) => {
     const field = structureFields.find((item) => structureFieldToBlockId(item) === block.id);
     return field?.showInCreateForm !== false;
   });

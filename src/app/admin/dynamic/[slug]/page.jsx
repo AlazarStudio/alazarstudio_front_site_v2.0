@@ -70,6 +70,10 @@ function sanitizeAdminUiConfig(raw) {
 }
 
 function getBlockLabel(field) {
+  if (field?.type === 'relatedEntities' && field?.relatedResourceLabel) {
+    const label = String(field.relatedResourceLabel).trim();
+    if (label) return label.charAt(0).toUpperCase() + label.slice(1);
+  }
   if (field.label && String(field.label).trim()) return field.label;
   return BLOCK_TYPES.find(b => b.type === field.type)?.label ?? field.type;
 }
@@ -86,7 +90,13 @@ function labelToFieldKey(label) {
 function buildStructureFields(raw) {
   const fields = (raw || [])
     .filter((f) => f?.type !== 'additionalBlocks')
-    .map((f, i) => ({ type: f.type || 'text', order: f.order ?? i, label: f.label ?? '' }))
+    .map((f, i) => ({
+      type: f.type || 'text',
+      order: f.order ?? i,
+      label: f.label ?? '',
+      relatedResourceSlug: f.relatedResourceSlug ?? '',
+      relatedResourceLabel: f.relatedResourceLabel ?? '',
+    }))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const usedKeys = new Set();
@@ -183,47 +193,49 @@ function getRecordFieldValue(record, field) {
 }
 
 function toComparableValue(value, fieldType) {
+  const normalized = normalizeFieldValueForTable(value, fieldType);
+
   if (fieldType === 'image') {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
-    return value?.url || value?.value || '';
+    if (!normalized) return '';
+    if (typeof normalized === 'string') return normalized;
+    return normalized?.url || normalized?.value || '';
   }
 
   if (fieldType === 'gallery') {
-    return Array.isArray(value) ? value.length : 0;
+    return Array.isArray(normalized) ? normalized.length : 0;
   }
 
   if (fieldType === 'heading') {
-    if (!value) return '';
-    if (typeof value === 'object' && value !== null && 'text' in value) return String(value.text || '');
-    return typeof value === 'string' ? value : '';
+    if (!normalized) return '';
+    if (typeof normalized === 'object' && normalized !== null && 'text' in normalized) return String(normalized.text || '');
+    return typeof normalized === 'string' ? normalized : '';
   }
 
   if (fieldType === 'text') {
-    if (!value) return '';
-    const text = typeof value === 'object' && value !== null && 'content' in value
-      ? String(value.content || '')
-      : (typeof value === 'string' ? value : '');
+    if (!normalized) return '';
+    const text = typeof normalized === 'object' && normalized !== null && 'content' in normalized
+      ? String(normalized.content || '')
+      : (typeof normalized === 'string' ? normalized : '');
     return text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
   if (fieldType === 'boolean') {
-    if (typeof value === 'boolean') return value ? 1 : 0;
-    if (value && typeof value === 'object' && 'value' in value) {
-      const inner = value.value;
+    if (typeof normalized === 'boolean') return normalized ? 1 : 0;
+    if (normalized && typeof normalized === 'object' && 'value' in normalized) {
+      const inner = normalized.value;
       if (typeof inner === 'boolean') return inner ? 1 : 0;
       if (typeof inner === 'string') return inner.toLowerCase() === 'true' ? 1 : 0;
       return Number(Boolean(inner));
     }
-    if (typeof value === 'string') return value.toLowerCase() === 'true' ? 1 : 0;
-    return Number(Boolean(value));
+    if (typeof normalized === 'string') return normalized.toLowerCase() === 'true' ? 1 : 0;
+    return Number(Boolean(normalized));
   }
 
-  if (value == null) return '';
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
-  if (typeof value === 'string') return value;
-  if (Array.isArray(value)) return value.length;
-  return JSON.stringify(value);
+  if (normalized == null) return '';
+  if (typeof normalized === 'number' || typeof normalized === 'boolean') return normalized;
+  if (typeof normalized === 'string') return normalized;
+  if (Array.isArray(normalized)) return normalized.length;
+  return JSON.stringify(normalized);
 }
 
 function resolveBooleanCellValue(value) {
@@ -249,6 +261,113 @@ function extractTextValue(value) {
     if ('label' in value) return extractTextValue(value.label);
   }
   return '';
+}
+
+function parseMaybeJson(value) {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  const looksLikeJson =
+    (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+    (trimmed.startsWith('[') && trimmed.endsWith(']'));
+  if (!looksLikeJson) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch (_) {
+    return value;
+  }
+}
+
+function normalizeFieldValueForTable(value, fieldType) {
+  const parsed = parseMaybeJson(value);
+
+  if (fieldType === 'gallery') {
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.images)) return parsed.images;
+    return Array.isArray(value) ? value : [];
+  }
+
+  if (fieldType === 'list') {
+    if (Array.isArray(parsed)) return { items: parsed };
+    if (parsed && typeof parsed === 'object') return parsed;
+    return value;
+  }
+
+  return parsed;
+}
+
+function formatTableCellText(value, fieldType) {
+  const normalized = normalizeFieldValueForTable(value, fieldType);
+
+  if (fieldType === 'relatedEntities') {
+    const selectedItems = Array.isArray(normalized?.selectedItems) ? normalized.selectedItems : [];
+    const selectedIds = Array.isArray(normalized?.selectedIds) ? normalized.selectedIds : [];
+    const names = selectedItems
+      .map((item) => extractTextValue(item?.label || item?.name || item?.title || item?.id))
+      .filter(Boolean);
+    if (names.length > 0) return names.join(', ');
+    if (selectedIds.length > 0) return `${selectedIds.length} выбрано`;
+    return '';
+  }
+
+  if (fieldType === 'multiselect') {
+    const selectedItems = Array.isArray(normalized?.selectedItems) ? normalized.selectedItems : [];
+    const values = Array.isArray(normalized?.values) ? normalized.values : (Array.isArray(normalized) ? normalized : []);
+    const fromSelectedItems = selectedItems.map((item) => extractTextValue(item?.label || item?.name || item?.value || item)).filter(Boolean);
+    const fromValues = values.map((item) => extractTextValue(item)).filter(Boolean);
+    return [...fromSelectedItems, ...fromValues].join(', ');
+  }
+
+  if (fieldType === 'contact') {
+    return extractTextValue(normalized?.value ?? normalized);
+  }
+
+  if (fieldType === 'url') {
+    return extractTextValue(normalized?.value ?? normalized?.url ?? normalized);
+  }
+
+  if (fieldType === 'file' || fieldType === 'video' || fieldType === 'audio') {
+    return extractTextValue(normalized?.title || normalized?.url || normalized?.value || normalized);
+  }
+
+  if (fieldType === 'list') {
+    const items = Array.isArray(normalized?.items) ? normalized.items : [];
+    return items.length > 0 ? items.map((item) => extractTextValue(item)).filter(Boolean).join(', ') : '';
+  }
+
+  if (fieldType === 'table') {
+    const headers = Array.isArray(normalized?.headers) ? normalized.headers : [];
+    const rows = Array.isArray(normalized?.rows) ? normalized.rows : [];
+    if (rows.length > 0) return `${rows.length} строк`;
+    if (headers.length > 0) return `${headers.length} колонок`;
+    return '';
+  }
+
+  if (fieldType === 'accordion') {
+    const items = Array.isArray(normalized?.items) ? normalized.items : [];
+    return items.length > 0 ? `${items.length} пунктов` : '';
+  }
+
+  if (fieldType === 'tabs') {
+    const tabs = Array.isArray(normalized?.tabs) ? normalized.tabs : [];
+    return tabs.length > 0 ? `${tabs.length} вкладок` : '';
+  }
+
+  if (fieldType === 'json') {
+    return typeof normalized?.value === 'string' ? normalized.value : extractTextValue(normalized);
+  }
+
+  if (fieldType === 'date' || fieldType === 'datetime') {
+    const raw = extractTextValue(normalized?.value ?? normalized);
+    if (!raw) return '';
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return raw;
+    return fieldType === 'datetime'
+      ? dt.toLocaleString('ru-RU')
+      : dt.toLocaleDateString('ru-RU');
+  }
+
+  return extractTextValue(normalized);
 }
 
 function buildPublicRecordUrlByTemplate(template, record) {
@@ -949,7 +1068,8 @@ export default function DynamicPageEditor() {
                 {paginatedRecords.map((record) => (
                   <tr key={record.id}>
                     {tableFields.map((field) => {
-                      const val = getRecordFieldValue(record, field);
+                      const rawVal = getRecordFieldValue(record, field);
+                      const val = normalizeFieldValueForTable(rawVal, field.type);
                       const isImage = field.type === 'image' && Boolean(val);
                       const isGallery = field.type === 'gallery' && Array.isArray(val);
                       const isHeading = field.type === 'heading';
@@ -974,6 +1094,7 @@ export default function DynamicPageEditor() {
                         ? (typeof val === 'string' ? getImageUrl(val) : (val?.url ? getImageUrl(val.url) : (val?.value ? getImageUrl(val.value) : null)))
                         : null;
                       const booleanValue = isBoolean ? resolveBooleanCellValue(val) : false;
+                      const formattedTextValue = formatTableCellText(val, field.type);
                       
                       return (
                         <td key={field.fieldKey} className={getDynamicColumnClass(field)}>
@@ -1009,12 +1130,12 @@ export default function DynamicPageEditor() {
                               <span className={styles.dynamicTextClamp}>
                                 {(plainRichText.length > 120 ? `${plainRichText.slice(0, 120)}…` : plainRichText) || '-'}
                               </span>
-                            ) : typeof val === 'object' && val !== null && !Array.isArray(val) ? (
-                              <span className={styles.dynamicTextClamp}>
-                                {JSON.stringify(val).slice(0, 100) + (JSON.stringify(val).length > 100 ? '…' : '')}
-                              </span>
                             ) : (
-                              <span className={styles.dynamicTextClamp}>{String(val ?? '-')}</span>
+                              <span className={styles.dynamicTextClamp}>
+                                {formattedTextValue
+                                  ? (formattedTextValue.length > 120 ? `${formattedTextValue.slice(0, 120)}…` : formattedTextValue)
+                                  : '-'}
+                              </span>
                             )}
                           </div>
                         </td>

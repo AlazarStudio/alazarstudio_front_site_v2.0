@@ -363,6 +363,12 @@ export default function AdminSettingsPage() {
       order: i,
       label: block.label ?? '',
       showInCreateForm: block.showInCreateForm !== false,
+      ...(block.type === 'relatedEntities'
+        ? {
+          relatedResourceSlug: String(block.relatedResourceSlug || '').trim(),
+          relatedResourceLabel: String(block.relatedResourceLabel || '').trim(),
+        }
+        : {}),
     }));
 
     if (!payloadFields.some((field) => field.type === 'additionalBlocks')) {
@@ -376,6 +382,31 @@ export default function AdminSettingsPage() {
 
     return payloadFields;
   }, []);
+
+  const buildRelatedFieldLabel = useCallback((sourceLabel) => {
+    const raw = String(sourceLabel || '').trim().toLowerCase();
+    if (!raw) return '';
+    return transliterate(raw)
+      .replace(/[^a-z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
+  }, [transliterate]);
+
+  const getStructureRelatedResourceOptions = useCallback(() => (
+    (Array.isArray(menuItems) ? menuItems : [])
+      .filter((item) => item?.isVisible !== false && item?.url?.startsWith('/admin/') && item.url !== '/admin/settings')
+      .map((item) => {
+        const slug = String(item.url || '')
+          .replace(/^\/admin\/?/, '')
+          .replace(/^\/+/, '')
+          .replace(/\/+$/, '');
+        return {
+          slug,
+          label: String(item.label || slug),
+        };
+      })
+      .filter((item) => item.slug && item.slug !== structureModal.slug)
+  ), [menuItems, structureModal.slug]);
 
   const isDirty = savedItemsRef.current !== null && 
     JSON.stringify(normalizeItems(menuItems)) !== JSON.stringify(normalizeItems(savedItemsRef.current));
@@ -1362,6 +1393,8 @@ export default function AdminSettingsPage() {
           order: f.order ?? i,
           label: f.label ?? '',
           showInCreateForm: f.showInCreateForm !== false,
+          relatedResourceSlug: f.relatedResourceSlug ?? '',
+          relatedResourceLabel: f.relatedResourceLabel ?? '',
         };
       });
       
@@ -2456,6 +2489,7 @@ export default function AdminSettingsPage() {
                     structureFields.map((block, idx) => {
                       const blockDef = BLOCK_TYPES.find(b => b.type === block.type);
                       const Icon = blockDef?.icon;
+                      const relatedResourceOptions = getStructureRelatedResourceOptions();
                       return (
                         <div
                           key={block.id}
@@ -2479,14 +2513,45 @@ export default function AdminSettingsPage() {
                             type="text"
                             value={block.label ?? ''}
                             onChange={(e) => {
+                              if (block.type === 'relatedEntities') return;
                               const next = [...structureFields];
                               next[idx] = { ...next[idx], label: e.target.value };
                               setStructureFields(next);
                             }}
+                            readOnly={block.type === 'relatedEntities'}
                             placeholder={blockDef?.label ? `Напр.: ${blockDef.label}` : 'Подсказка'}
                             className={styles.structureModalListInput}
+                            style={block.type === 'relatedEntities' ? { display: 'none' } : undefined}
                             onDragStart={(e) => e.stopPropagation()}
                           />
+                          {block.type === 'relatedEntities' && (
+                            <select
+                              value={block.relatedResourceSlug || ''}
+                              onChange={(e) => {
+                                const selectedSlug = e.target.value;
+                                const selectedOption = relatedResourceOptions.find((item) => item.slug === selectedSlug);
+                                const autoLabel = buildRelatedFieldLabel(selectedOption?.label || selectedSlug);
+                                const next = [...structureFields];
+                                next[idx] = {
+                                  ...next[idx],
+                                  relatedResourceSlug: selectedSlug,
+                                  relatedResourceLabel: selectedOption?.label || '',
+                                  label: autoLabel,
+                                };
+                                setStructureFields(next);
+                              }}
+                              className={styles.structureModalListInput}
+                              style={{ marginTop: 8 }}
+                              onDragStart={(e) => e.stopPropagation()}
+                            >
+                              <option value="">Выберите связанную сущность</option>
+                              {relatedResourceOptions.map((option) => (
+                                <option key={option.slug} value={option.slug}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                           <label className={`${styles.visibilityToggle} ${styles.structureModalCreateToggle}`}>
                             <input
                               type="checkbox"

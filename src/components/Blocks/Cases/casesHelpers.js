@@ -145,12 +145,34 @@ function resolveShopCardDescription(record) {
   return extractPlainText(resolveField(record, 'reshenie'));
 }
 
-export function extractRecordTags(record) {
-  const tagsFieldCandidates = [
-    resolveField(record, 'tegi'),
-    resolveField(record, 'tags'),
-    resolveField(record, 'metki'),
-  ];
+export function extractRecordTags(record, resolveTagLabelById) {
+  const tagKeyPattern = /(tag|tegi|metk|filter|fil[_-]?tr|filtr|kategori|category)/i;
+  const tagLabelPattern = /(тег|метк|фильтр|tag|filter|category|катег)/i;
+
+  const looksLikeTagsField = (key, value) => {
+    const resourceSlug = String(value?.resourceSlug || '').toLowerCase();
+    const resourceLabel = String(value?.resourceLabel || '').toLowerCase();
+    const keyLower = String(key || '').toLowerCase();
+    return (
+      tagKeyPattern.test(keyLower)
+      || tagKeyPattern.test(resourceSlug)
+      || tagLabelPattern.test(resourceLabel)
+    );
+  };
+
+  const explicitTagFieldCandidates = ['tegi', 'tags', 'metki']
+    .map((key) => ({ key, value: resolveField(record, key) }))
+    .filter((item) => item.value != null);
+
+  const discoveredTagFieldCandidates = Object.entries(record || {})
+    .filter(([key]) => key !== 'additionalBlocks')
+    .map(([key, rawValue]) => {
+      const value = parseMaybeJson(rawValue);
+      return looksLikeTagsField(key, value) ? { key, value } : null;
+    })
+    .filter(Boolean);
+
+  const tagFieldCandidates = [...explicitTagFieldCandidates, ...discoveredTagFieldCandidates];
 
   const collectFromSelectedItems = (value) => (
     Array.isArray(value?.selectedItems)
@@ -178,20 +200,66 @@ export function extractRecordTags(record) {
       : []
   );
 
-  const tags = tagsFieldCandidates.flatMap((candidate) => [
-    ...collectFromSelectedItems(candidate),
-    ...collectFromValues(candidate),
-    ...collectFromArray(candidate),
-    ...collectFromCommaString(candidate),
+  const collectFromSelectedIds = (value) => (
+    Array.isArray(value?.selectedIds) && resolveTagLabelById
+      ? value.selectedIds
+          .map((id) => resolveTagLabelById(String(id), String(value?.resourceSlug || '')))
+          .filter(Boolean)
+      : []
+  );
+
+  const tags = tagFieldCandidates.flatMap((candidate) => [
+    ...collectFromSelectedItems(candidate.value),
+    ...collectFromSelectedIds(candidate.value),
+    ...collectFromValues(candidate.value),
+    ...collectFromArray(candidate.value),
+    ...collectFromCommaString(candidate.value),
   ]);
 
   return Array.from(new Set(tags.map((tag) => String(tag).trim()).filter(Boolean)));
 }
 
-export function mapCaseRecordToCard(record) {
+export function extractTagRelations(record) {
+  const tagKeyPattern = /(tag|tegi|metk|filter|fil[_-]?tr|filtr|kategori|category)/i;
+  const tagLabelPattern = /(тег|метк|фильтр|tag|filter|category|катег)/i;
+
+  const relationCandidates = Object.entries(record || {})
+    .filter(([key]) => key !== 'additionalBlocks')
+    .map(([key, rawValue]) => {
+      const value = parseMaybeJson(rawValue);
+      const resourceSlug = String(value?.resourceSlug || '').trim().toLowerCase();
+      const resourceLabel = String(value?.resourceLabel || '').trim().toLowerCase();
+      const keyLower = String(key || '').toLowerCase();
+      const isTagRelation =
+        tagKeyPattern.test(keyLower)
+        || tagKeyPattern.test(resourceSlug)
+        || tagLabelPattern.test(resourceLabel);
+      if (!isTagRelation) return null;
+      if (!resourceSlug) return null;
+      const selectedIds = Array.isArray(value?.selectedIds)
+        ? value.selectedIds.map((id) => String(id).trim()).filter(Boolean)
+        : [];
+      if (selectedIds.length === 0) return null;
+      return { resourceSlug, selectedIds };
+    })
+    .filter(Boolean);
+
+  const uniqMap = new Map();
+  relationCandidates.forEach((candidate) => {
+    candidate.selectedIds.forEach((id) => {
+      const key = `${candidate.resourceSlug}:${id}`;
+      if (!uniqMap.has(key)) {
+        uniqMap.set(key, { resourceSlug: candidate.resourceSlug, id });
+      }
+    });
+  });
+  return Array.from(uniqMap.values());
+}
+
+export function mapCaseRecordToCard(record, resolveTagLabelById) {
   const titleField = resolveField(record, 'nazvanie');
   const title = extractPlainText(titleField?.text || titleField || record?.title || 'Без названия') || 'Без названия';
-  const tags = extractRecordTags(record);
+  const tags = extractRecordTags(record, resolveTagLabelById);
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
 
   const logoSrc = resolveLogoImage(record || {});
@@ -214,8 +282,8 @@ export function isCaseForShop(record) {
   return resolveBooleanField(record, 'dlya_magazina');
 }
 
-export function mapCaseRecordToShopCard(record) {
-  const base = mapCaseRecordToCard(record);
+export function mapCaseRecordToShopCard(record, resolveTagLabelById) {
+  const base = mapCaseRecordToCard(record, resolveTagLabelById);
   return {
     ...base,
     type: 'shop',
