@@ -9,6 +9,7 @@ import { AdminHeaderRightContext, AdminBreadcrumbContext } from '../../../layout
 import { BLOCK_TYPES, createEmptyBlock, slugFromText, AutoHeightTableTextarea } from '../../../components/NewsBlockEditor';
 import { ConfirmModal } from '../../../components';
 import NewsBlockEditor from '../../../components/NewsBlockEditor';
+import SaveProgressModal from '../../../components/SaveProgressModal';
 import { MUI_ICON_NAMES, MUI_ICONS, getMuiIconComponent, getIconGroups } from '../../../components/WhatToBringIcons';
 import RichTextEditor from '@/components/RichTextEditor';
 import styles from '../../../admin.module.css';
@@ -243,6 +244,7 @@ export default function DynamicRecordEditPage() {
   const [pageTitle, setPageTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveProgress, setSaveProgress] = useState({ open: false, steps: [], totalProgress: 0 });
   const [structureFields, setStructureFields] = useState([]);
   const [recordData, setRecordData] = useState({});
   const [additionalBlocks, setAdditionalBlocks] = useState([]);
@@ -643,16 +645,18 @@ export default function DynamicRecordEditPage() {
         (typeof value === 'object' && typeof value.arrayBuffer === 'function' && typeof value.size === 'number'))
     );
 
-  const uploadFileAndGetUrl = async (file) => {
+  const uploadFileAndGetUrl = async (file, options = {}) => {
     if (!isUploadableFile(file)) return null;
     const formData = new FormData();
     const fileName = typeof file?.name === 'string' && file.name.trim() ? file.name : 'upload.bin';
     formData.append('file', file, fileName);
-    const res = await mediaAPI.upload(formData);
+    const res = await mediaAPI.upload(formData, {
+      onUploadProgress: options.onUploadProgress,
+    });
     return res.data?.url || null;
   };
 
-  const uploadPendingBlockAssets = async (blocks, pendingMap) => {
+  const uploadPendingBlockAssets = async (blocks, pendingMap, handlers = {}) => {
     const nextBlocks = (Array.isArray(blocks) ? blocks : []).map((block) => ({
       ...block,
       data: { ...(block.data || {}) },
@@ -670,14 +674,19 @@ export default function DynamicRecordEditPage() {
       const block = nextBlocks[blockIndex];
 
       if (pending.url instanceof Blob) {
-        const uploadedUrl = await uploadFileAndGetUrl(pending.url);
+        const uploadedUrl = await uploadFileAndGetUrl(pending.url, {
+          onUploadProgress: handlers.onUploadProgress,
+        });
         if (uploadedUrl) {
           block.data = { ...block.data, url: uploadedUrl };
         }
+        handlers.onFileUploaded?.();
       }
 
       if (pending.documentFile instanceof Blob && block.type === 'file') {
-        const uploadedUrl = await uploadFileAndGetUrl(pending.documentFile);
+        const uploadedUrl = await uploadFileAndGetUrl(pending.documentFile, {
+          onUploadProgress: handlers.onUploadProgress,
+        });
         if (uploadedUrl) {
           block.data = {
             ...block.data,
@@ -685,14 +694,18 @@ export default function DynamicRecordEditPage() {
             title: block.data?.title || pending.documentFile.name || '',
           };
         }
+        handlers.onFileUploaded?.();
       }
 
       if (Array.isArray(pending.images) && pending.images.length > 0) {
         const uploadedUrls = [];
         for (const file of pending.images) {
           if (!(file instanceof Blob)) continue;
-          const uploadedUrl = await uploadFileAndGetUrl(file);
+          const uploadedUrl = await uploadFileAndGetUrl(file, {
+            onUploadProgress: handlers.onUploadProgress,
+          });
           if (uploadedUrl) uploadedUrls.push(uploadedUrl);
+          handlers.onFileUploaded?.();
         }
 
         if (uploadedUrls.length > 0) {
@@ -868,6 +881,76 @@ export default function DynamicRecordEditPage() {
       const blocksToSave = Array.isArray(additionalBlocksRef.current) ? additionalBlocksRef.current : [];
       const pendingFilesToSave = pendingFilesRef.current && typeof pendingFilesRef.current === 'object' ? pendingFilesRef.current : {};
       const publishedToSave = Boolean(isPublishedRef.current);
+      const countStructureUploadFiles = (field, value) => {
+        if (!field) return 0;
+        const blockId = structureFieldToBlockId(field);
+        const pending = pendingFilesToSave?.[blockId] || {};
+        if (field.type === 'image') {
+          if (isUploadableFile(pending.url)) return 1;
+          if (value && typeof value === 'object' && value.type === 'file' && isUploadableFile(value.value)) return 1;
+          return 0;
+        }
+        if (field.type === 'gallery') {
+          const pendingImages = Array.isArray(pending.images) ? pending.images : [];
+          return pendingImages.filter((file) => isUploadableFile(file)).length;
+        }
+        if (field.type === 'file') {
+          if (isUploadableFile(pending.documentFile)) return 1;
+          if (value && typeof value === 'object' && value.type === 'file' && isUploadableFile(value.value)) return 1;
+          return 0;
+        }
+        return 0;
+      };
+      const countAdditionalUploadFiles = () => {
+        const additionalIds = new Set((Array.isArray(blocksToSave) ? blocksToSave : []).map((block) => String(block?.id || '')));
+        return Object.entries(pendingFilesToSave || {}).reduce((count, [blockId, pending]) => {
+          if (!additionalIds.has(String(blockId))) return count;
+          if (!pending || typeof pending !== 'object') return count;
+          let localCount = 0;
+          if (isUploadableFile(pending.url)) localCount += 1;
+          if (isUploadableFile(pending.documentFile)) localCount += 1;
+          if (Array.isArray(pending.images)) {
+            localCount += pending.images.filter((file) => isUploadableFile(file)).length;
+          }
+          return count + localCount;
+        }, 0);
+      };
+      const totalUploadFiles =
+        fieldsToSave.reduce((count, field) => count + countStructureUploadFiles(field, recordDataToSave[field.fieldKey]), 0)
+        + countAdditionalUploadFiles();
+      const hasUploads = totalUploadFiles > 0;
+      let uploadedCount = 0;
+      const updateUploadProgress = (currentFileProgress = 0) => {
+        if (!hasUploads) return;
+        const safeProgress = Number.isFinite(currentFileProgress) ? Math.max(0, Math.min(100, Math.round(currentFileProgress))) : 0;
+        const overall = Math.round(((uploadedCount * 100 + safeProgress) / totalUploadFiles));
+        setSaveProgress((prev) => ({
+          ...prev,
+          steps: prev.steps.map((step, idx) => (idx === 0
+            ? {
+              ...step,
+              progress: overall,
+              subLabel: `Файл ${Math.min(uploadedCount + 1, totalUploadFiles)} из ${totalUploadFiles}`,
+            }
+            : step)),
+          totalProgress: Math.round((overall / 100) * 50),
+        }));
+      };
+      const markFileUploaded = () => {
+        if (!hasUploads) return;
+        uploadedCount += 1;
+        updateUploadProgress(0);
+      };
+      const initialSteps = hasUploads
+        ? [
+          { label: 'Загрузка файлов', status: 'active', progress: 0, subLabel: totalUploadFiles > 0 ? `Файл 1 из ${totalUploadFiles}` : '' },
+          { label: 'Сохранение данных', status: 'pending' },
+        ]
+        : [
+          { label: 'Загрузка файлов', status: 'done' },
+          { label: 'Сохранение данных', status: 'active', progress: 0, subLabel: 'Подготовка данных...' },
+        ];
+      setSaveProgress({ open: true, steps: initialSteps, totalProgress: hasUploads ? 0 : 60 });
       const hasPendingStructureUpload = (field) => {
         if (!field) return false;
         const blockId = structureFieldToBlockId(field);
@@ -973,8 +1056,14 @@ export default function DynamicRecordEditPage() {
           const pendingImage = pendingFilesToSave?.[blockId]?.url;
           if (isUploadableFile(pendingImage)) {
             try {
-              const uploadedUrl = await uploadFileAndGetUrl(pendingImage);
+              const uploadedUrl = await uploadFileAndGetUrl(pendingImage, {
+                onUploadProgress: (e) => {
+                  const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+                  updateUploadProgress(percent);
+                },
+              });
               dataToSave[fieldKey] = uploadedUrl;
+              markFileUploaded();
             } catch (error) {
               console.error('Ошибка загрузки изображения:', error);
               setInfoModal({
@@ -991,8 +1080,14 @@ export default function DynamicRecordEditPage() {
             } else if (value.type === 'file' && value.value) {
               // Нужно загрузить файл
               try {
-                const uploadedUrl = await uploadFileAndGetUrl(value.value);
+                const uploadedUrl = await uploadFileAndGetUrl(value.value, {
+                  onUploadProgress: (e) => {
+                    const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+                    updateUploadProgress(percent);
+                  },
+                });
                 dataToSave[fieldKey] = uploadedUrl;
+                markFileUploaded();
                 // Освобождаем память от preview
                 if (value.preview) {
                   URL.revokeObjectURL(value.preview);
@@ -1022,8 +1117,14 @@ export default function DynamicRecordEditPage() {
           try {
             for (const file of pendingImages) {
               if (!isUploadableFile(file)) continue;
-              const uploadedUrl = await uploadFileAndGetUrl(file);
+              const uploadedUrl = await uploadFileAndGetUrl(file, {
+                onUploadProgress: (e) => {
+                  const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+                  updateUploadProgress(percent);
+                },
+              });
               if (uploadedUrl) uploadedUrls.push(uploadedUrl);
+              markFileUploaded();
             }
           } catch (error) {
             console.error('Ошибка загрузки изображений галереи:', error);
@@ -1040,8 +1141,14 @@ export default function DynamicRecordEditPage() {
           const pendingDocument = pendingFilesToSave?.[blockId]?.documentFile;
           if (isUploadableFile(pendingDocument)) {
             try {
-              const uploadedUrl = await uploadFileAndGetUrl(pendingDocument);
+              const uploadedUrl = await uploadFileAndGetUrl(pendingDocument, {
+                onUploadProgress: (e) => {
+                  const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+                  updateUploadProgress(percent);
+                },
+              });
               dataToSave[fieldKey] = uploadedUrl;
+              markFileUploaded();
             } catch (error) {
               console.error('Ошибка загрузки файла:', error);
               setInfoModal({
@@ -1053,8 +1160,14 @@ export default function DynamicRecordEditPage() {
             }
           } else if (value && typeof value === 'object' && value.type === 'file' && value.value) {
             try {
-              const uploadedUrl = await uploadFileAndGetUrl(value.value);
+              const uploadedUrl = await uploadFileAndGetUrl(value.value, {
+                onUploadProgress: (e) => {
+                  const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+                  updateUploadProgress(percent);
+                },
+              });
               dataToSave[fieldKey] = uploadedUrl;
+              markFileUploaded();
             } catch (error) {
               console.error('Ошибка загрузки файла:', error);
               setInfoModal({
@@ -1076,9 +1189,24 @@ export default function DynamicRecordEditPage() {
       
       // Всегда отправляем additionalBlocks, чтобы удаление всех блоков
       // гарантированно очищало данные на бэкенде.
-      const blocksWithUploadedAssets = await uploadPendingBlockAssets(blocksToSave, pendingFilesToSave);
+      const blocksWithUploadedAssets = await uploadPendingBlockAssets(blocksToSave, pendingFilesToSave, {
+        onUploadProgress: (e) => {
+          const percent = e?.total ? Math.round((e.loaded / e.total) * 100) : 0;
+          updateUploadProgress(percent);
+        },
+        onFileUploaded: markFileUploaded,
+      });
       const convertedBlocks = blocksToObject(blocksWithUploadedAssets);
       dataToSave.additionalBlocks = convertedBlocks;
+      setSaveProgress((prev) => ({
+        ...prev,
+        steps: prev.steps.map((step, idx) => {
+          if (idx === 0) return { ...step, status: 'done', progress: 100, subLabel: '' };
+          if (idx === 1) return { ...step, status: 'active', progress: 0, subLabel: 'Отправка на сервер...' };
+          return step;
+        }),
+        totalProgress: hasUploads ? 50 : 80,
+      }));
 
       if (Object.keys(pendingFilesToSave).length > 0) {
         setPendingFiles({});
@@ -1090,9 +1218,25 @@ export default function DynamicRecordEditPage() {
       } else {
         await dynamicPageRecordsAPI.update(slug, id, dataToSave);
       }
-      navigate(`/admin/dynamic/${slug}`, { replace: true });
+      setSaveProgress((prev) => ({
+        ...prev,
+        steps: prev.steps.map((step, idx) => (idx === 1 ? { ...step, status: 'done', progress: 100, subLabel: '' } : step)),
+        totalProgress: 100,
+      }));
+      setTimeout(() => {
+        setSaveProgress({ open: false, steps: [], totalProgress: 0 });
+        navigate(`/admin/dynamic/${slug}`, { replace: true });
+      }, 500);
     } catch (error) {
       console.error('Ошибка сохранения:', error);
+      setSaveProgress((prev) => {
+        const activeIdx = prev.steps.findIndex((step) => step.status === 'active');
+        const nextSteps = prev.steps.map((step, idx) => (
+          idx === activeIdx ? { ...step, status: 'error' } : step
+        ));
+        return { ...prev, steps: nextSteps };
+      });
+      setTimeout(() => setSaveProgress({ open: false, steps: [], totalProgress: 0 }), 2000);
       setInfoModal({
         title: 'Ошибка сохранения',
         message: 'Не удалось сохранить запись.',
@@ -2190,6 +2334,12 @@ export default function DynamicRecordEditPage() {
         cancelLabel="Закрыть"
         onConfirm={() => setInfoModal(null)}
         onCancel={() => setInfoModal(null)}
+      />
+
+      <SaveProgressModal
+        open={saveProgress.open}
+        steps={saveProgress.steps}
+        totalProgress={saveProgress.totalProgress}
       />
     </div>
   );
