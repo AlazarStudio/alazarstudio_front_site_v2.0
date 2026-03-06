@@ -65,6 +65,25 @@ function safeJsonParse(value, fallback = null) {
   }
 }
 
+function toInputDateString(raw, fieldType) {
+  if (!raw) return '';
+  const str = typeof raw === 'object' && raw.$date ? raw.$date : String(raw);
+  const dt = new Date(str);
+  if (Number.isNaN(dt.getTime())) return str;
+  if (fieldType === 'datetime') {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  }
+  return dt.toISOString().slice(0, 10);
+}
+
+function dateToISO(raw) {
+  if (!raw || (typeof raw !== 'string' && typeof raw !== 'number')) return raw || null;
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) return raw;
+  return dt.toISOString();
+}
+
 function normalizeStructureFieldValue(type, rawValue) {
   if (rawValue === undefined || rawValue === null) {
     if (type === 'image') return null;
@@ -91,8 +110,13 @@ function normalizeStructureFieldValue(type, rawValue) {
   }
 
   if (['url', 'date', 'datetime', 'number'].includes(type)) {
-    if (rawValue && typeof rawValue === 'object' && Object.prototype.hasOwnProperty.call(rawValue, 'value')) return rawValue;
-    return { value: rawValue ?? '' };
+    const inner = rawValue && typeof rawValue === 'object' && Object.prototype.hasOwnProperty.call(rawValue, 'value')
+      ? rawValue.value
+      : (rawValue ?? '');
+    if (type === 'date' || type === 'datetime') {
+      return { value: toInputDateString(inner, type) };
+    }
+    return { value: inner };
   }
 
   if (type === 'boolean') {
@@ -738,6 +762,7 @@ export default function DynamicRecordEditPage() {
 
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
       if (field.type === 'number') return normalizeNumberForSave(value);
+      if (field.type === 'date' || field.type === 'datetime') return dateToISO(value);
       return value;
     }
 
@@ -763,6 +788,9 @@ export default function DynamicRecordEditPage() {
           }
           if (field.type === 'number') {
             return normalizeNumberForSave(value.value);
+          }
+          if (field.type === 'date' || field.type === 'datetime') {
+            return dateToISO(typeof value.value === 'string' || typeof value.value === 'number' ? value.value : '');
           }
           return typeof value.value === 'string' || typeof value.value === 'number' ? value.value : '';
         case 'boolean':

@@ -75,6 +75,18 @@ const BLOCK_TYPES = [
   { type: 'json', label: 'JSON', icon: Code },
 ];
 
+function formatDateForInput(raw, isDatetime) {
+  if (!raw) return '';
+  const str = String(raw);
+  const dt = new Date(str);
+  if (Number.isNaN(dt.getTime())) return str;
+  if (isDatetime) {
+    const p = (n) => String(n).padStart(2, '0');
+    return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`;
+  }
+  return dt.toISOString().slice(0, 10);
+}
+
 function generateBlockId() {
   return `b-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -1200,7 +1212,7 @@ export default function NewsBlockEditor({
                   <label className={styles.blockLabel}>Дата</label>
                   <input
                     type="date"
-                    value={block.data?.value ?? ''}
+                    value={formatDateForInput(block.data?.value, false)}
                     onChange={(e) => updateBlock(index, { data: { value: e.target.value } })}
                     className={styles.blockInput}
                   />
@@ -1212,7 +1224,7 @@ export default function NewsBlockEditor({
                   <label className={styles.blockLabel}>Дата и время</label>
                   <input
                     type="datetime-local"
-                    value={block.data?.value ?? ''}
+                    value={formatDateForInput(block.data?.value, true)}
                     onChange={(e) => updateBlock(index, { data: { value: e.target.value } })}
                     className={styles.blockInput}
                   />
