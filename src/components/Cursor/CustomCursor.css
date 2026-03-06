@@ -21,8 +21,8 @@
 }
 
 .cursor-inner {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   background-color: var(--cursor-bg);
   border-radius: 50%;
   display: flex;
@@ -52,8 +52,8 @@
 
 /* ==================== РЕЖИМ: DEFAULT ==================== */
 .custom-cursor[data-mode="default"] .cursor-inner {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   background-color: var(--cursor-bg);
 }
 
@@ -158,15 +158,10 @@
 }
 
 .custom-cursor[data-mode="case"] .cursor-case-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="case"] .cursor-case-content .cursor-label {
@@ -187,15 +182,10 @@
 }
 
 .custom-cursor[data-mode="filter"] .cursor-filter-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .cursor-filter-content img{
@@ -214,15 +204,10 @@
 }
 
 .custom-cursor[data-mode="filter_blue"] .cursor-filter_blue-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .cursor-filter_blue-content img{
@@ -241,15 +226,10 @@
 }
 
 .custom-cursor[data-mode="banner"] .cursor-banner-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="banner"] .cursor-banner-content .cursor-label {
@@ -271,15 +251,10 @@
 }
 
 .custom-cursor[data-mode="shop"] .cursor-shop-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="shop"] .cursor-shop-content .cursor-label {
@@ -301,15 +276,10 @@
 }
 
 .custom-cursor[data-mode="new"] .cursor-new-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="new"] .cursor-new-content .cursor-label {
@@ -331,15 +301,10 @@
 }
 
 .custom-cursor[data-mode="card"] .cursor-card-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="card"] .cursor-card-content .cursor-label {
@@ -361,15 +326,10 @@
 }
 
 .custom-cursor[data-mode="scrollToCases"] .cursor-scrollToCases-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   pointer-events: none;
-  z-index: 10000;
 }
 
 .custom-cursor[data-mode="scrollToCases"] .cursor-scrollToCases-content .cursor-label {
