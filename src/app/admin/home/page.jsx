@@ -493,6 +493,15 @@ export default function AdminHomePage() {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (file.type === 'image/gif') {
+      const logoPath = `seasons.${seasonIndex}.logo`;
+      setPendingImages((prev) => {
+        const old = prev[logoPath];
+        if (old?.preview) URL.revokeObjectURL(old.preview);
+        return { ...prev, [logoPath]: { file, preview: URL.createObjectURL(file) } };
+      });
+      return;
+    }
     if (seasonCropModalFileUrlRef.current) URL.revokeObjectURL(seasonCropModalFileUrlRef.current);
     const url = URL.createObjectURL(file);
     seasonCropModalFileUrlRef.current = url;
@@ -505,6 +514,7 @@ export default function AdminHomePage() {
     const logoPath = `seasons.${seasonIndex}.logo`;
     const src = getImageSrc(logoPath);
     if (!src) return;
+    if (typeof src === 'string' && src.toLowerCase().endsWith('.gif')) return;
     if (seasonCropModalFileUrlRef.current) URL.revokeObjectURL(seasonCropModalFileUrlRef.current);
     seasonCropModalFileUrlRef.current = null;
     setSeasonCropModalImageSrc(src);
@@ -1039,16 +1049,18 @@ export default function AdminHomePage() {
                     <div className={styles.previewItem} style={{ width: 200, aspectRatio: '1/1', position: 'relative', overflow: 'hidden', borderRadius: 8 }}>
                       <img src={getImageSrc(`seasons.${i}.logo`)} alt={`Логотип ${season.title}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'row', gap: 6 }}>
-                        <button
-                          type="button"
-                          onClick={() => openSeasonLogoCropModal(i)}
-                          className={styles.removeImage}
-                          style={{ position: 'relative', top: 0, right: 0 }}
-                          aria-label="Обрезать"
-                          title="Обрезать"
-                        >
-                          <Pencil size={14} />
-                        </button>
+                        {!getImageSrc(`seasons.${i}.logo`)?.toLowerCase?.().endsWith('.gif') && pendingImages[`seasons.${i}.logo`]?.file?.type !== 'image/gif' && (
+                          <button
+                            type="button"
+                            onClick={() => openSeasonLogoCropModal(i)}
+                            className={styles.removeImage}
+                            style={{ position: 'relative', top: 0, right: 0 }}
+                            aria-label="Обрезать"
+                            title="Обрезать"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => document.getElementById(`seasonLogoUpload-${i}`)?.click()}

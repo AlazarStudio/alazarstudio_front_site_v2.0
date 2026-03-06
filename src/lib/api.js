@@ -375,6 +375,9 @@ export const mediaAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress,
   }),
+  crop: (formData) => api.post('/admin/media/crop', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   delete: (id) => api.delete(`/admin/media/${id}`),
 };
 

@@ -117,12 +117,17 @@ export default function ImageCropModal({
   onCancel,
   onClose,
   aspect = DEFAULT_ASPECT,
+  originalFile = null,
 }) {
   // Обратная совместимость со старым API модалки: src/onCropComplete/onClose.
   const resolvedImageSrc = imageSrc || src || '';
   const resolvedOnComplete = onComplete || onCropComplete;
   const resolvedOnCancel = onCancel || onClose;
   const resolvedOpen = typeof open === 'boolean' ? open : Boolean(resolvedImageSrc);
+  const isGif = Boolean(
+    originalFile?.type === 'image/gif' ||
+    (typeof resolvedImageSrc === 'string' && resolvedImageSrc.toLowerCase().endsWith('.gif'))
+  );
   const resolvedAspect = useMemo(
     () => (typeof aspect === 'number' && Number.isFinite(aspect) && aspect > 0 ? aspect : DEFAULT_ASPECT),
     [aspect]
@@ -189,12 +194,16 @@ export default function ImageCropModal({
     try {
       const pixelCrop = toPixelCrop(crop, imageRef.current.naturalWidth, imageRef.current.naturalHeight);
       if (!pixelCrop || !pixelCrop.width || !pixelCrop.height) return;
+      if (isGif && originalFile) {
+        resolvedOnComplete?.(originalFile);
+        return;
+      }
       const blob = await getCroppedImageBlob(resolvedImageSrc, pixelCrop);
       resolvedOnComplete?.(blob);
     } catch (err) {
       console.error('Ошибка обрезки:', err);
     }
-  }, [crop, resolvedImageSrc, resolvedOnComplete]);
+  }, [crop, resolvedImageSrc, resolvedOnComplete, isGif, originalFile]);
 
   if (!resolvedOpen || !resolvedImageSrc) return null;
 

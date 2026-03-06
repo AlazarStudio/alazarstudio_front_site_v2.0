@@ -79,6 +79,17 @@ export default function AdminRoutesPage() {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    if (file.type === 'image/gif') {
+      const formData = new FormData();
+      formData.append('file', file);
+      mediaAPI.upload(formData)
+        .then((res) => {
+          if (res.data?.url) update(path, res.data.url);
+          else if (res.data?.path) update(path, res.data.path);
+        })
+        .catch((err) => console.error('Upload error:', err));
+      return;
+    }
     setPendingImages((prev) => {
       const old = prev[path];
       if (old?.preview) {
@@ -86,7 +97,7 @@ export default function AdminRoutesPage() {
       }
       return { ...prev, [path]: { file, preview: URL.createObjectURL(file) } };
     });
-  }, []);
+  }, [update]);
 
   const hasImage = useCallback((path) => {
     if (pendingImages[path]) return true;

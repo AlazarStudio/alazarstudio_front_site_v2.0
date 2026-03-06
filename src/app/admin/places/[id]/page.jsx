@@ -98,6 +98,7 @@ export default function PlaceEditPage() {
   const [saveProgress, setSaveProgress] = useState({ open: false, steps: [], totalProgress: 0 });
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropModalImageSrc, setCropModalImageSrc] = useState(null);
+  const [cropModalOriginalFile, setCropModalOriginalFile] = useState(null);
   const cropModalFileUrlRef = useRef(null);
   const [pendingImages, setPendingImages] = useState({});
   const [missingPreviewFile, setMissingPreviewFile] = useState(false);
@@ -339,29 +340,67 @@ export default function PlaceEditPage() {
     e.target.value = '';
     if (!file) return;
     setMissingPreviewFile(false);
+    if (file.type === 'image/gif') {
+      setPendingImages((prev) => {
+        const old = prev.image;
+        if (old) URL.revokeObjectURL(old.preview);
+        return { ...prev, image: { file, preview: URL.createObjectURL(file) } };
+      });
+      return;
+    }
     if (cropModalFileUrlRef.current) URL.revokeObjectURL(cropModalFileUrlRef.current);
     const url = URL.createObjectURL(file);
     cropModalFileUrlRef.current = url;
     setCropModalImageSrc(url);
+    setCropModalOriginalFile(file);
     setCropModalOpen(true);
   };
 
   const openPreviewCropModal = () => {
     const src = getImageSrc('image');
     if (!src) return;
+    if (typeof src === 'string' && src.toLowerCase().endsWith('.gif')) return;
     if (cropModalFileUrlRef.current) URL.revokeObjectURL(cropModalFileUrlRef.current);
     cropModalFileUrlRef.current = null;
+    setCropModalOriginalFile(null);
     setCropModalImageSrc(src);
     setCropModalOpen(true);
   };
 
-  const handleCropComplete = (blob) => {
-    const file = new File([blob], 'preview.jpg', { type: 'image/jpeg' });
-    setPendingImages((prev) => {
-      const old = prev.image;
-      if (old) URL.revokeObjectURL(old.preview);
-      return { ...prev, image: { file, preview: URL.createObjectURL(file) } };
-    });
+  const handleCropComplete = async (blobOrFile, options) => {
+    const isGifFile = blobOrFile instanceof File && blobOrFile.type === 'image/gif';
+    if (options?.pixelCrop && blobOrFile instanceof File && !isGifFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', blobOrFile);
+        formData.append('cropX', String(Math.round(options.pixelCrop.x)));
+        formData.append('cropY', String(Math.round(options.pixelCrop.y)));
+        formData.append('cropWidth', String(Math.round(options.pixelCrop.width)));
+        formData.append('cropHeight', String(Math.round(options.pixelCrop.height)));
+        const { data } = await mediaAPI.crop(formData);
+        setFormData((prev) => ({ ...prev, image: data.url }));
+        setPendingImages((prev) => {
+          const next = { ...prev };
+          if (next.image) URL.revokeObjectURL(next.image.preview);
+          delete next.image;
+          return next;
+        });
+      } catch (err) {
+        console.error('Ошибка кропа:', err);
+      } finally {
+        setCropModalOriginalFile(null);
+      }
+    } else {
+      const file = blobOrFile instanceof File
+        ? blobOrFile
+        : new File([blobOrFile], 'preview.jpg', { type: blobOrFile?.type || 'image/jpeg' });
+      setPendingImages((prev) => {
+        const old = prev.image;
+        if (old) URL.revokeObjectURL(old.preview);
+        return { ...prev, image: { file, preview: URL.createObjectURL(file) } };
+      });
+      setCropModalOriginalFile(null);
+    }
     setCropModalOpen(false);
     setCropModalImageSrc(null);
     if (cropModalFileUrlRef.current) {
@@ -373,6 +412,7 @@ export default function PlaceEditPage() {
   const handleCropCancel = () => {
     setCropModalOpen(false);
     setCropModalImageSrc(null);
+    setCropModalOriginalFile(null);
     if (cropModalFileUrlRef.current) {
       URL.revokeObjectURL(cropModalFileUrlRef.current);
       cropModalFileUrlRef.current = null;
@@ -982,16 +1022,18 @@ export default function PlaceEditPage() {
                   />
                   <span className={styles.previewItemBadge}>Превью</span>
                   <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', flexDirection: 'row', gap: 6 }}>
-                    <button
-                      type="button"
-                      onClick={openPreviewCropModal}
-                      className={styles.removeImage}
-                      style={{ position: 'relative', top: 0, right: 0 }}
-                      aria-label="Обрезать"
-                      title="Обрезать"
-                    >
-                      <Pencil size={14} />
-                    </button>
+                    {!getImageSrc('image')?.toLowerCase().endsWith('.gif') && pendingImages.image?.file?.type !== 'image/gif' && (
+                      <button
+                        type="button"
+                        onClick={openPreviewCropModal}
+                        className={styles.removeImage}
+                        style={{ position: 'relative', top: 0, right: 0 }}
+                        aria-label="Обрезать"
+                        title="Обрезать"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => previewUploadRef.current?.click()}
@@ -1528,6 +1570,7 @@ export default function PlaceEditPage() {
       <ImageCropModal
         open={cropModalOpen}
         imageSrc={cropModalImageSrc}
+        originalFile={cropModalOriginalFile}
         title="Обрезка превью"
         onComplete={handleCropComplete}
         onCancel={handleCropCancel}

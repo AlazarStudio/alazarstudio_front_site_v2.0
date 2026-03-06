@@ -916,6 +916,10 @@ export default function NewsBlockEditor({
     if (!file) return;
     const block = sortedBlocks[index];
     if (!block) return;
+    if (file.type === 'image/gif') {
+      onPendingBlockFilesChange?.(block.id, { url: file, images: undefined });
+      return;
+    }
     setImageCropState((prev) => {
       if (prev.preview) {
         URL.revokeObjectURL(prev.preview);
