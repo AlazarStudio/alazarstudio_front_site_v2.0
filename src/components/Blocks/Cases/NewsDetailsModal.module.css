@@ -6,7 +6,7 @@
 }
 
 .hero {
-  padding: 64px 120px 64px;
+  padding: 64px 50px 64px;
   background: #11131a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -41,7 +41,7 @@
 }
 
 .content {
-  padding: 64px 120px 64px;
+  padding: 64px 50px 64px;
   display: flex;
   flex-direction: column;
   gap: 40px;

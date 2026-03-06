@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import classes from './CaseCard.module.css';
 import { Link } from "react-router-dom";
 
-function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onClick, url_text }) {
+function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onClick, url_text, isStock }) {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -93,6 +93,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                                 transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                             }}
                         />
+                        {tags.length > 0 && <div className={classes.case_img_darken} aria-hidden="true" />}
                         <div className={classes.case_img_tags}>
                             {tags.map((tag, index) => (
                                 <Link
@@ -100,7 +101,6 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                                     to={'/'}
                                     className={classes.case_img_tag}
                                     onClick={stopPropagation}
-                                // data-cursor="filter"
                                 >
                                     {tag}
                                 </Link>
@@ -118,7 +118,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
 
             {type == "banner" &&
                 <div
-                    className={`${classes.case} ${classes.type_banner}`}
+                    className={`${classes.case} ${classes.type_new}`}
                     ref={caseRef}
                     onMouseMove={handleMouseMove}
                     onMouseEnter={handleMouseEnter}
@@ -130,33 +130,22 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                 >
                     {isHovered && (
                         <div
-                            className={classes.case_glow_blue}
+                            className={classes.case_glow}
                             style={{
                                 left: `${mousePosition.x}px`,
                                 top: `${mousePosition.y}px`,
                             }}
                         />
                     )}
-                    <div className={classes.banner_tags}>
-                        {tags.map((tag, index) => (
-                            <Link
-                                key={index}
-                                to={'/'}
-                                className={classes.banner_tag}
-                                onClick={stopPropagation}
-                            // data-cursor="filter_blue"
-                            >
-                                {tag}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className={classes.banner_text}>
-                        <div className={classes.banner_title}>{title}</div>
-                        <div className={classes.banner_desc}>{description}</div>
-                    </div>
-
-                    <div className={classes.banner_img}>
-                        <div className={classes.banner_img_container}>
+                    <div className={classes.new_container}>
+                        <div className={classes.new_container_date_tag}>
+                            <div className={classes.new_container_label}>Акция</div>
+                            <div className={classes.new_container_dot}></div>
+                            <div className={classes.new_container_date}>{formatDate(date)}</div>
+                        </div>
+                        <div className={classes.new_container_title}>{title}</div>
+                        <div className={classes.new_container_desc}>{description}</div>
+                        <div className={classes.new_container_img}>
                             <img
                                 src={imgSrc}
                                 alt=""
@@ -197,18 +186,8 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                         <div className={classes.new_container_date_tag}>
                             <div className={classes.new_container_date}>{formatDate(date)}</div>
                             <div className={classes.new_container_dot}></div>
-                            <div className={classes.new_container_tag}>
-                                {tags.map((tag, index) => (
-                                    <Link
-                                        key={index}
-                                        to={'/'}
-                                        className={classes.banner_tag}
-                                        onClick={stopPropagation}
-                                    // data-cursor="filter"
-                                    >
-                                        {tag}
-                                    </Link>
-                                ))}
+                            <div className={classes.banner_tag}>
+                                {isStock ? 'Акция' : 'Новости'}
                             </div>
                         </div>
                         <div className={classes.new_container_title}>{title}</div>
@@ -250,7 +229,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                             }}
                         />
                     )}
-                    <div className={classes.shop_img}>
+                    <div className={classes.case_img}>
                         <img
                             src={imgSrc}
                             alt=""
@@ -261,32 +240,25 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                                 transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                             }}
                         />
-                    </div>
-                    <div className={classes.shop_bottom}>
-                        <div className={classes.shop_bottom_title}>{title}</div>
-                        <div className={classes.shop_bottom_desc}>
-                            {description}
-                        </div>
-                        <div className={classes.shop_img_tags}>
+                        {tags.length > 0 && <div className={classes.case_img_darken} aria-hidden="true" />}
+                        <div className={classes.case_img_tags}>
                             {tags.map((tag, index) => (
                                 <Link
                                     key={index}
                                     to={'/'}
-                                    className={classes.shop_img_tag}
+                                    className={classes.case_img_tag}
                                     onClick={stopPropagation}
-                                // data-cursor="filter_blue"
                                 >
                                     {tag}
                                 </Link>
                             ))}
                         </div>
-                        <div className={classes.shop_price_card}>
-                            <div className={classes.shop_price}>
-                                {formatAmount(price)} ₽
-                            </div>
-                            <div className={classes.shop_card} data-cursor="card">
-                                Добавить в корзину
-                            </div>
+                    </div>
+                    <div className={classes.case_bottom}>
+                        <div className={`${classes.case_bottom_title} ${classes.single_line}`}>{title}</div>
+                        <div className={classes.case_bottom_desc_single}>{description}</div>
+                        <div className={classes.shop_price}>
+                            {formatAmount(price)} ₽
                         </div>
                     </div>
                 </div>

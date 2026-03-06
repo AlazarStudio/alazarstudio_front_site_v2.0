@@ -281,84 +281,18 @@ function Cases({ children, ...props }) {
         return filtered;
     };
 
-    // Функция для создания строк с учетом требования: 
-    // 3 любых (кроме акций), 2 акции, 6 любых, 2 акции и т.д.
     const createRows = () => {
         const rows = [];
 
-        // Фильтруем данные перед созданием строк
         const filteredCasesData = filterData(casesData);
         const filteredNewsData = filterData(newsData);
         const filteredShopData = filterData(shopData);
         const filteredBannersData = filterData(bannersData);
 
-        // Собираем все элементы кроме акций (без перемешивания)
-        const otherData = [...filteredCasesData, ...filteredNewsData, ...filteredShopData];
+        const allData = [...filteredCasesData, ...filteredNewsData, ...filteredShopData, ...filteredBannersData];
 
-        // Создаем копию массива акций для работы
-        const banners = [...filteredBannersData];
-
-        let otherIndex = 0;
-        let bannerIndex = 0;
-        let isFirstGroup = true;
-
-        while (otherIndex < otherData.length || bannerIndex < banners.length) {
-            // Первая группа - 3 элемента, остальные - по 6
-            const currentGroupSize = isFirstGroup ? 3 : 6;
-
-            // Создаем строки для группы не-акций
-            // Если группа из 6 элементов, разбиваем на 2 строки по 3
-            const elementsToAdd = Math.min(currentGroupSize, otherData.length - otherIndex);
-
-            if (elementsToAdd === 3) {
-                // Создаем одну строку с 3 элементами
-                const otherRow = [];
-                for (let i = 0; i < 3 && otherIndex < otherData.length; i++) {
-                    otherRow.push(otherData[otherIndex]);
-                    otherIndex++;
-                }
-                if (otherRow.length > 0) {
-                    rows.push(otherRow);
-                }
-            } else if (elementsToAdd === 6) {
-                // Создаем 2 строки по 3 элемента
-                for (let rowNum = 0; rowNum < 2; rowNum++) {
-                    const otherRow = [];
-                    for (let i = 0; i < 3 && otherIndex < otherData.length; i++) {
-                        otherRow.push(otherData[otherIndex]);
-                        otherIndex++;
-                    }
-                    if (otherRow.length > 0) {
-                        rows.push(otherRow);
-                    }
-                }
-            } else {
-                // Для остальных случаев (меньше 3 или 6)
-                const otherRow = [];
-                for (let i = 0; i < elementsToAdd && otherIndex < otherData.length; i++) {
-                    otherRow.push(otherData[otherIndex]);
-                    otherIndex++;
-                }
-                if (otherRow.length > 0) {
-                    rows.push(otherRow);
-                }
-            }
-
-            // Создаем строку для 2 акций
-            const bannerRow = [];
-            if (bannerIndex < banners.length) {
-                bannerRow.push(banners[bannerIndex]);
-                bannerIndex++;
-            }
-            if (bannerIndex < banners.length) {
-                bannerRow.push(banners[bannerIndex]);
-                bannerIndex++;
-            }
-            if (bannerRow.length > 0) {
-                rows.push(bannerRow);
-            }
-
-            isFirstGroup = false;
+        for (let i = 0; i < allData.length; i += 5) {
+            rows.push(allData.slice(i, i + 5));
         }
 
         return rows;
@@ -491,8 +425,8 @@ function Cases({ children, ...props }) {
     );
 
     return (
+        <>
         <div className={classes.casesContainer}>
-            <div className={"centerBlock"}>
                 <div className={classes.cases} ref={casesContainerRef}>
                     {/* Оригинальный фильтр */}
                     <div ref={filterRef} data-filter-container="true">
@@ -532,7 +466,6 @@ function Cases({ children, ...props }) {
                         </>
                     )}
                 </div>
-            </div>
 
             {/* Фиксированный фильтр внизу экрана */}
             {/* {!isFilterVisible && ( */}
@@ -540,6 +473,8 @@ function Cases({ children, ...props }) {
                 {renderFilter(classes.filterContainerFixed)}
             </div>
             {/* )} */}
+
+        </div>
 
             {/* Модальное окно */}
             <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
@@ -558,7 +493,7 @@ function Cases({ children, ...props }) {
                     )
             )}
             </Modal>
-        </div>
+        </>
     );
 }
 

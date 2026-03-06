@@ -105,14 +105,23 @@ export function getNewsAdditionalBlocks(record) {
     });
 }
 
+function resolveIsStock(record) {
+  const raw = resolveField(record, 'aktsiya');
+  if (raw === true || raw === 'true') return true;
+  if (raw && typeof raw === 'object' && (raw.value === true || raw.value === 'true')) return true;
+  return false;
+}
+
 export function mapNewsRecordToCard(record) {
   const title = resolveTitle(record || {});
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
   const tags = extractRecordTags(record || {});
+  const isStock = resolveIsStock(record || {});
   return {
     id,
     sourceRecord: record,
     type: 'new',
+    isStock,
     imgSrc: resolvePreviewImage(record || {}),
     title,
     description: resolveDescription(record || {}),

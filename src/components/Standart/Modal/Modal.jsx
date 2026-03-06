@@ -1,8 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef, createContext, useContext } from "react";
 import classes from './Modal.module.css';
+
+export const ModalScrollContext = createContext(null);
 
 function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть" }) {
     const [isClosing, setIsClosing] = useState(false);
+    const scrollContainerRef = useRef(null);
 
     const handleClose = useCallback(() => {
         setIsClosing((prev) => {
@@ -67,13 +70,15 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
                             onClick={handleClose}
                             aria-label={closeButtonAriaLabel}
                         >
-                            ×
+                            <span className={classes.closeButtonIcon}>×</span>
                         </button>
                     </div>
                 )}
-                <div className={classes.modalBody}>
+                <ModalScrollContext.Provider value={scrollContainerRef}>
+                <div className={classes.modalBody} data-modal-scroll ref={scrollContainerRef}>
                     {children}
                 </div>
+                </ModalScrollContext.Provider>
             </div>
         </div>
     );

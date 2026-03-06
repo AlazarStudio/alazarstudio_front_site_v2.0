@@ -1,10 +1,11 @@
 .modalInner {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .hero {
-  padding: 50px 120px 20px;
+  padding: 50px 50px 20px;
   background: #ffffff;
 }
 
@@ -41,8 +42,69 @@
   gap: 12px;
 }
 
+.shareFixed {
+  position: fixed;
+  right: calc(10% - 65px);
+  top: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.scrollNavFixed {
+  position: fixed;
+  right: calc(10% - 65px);
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.scrollNavFixed .socialBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.scrollNavCounter {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  min-width: 2.5em;
+  text-align: center;
+}
+
 .shareLabel {
   color: #8b8b8b;
+  font-size: 14px;
+}
+
+.socialBtnWrap {
+  position: relative;
+}
+
+.socialBtnTooltip {
+  position: absolute;
+  right: calc(100% + 20px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 1);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-radius: 8px 0 0 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.socialBtnWrap:hover .socialBtnTooltip {
+  opacity: 1;
 }
 
 .socialBtn {
@@ -51,7 +113,7 @@
   border-radius: 50%;
   border: 0;
   background: #e5097e;
-  color: #0d0d0d;
+  color: #fff;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -61,7 +123,7 @@
 .darkSection {
   background: #0a0a0f;
   color: #fff;
-  padding: 34px 120px;
+  padding: 34px 50px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -145,5 +207,14 @@
 
   .imagesSection {
     padding: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .shareFixed {
+    right: 24px;
+  }
+  .scrollNavFixed {
+    right: 24px;
   }
 }
