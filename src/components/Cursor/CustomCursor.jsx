@@ -284,7 +284,7 @@ const CustomCursor = () => {
         </div>
 
         <div className="cursor-new-content">
-          <span className="cursor-label">Открыть <br /> новость</span>
+          <span className="cursor-label">Читать</span>
         </div>
 
         <div className="cursor-card-content">

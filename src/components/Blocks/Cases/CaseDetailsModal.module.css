@@ -4,9 +4,125 @@
   position: relative;
 }
 
+/* Компактный хедер: при скролле >150px выезжает сверху и фиксируется поверх контента (position: fixed) */
+.headerStickyWrap {
+  height: 0;
+  overflow: visible;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.headerStickyWrap_visible {
+  pointer-events: auto;
+}
+
+.headerSticky {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 80%;
+  max-width: 1600px;
+  height: 56px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 50px;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 12001;
+  transition: transform 0.35s ease;
+  pointer-events: none;
+}
+
+.headerSticky_visible {
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.headerStickyLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.headerStickyTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #0a0a0f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerStickyRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.headerStickyContactBtn {
+  padding: 8px 16px;
+  border-radius: 24px;
+  border: 2px solid #e5097e;
+  background: transparent;
+  color: #e5097e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.headerStickyContactBtn:hover {
+  background: #e5097e;
+  color: #fff;
+}
+
+.headerStickyTeamSingle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerStickyAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.headerStickyTeamName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0a0f;
+  white-space: nowrap;
+}
+
 .hero {
-  padding: 50px 50px 20px;
+  padding: 30px 50px 20px;
   background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.heroLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.heroRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .caseTitle {
@@ -17,36 +133,181 @@
   color: #0a0a0f;
 }
 
-.metaRow {
-  margin-top: 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
 .metaLeft {
   display: flex;
   align-items: center;
   gap: 8px;
   color: #8b8b8b;
+  margin-top: 18px;
+  max-height: 48px;
+  overflow: hidden;
 }
 
 .date {
   margin-left: 24px;
 }
 
-.metaRight {
+.contactBtn {
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid #e5097e;
+  background: transparent;
+  color: #e5097e;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.contactBtn:hover {
+  background: #e5097e;
+  color: #fff;
+}
+
+.heroTeamWrap {
+  position: relative;
+}
+
+.heroTeamSingle {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.heroTeamAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.heroTeamName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a0a0f;
+}
+
+.heroTeamRole {
+  font-size: 13px;
+  color: #8b8b8b;
+}
+
+.heroTeamStack {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px 8px 4px 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+.heroTeamStack:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.heroTeamStackAvatar {
+  display: inline-flex;
+  margin-left: -10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  overflow: hidden;
+  width: 36px;
+  height: 36px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.heroTeamStackAvatar:first-child {
+  margin-left: 0;
+}
+
+.heroTeamStackAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroTeamStackMore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #e5097e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.heroTeamStackChevron {
+  margin-left: 6px;
+  color: #8b8b8b;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.heroTeamStack[aria-expanded="true"] .heroTeamStackChevron {
+  transform: rotate(90deg);
+}
+
+.heroTeamDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  min-width: 300px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.heroTeamDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.heroTeamDropdownItem:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.heroTeamDropdownAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.heroTeamDropdownName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a0a0f;
+}
+
+.heroTeamDropdownRole {
+  font-size: 12px;
+  color: #8b8b8b;
+  margin-top: 2px;
 }
 
 .shareFixed {
   position: fixed;
   right: calc(10% - 65px);
   top: 24px;
-  z-index: 100;
+  z-index: 12002;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -216,5 +477,29 @@
   }
   .scrollNavFixed {
     right: 24px;
+  }
+  .headerSticky {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+  }
+  .headerSticky {
+    padding: 0 24px;
+  }
+  .headerStickyTitle {
+    font-size: 16px;
+  }
+  .headerStickyContactBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .heroRight {
+    width: 100%;
+    align-items: flex-start;
+    margin-top: 8px;
   }
 }

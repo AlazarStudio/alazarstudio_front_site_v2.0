@@ -1,6 +1,6 @@
 .header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     padding: 18px;
     position: fixed;
@@ -200,4 +200,40 @@
     justify-content: center;
     align-items: center;
     gap: 55px;
+}
+
+.widthlogo{
+    width: 340px;
+}
+
+.header_contact_btns {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header_contact_btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: 24px;
+    background-color: #0D0D0D;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    opacity: 1;
+}
+
+.header_contact_btn::before,
+.header_contact_btn::after {
+    display: none !important;
+}
+
+.header_contact_btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.6);
 }

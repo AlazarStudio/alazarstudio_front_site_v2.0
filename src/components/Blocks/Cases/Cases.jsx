@@ -453,6 +453,7 @@ function Cases({ children, ...props }) {
                                             <CaseCard 
                                                 key={`${rowIndex}-${index}`} 
                                                 {...caseData} 
+                                                teamItems={teamFromApi}
                                                 onClick={() => handleItemClick(caseData)}
                                             />
                                         ))}

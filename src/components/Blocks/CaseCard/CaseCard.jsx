@@ -1,8 +1,10 @@
 import React, { useRef, useState } from "react";
 import classes from './CaseCard.module.css';
-import { Link } from "react-router-dom";
+import { mapTeamItems } from '@/components/Blocks/Cases/casesHelpers';
 
-function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onClick, url_text, isStock }) {
+const MAX_VISIBLE_AVATARS = 4;
+
+function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date, onClick, url_text, isStock, sourceRecord, teamItems = [] }) {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -59,6 +61,8 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
         e.stopPropagation();
     };
 
+    const members = (type === 'case' || type === 'shop') ? mapTeamItems(teamItems || [], sourceRecord || {}) : [];
+
     return (
         <>
             {type == "case" &&
@@ -93,25 +97,39 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                                 transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                             }}
                         />
-                        {tags.length > 0 && <div className={classes.case_img_darken} aria-hidden="true" />}
-                        <div className={classes.case_img_tags}>
-                            {tags.map((tag, index) => (
-                                <Link
-                                    key={index}
-                                    to={'/'}
-                                    className={classes.case_img_tag}
-                                    onClick={stopPropagation}
-                                >
-                                    {tag}
-                                </Link>
-                            ))}
-                        </div>
+                        {members.length > 0 && (
+                            <>
+                                <div className={classes.case_img_darken} aria-hidden="true" />
+                                <div className={classes.case_img_team}>
+                                    {members.slice(0, MAX_VISIBLE_AVATARS).map((member, i) => (
+                                        <span
+                                            key={member.id}
+                                            className={classes.case_img_team_avatar}
+                                            style={{ zIndex: MAX_VISIBLE_AVATARS - i }}
+                                        >
+                                            <img src={member.image} alt={member.name} />
+                                        </span>
+                                    ))}
+                                    {members.length > MAX_VISIBLE_AVATARS && (
+                                        <span className={classes.case_img_team_more}>
+                                            +{members.length - MAX_VISIBLE_AVATARS}
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className={classes.case_bottom}>
                         <div className={classes.case_bottom_title}>{title}</div>
-                        <div className={classes.case_bottom_desc}>
-                            {description}
-                        </div>
+                        {tags.length > 0 && (
+                            <div className={classes.case_bottom_tags}>
+                                {tags.map((tag, index) => (
+                                    <span key={index} className={classes.case_bottom_tag}>
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             }
@@ -145,18 +163,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                         </div>
                         <div className={classes.new_container_title}>{title}</div>
                         <div className={classes.new_container_desc}>{description}</div>
-                        <div className={classes.new_container_img}>
-                            <img
-                                src={imgSrc}
-                                alt=""
-                                style={{
-                                    transform: isHovered
-                                        ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
-                                        : 'scale(1) translate(0, 0)',
-                                    transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                                }}
-                            />
-                        </div>
+                        <button type="button" className={classes.new_container_readMore}>Читать далее</button>
                     </div>
                 </div>
             }
@@ -192,18 +199,7 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                         </div>
                         <div className={classes.new_container_title}>{title}</div>
                         <div className={classes.new_container_desc}>{description}</div>
-                        <div className={classes.new_container_img}>
-                            <img
-                                src={imgSrc}
-                                alt=""
-                                style={{
-                                    transform: isHovered
-                                        ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
-                                        : 'scale(1) translate(0, 0)',
-                                    transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                                }}
-                            />
-                        </div>
+                        <button type="button" className={classes.new_container_readMore}>Читать далее</button>
                     </div>
                 </div>
             }
@@ -240,25 +236,43 @@ function CaseCard({ imgSrc, title, description, tags, type, price = 0, date, onC
                                 transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                             }}
                         />
-                        {tags.length > 0 && <div className={classes.case_img_darken} aria-hidden="true" />}
-                        <div className={classes.case_img_tags}>
-                            {tags.map((tag, index) => (
-                                <Link
-                                    key={index}
-                                    to={'/'}
-                                    className={classes.case_img_tag}
-                                    onClick={stopPropagation}
-                                >
-                                    {tag}
-                                </Link>
-                            ))}
-                        </div>
+                        {members.length > 0 && (
+                            <>
+                                <div className={classes.case_img_darken} aria-hidden="true" />
+                                <div className={classes.case_img_team}>
+                                    {members.slice(0, MAX_VISIBLE_AVATARS).map((member, i) => (
+                                        <span
+                                            key={member.id}
+                                            className={classes.case_img_team_avatar}
+                                            style={{ zIndex: MAX_VISIBLE_AVATARS - i }}
+                                        >
+                                            <img src={member.image} alt={member.name} />
+                                        </span>
+                                    ))}
+                                    {members.length > MAX_VISIBLE_AVATARS && (
+                                        <span className={classes.case_img_team_more}>
+                                            +{members.length - MAX_VISIBLE_AVATARS}
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className={classes.case_bottom}>
                         <div className={`${classes.case_bottom_title} ${classes.single_line}`}>{title}</div>
-                        <div className={classes.case_bottom_desc_single}>{description}</div>
-                        <div className={classes.shop_price}>
-                            {formatAmount(price)} ₽
+                        <div className={classes.case_bottom_tail}>
+                            {tags.length > 0 && (
+                                <div className={classes.case_bottom_tags}>
+                                    {tags.map((tag, index) => (
+                                        <span key={index} className={classes.case_bottom_tag}>
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            <div className={classes.shop_price}>
+                                {formatAmount(price)} ₽
+                            </div>
                         </div>
                     </div>
                 </div>

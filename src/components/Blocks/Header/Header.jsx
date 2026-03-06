@@ -18,15 +18,15 @@ function Header({ children, ...props }) {
     const isAbout = pathname === '/about' || pathname.startsWith('/about/');
     const isContacts = pathname === '/contacts' || pathname.startsWith('/contacts/');
 
-    
+
     let scrollNumber = 50
-    if (section == 'news'){
+    if (section == 'news') {
         scrollNumber = 100
     }
-    if (section == 'shop'){
+    if (section == 'shop') {
         scrollNumber = 100
     }
-    if (section == 'cases'){
+    if (section == 'cases') {
         scrollNumber = 100
     }
 
@@ -101,34 +101,39 @@ function Header({ children, ...props }) {
 
     return (
         <header className={`${classes.header} ${hasBackground ? classes.header_withBackground : ''}`}>
-            <div className={'centerBlock'}>
+            {/* <div className={'centerBlock'}> */}
+            <div className={classes.widthlogo}>
                 <Link to={'/'}><img src="/alazar-logo.png" alt="Alazar Studio logo" /></Link>
+            </div>
+            <div className={classes.header_links}>
+                {navItems.map((item) => (
+                    <Link
+                        key={item.key}
+                        to={item.to}
+                        data-text={item.label}
+                        onMouseEnter={() => handleLinkEnter(item.key)}
+                        onMouseLeave={() => handleLinkLeave(item.key, !item.active)}
+                        className={[
+                            item.active ? classes.linkActive : '',
+                            !item.active && hoveredLinkKey === item.key ? classes.linkHovering : '',
+                            !item.active && leavingLinkKeys.includes(item.key) ? classes.linkLeaving : '',
+                            hoveredLinkKey && hoveredLinkKey !== item.key ? classes.linkDimmed : '',
+                        ].filter(Boolean).join(' ')}
+                    >
+                        {item.label}
+                    </Link>
+                ))}
+            </div>
+            <div className={classes.header_contact_btns}>
+                <Link to="tel:+79283995384" className={classes.header_contact_btn}>8 (928) 399-53-84</Link>
+                <Link to="mailto:info@alazarstudio.ru" className={classes.header_contact_btn}>info@alazarstudio.ru</Link>
+            </div>
 
-                <div className={classes.header_links}>
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.key}
-                            to={item.to}
-                            data-text={item.label}
-                            onMouseEnter={() => handleLinkEnter(item.key)}
-                            onMouseLeave={() => handleLinkLeave(item.key, !item.active)}
-                            className={[
-                                item.active ? classes.linkActive : '',
-                                !item.active && hoveredLinkKey === item.key ? classes.linkHovering : '',
-                                !item.active && leavingLinkKeys.includes(item.key) ? classes.linkLeaving : '',
-                                hoveredLinkKey && hoveredLinkKey !== item.key ? classes.linkDimmed : '',
-                            ].filter(Boolean).join(' ')}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-                </div>
-
-                {/* <div className={classes.header_links_user}>
+            {/* <div className={classes.header_links_user}>
                     <Link to={'/card'}><img src="/card.png" alt="" /></Link>
                     <Link to={'/profile'}><img src="/profile.png" alt="" /></Link>
                 </div> */}
-            </div>
+            {/* </div> */}
         </header>
     );
 }

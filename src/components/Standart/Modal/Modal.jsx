@@ -3,7 +3,7 @@ import classes from './Modal.module.css';
 
 export const ModalScrollContext = createContext(null);
 
-function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть" }) {
+function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть", nested = false, compact = false }) {
     const [isClosing, setIsClosing] = useState(false);
     const scrollContainerRef = useRef(null);
 
@@ -19,8 +19,9 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
         });
     }, [onClose]);
 
-    // Блокируем скролл при открытом модальном окне
+    // Блокируем скролл при открытом модальном окне (только для корневой модалки, вложенные не трогают body)
     useEffect(() => {
+        if (nested) return;
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             setIsClosing(false);
@@ -31,7 +32,7 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
         return () => {
             document.body.style.overflow = '';
         };
-    }, [isOpen]);
+    }, [isOpen, nested]);
 
     // Закрытие по Escape
     useEffect(() => {
@@ -55,18 +56,18 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
 
     return (
         <div 
-            className={`${classes.modalOverlay} ${isClosing ? classes.modalOverlay_closing : ''}`} 
+            className={`${classes.modalOverlay} ${nested ? classes.modalOverlay_nested : ''} ${compact ? classes.modalOverlay_compact : ''} ${isClosing ? classes.modalOverlay_closing : ''}`} 
             onClick={handleClose}
         >
             <div 
-                className={`${classes.modalContent} ${isClosing ? classes.modalContent_closing : ''}`} 
+                className={`${classes.modalContent} ${compact ? classes.modalContent_compact : ''} ${isClosing ? classes.modalContent_closing : ''}`} 
                 onClick={(e) => e.stopPropagation()}
             >
                 {showCloseButton && (
-                    <div className={classes.closeButtonWrap}>
+                    <div className={compact ? classes.closeButtonWrap_compact : classes.closeButtonWrap}>
                         <button
                             type="button"
-                            className={classes.closeButton}
+                            className={compact ? classes.closeButton_compact : classes.closeButton}
                             onClick={handleClose}
                             aria-label={closeButtonAriaLabel}
                         >

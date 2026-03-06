@@ -87,7 +87,7 @@
 .filterCategory {
     padding: 15px 30px;
     border-radius: 27px;
-    border: 1px solid #FFFFFF80;
+    border: none;
     background-color: #0D0D0D;
     color: #FFFFFF;
     font-family: Mulish;
@@ -100,15 +100,15 @@
 }
 
 .filterCategory:hover {
-    background-color: #FFFFFF;
+    background-color: #2e2e2e;
     border-color: #FFFFFF;
-    color: #000000;
+    color: #fff;
 }
 
 .filterCategory_active {
-    background-color: #FFFFFF;
+    background-color: #2e2e2e;
     border-color: #FFFFFF;
-    color: #000000;
+    color: #fff;
 }
 
 
