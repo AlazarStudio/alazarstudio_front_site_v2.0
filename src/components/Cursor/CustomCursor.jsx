@@ -19,7 +19,7 @@ import './CustomCursor.css';
 const CONFIG = {
   // Размеры
   size: {
-    default: 25,
+    default: 15,
     link: 50,
     media: 80,
     case: 70,
@@ -27,7 +27,7 @@ const CONFIG = {
   },
 
   // Плавность движения (0 = плавнее, 1 = мгновенно)
-  speed: 0.1,
+  speed: 0.07,
 
   // Множитель скорости для расчёта растяжения
   velocityMultiplier: 10,
