@@ -1,4 +1,9 @@
 RewriteEngine On
+
+# Редирект с alazarstudio.ru на алазар.рф (301, сохраняем путь и query)
+RewriteCond %{HTTP_HOST} ^(www\.)?alazarstudio\.ru$ [NC]
+RewriteRule ^(.*)$ https://алазар.рф/$1 [R=301,L,QSA]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
