@@ -1,0 +1,68 @@
+.wrap {
+  padding: 32px 44px 28px 28px;
+  position: relative;
+}
+
+.title {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0a0a0f;
+}
+
+.text {
+  margin: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #0a0a0f;
+}
+
+.ctaBtn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 24px;
+  background: #e5097e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.ctaBtn:hover {
+  opacity: 0.9;
+}
+
+.closeLink {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.closeLink:hover {
+  color: #0a0a0f;
+}
+
+@media (max-width: 600px) {
+  .wrap {
+    padding: 24px 40px 20px 20px;
+  }
+
+  .title {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .text {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+}

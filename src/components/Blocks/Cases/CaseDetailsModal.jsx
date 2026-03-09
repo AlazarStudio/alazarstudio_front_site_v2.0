@@ -10,17 +10,43 @@ import {
 } from '@/components/Blocks/Cases/casesHelpers';
 import { ModalScrollContext } from '@/components/Standart/Modal/Modal.jsx';
 import ContactModal from './ContactModal';
+import MaxShareModal from './MaxShareModal';
 import classes from './CaseDetailsModal.module.css';
 
-function SocialButton({ icon: Icon, imageSrc, label, shareUrl, copyUrlBeforeOpen }) {
-  const handleClick = (e) => {
-    if (copyUrlBeforeOpen && shareUrl) {
-      e.preventDefault();
-      navigator.clipboard.writeText(copyUrlBeforeOpen).catch(() => {});
+/**
+ * @param {{
+ *   icon?: React.ComponentType<{ size?: number }>;
+ *   imageSrc?: string;
+ *   label: string;
+ *   shareUrl?: string;
+ *   onClick?: () => void | Promise<void>;
+ *   copyUrlBeforeOpen?: string;
+ * }} props
+ */
+function SocialButton({ icon: Icon, imageSrc, label, shareUrl, onClick, copyUrlBeforeOpen }) {
+  const handleClick = async (e) => {
+    if (onClick) {
+      await Promise.resolve(onClick());
+      return;
+    }
+    if (copyUrlBeforeOpen && typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(copyUrlBeforeOpen);
+      } catch (_) {}
+    }
+    if (shareUrl && typeof window !== 'undefined') {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
     }
   };
-  if (shareUrl) {
+
+  const content = imageSrc ? (
+    <img src={imageSrc} alt="" className={classes.socialBtnImg} aria-hidden />
+  ) : (
+    Icon && <Icon size={18} />
+  );
+
+  const isLink = shareUrl && !onClick && !copyUrlBeforeOpen;
+  if (isLink) {
     return (
       <div className={classes.socialBtnWrap}>
         <span className={classes.socialBtnTooltip}>{label}</span>
@@ -30,26 +56,18 @@ function SocialButton({ icon: Icon, imageSrc, label, shareUrl, copyUrlBeforeOpen
           rel="noopener noreferrer"
           className={classes.socialBtn}
           aria-label={label}
-          onClick={copyUrlBeforeOpen ? handleClick : undefined}
         >
-          {imageSrc ? (
-            <img src={imageSrc} alt="" className={classes.socialBtnImg} aria-hidden />
-          ) : (
-            Icon && <Icon size={18} />
-          )}
+          {content}
         </a>
       </div>
     );
   }
+
   return (
     <div className={classes.socialBtnWrap}>
       <span className={classes.socialBtnTooltip}>{label}</span>
-      <button type="button" className={classes.socialBtn} aria-label={label}>
-        {imageSrc ? (
-          <img src={imageSrc} alt="" className={classes.socialBtnImg} aria-hidden />
-        ) : (
-          Icon && <Icon size={18} />
-        )}
+      <button type="button" className={classes.socialBtn} aria-label={label} onClick={handleClick}>
+        {content}
       </button>
     </div>
   );
@@ -77,9 +95,11 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
         telegram: `https://t.me/share/url?url=${encodeURIComponent(casePageUrl)}&text=${encodeURIComponent(shareText)}`,
         vk: `https://vk.com/share.php?url=${encodeURIComponent(casePageUrl)}&title=${encodeURIComponent(shareText)}`,
         whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + casePageUrl)}`,
-        max: 'https://web.max.ru/web',
       }
     : {};
+
+  const [maxShareModalOpen, setMaxShareModalOpen] = useState(false);
+  const handleMaxShareClick = () => setMaxShareModalOpen(true);
 
   const blockRefs = useRef([]);
   const visibleRatiosRef = useRef({});
@@ -455,7 +475,7 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
         <div className={classes.shareFixed}>
           <SocialButton imageSrc="/tg.png" label="Поделиться в Telegram" shareUrl={shareUrls.telegram} />
           <SocialButton imageSrc="/vk.png" label="Поделиться в ВК" shareUrl={shareUrls.vk} />
-          <SocialButton imageSrc="/max.png" label="Поделиться в МАХ" shareUrl={shareUrls.max} copyUrlBeforeOpen={casePageUrl || undefined} />
+          <SocialButton imageSrc="/max.png" label="Поделиться в MAX" onClick={handleMaxShareClick} />
           <SocialButton imageSrc="/wa.png" label="Поделиться в WhatsApp" shareUrl={shareUrls.whatsapp} />
         </div>
       </div>
@@ -516,6 +536,11 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
         </>
       )}
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} />
+      <MaxShareModal
+        isOpen={maxShareModalOpen}
+        onClose={() => setMaxShareModalOpen(false)}
+        casePageUrl={casePageUrl}
+      />
     </div>
     </>
   );
