@@ -12,7 +12,35 @@ import { ModalScrollContext } from '@/components/Standart/Modal/Modal.jsx';
 import ContactModal from './ContactModal';
 import classes from './CaseDetailsModal.module.css';
 
-function SocialButton({ icon: Icon, imageSrc, label }) {
+function SocialButton({ icon: Icon, imageSrc, label, shareUrl, copyUrlBeforeOpen }) {
+  const handleClick = (e) => {
+    if (copyUrlBeforeOpen && shareUrl) {
+      e.preventDefault();
+      navigator.clipboard.writeText(copyUrlBeforeOpen).catch(() => {});
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+  if (shareUrl) {
+    return (
+      <div className={classes.socialBtnWrap}>
+        <span className={classes.socialBtnTooltip}>{label}</span>
+        <a
+          href={shareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes.socialBtn}
+          aria-label={label}
+          onClick={copyUrlBeforeOpen ? handleClick : undefined}
+        >
+          {imageSrc ? (
+            <img src={imageSrc} alt="" className={classes.socialBtnImg} aria-hidden />
+          ) : (
+            Icon && <Icon size={18} />
+          )}
+        </a>
+      </div>
+    );
+  }
   return (
     <div className={classes.socialBtnWrap}>
       <span className={classes.socialBtnTooltip}>{label}</span>
@@ -37,6 +65,21 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
   const members = mapTeamItems(teamItems, source);
   const additionalImages = getCaseAdditionalImageUrls(source);
   const caseTitle = item.title || 'Без названия';
+
+  // Ссылка на кейс для шаринга (прямая страница кейса)
+  const casePageUrl =
+    typeof window !== 'undefined' && item.url_text
+      ? `${window.location.origin}/cases/${item.url_text}`
+      : '';
+  const shareText = caseTitle;
+  const shareUrls = casePageUrl
+    ? {
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(casePageUrl)}&text=${encodeURIComponent(shareText)}`,
+        vk: `https://vk.com/share.php?url=${encodeURIComponent(casePageUrl)}&title=${encodeURIComponent(shareText)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + casePageUrl)}`,
+        max: 'https://web.max.ru/web',
+      }
+    : {};
 
   const blockRefs = useRef([]);
   const visibleRatiosRef = useRef({});
@@ -410,10 +453,10 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
         </div>
 
         <div className={classes.shareFixed}>
-          <SocialButton imageSrc="/tg.png" label="Поделиться в Telegram" />
-          <SocialButton imageSrc="/vk.png" label="Поделиться в ВК" />
-          <SocialButton imageSrc="/max.png" label="Поделиться в МАХ" />
-          <SocialButton imageSrc="/wa.png" label="Поделиться в WhatsApp" />
+          <SocialButton imageSrc="/tg.png" label="Поделиться в Telegram" shareUrl={shareUrls.telegram} />
+          <SocialButton imageSrc="/vk.png" label="Поделиться в ВК" shareUrl={shareUrls.vk} />
+          <SocialButton imageSrc="/max.png" label="Поделиться в МАХ" shareUrl={shareUrls.max} copyUrlBeforeOpen={casePageUrl || undefined} />
+          <SocialButton imageSrc="/wa.png" label="Поделиться в WhatsApp" shareUrl={shareUrls.whatsapp} />
         </div>
       </div>
 
