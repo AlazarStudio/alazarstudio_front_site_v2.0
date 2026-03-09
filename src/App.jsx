@@ -20,6 +20,17 @@ import AdminDynamicRecordEditPage from '@/app/admin/dynamic/[slug]/[id]/page'
 export default function App() {
   return (
     <Routes>
+      {/* <Route path="/" element={
+        <div style={{
+          width: '100%', 
+          height: '100vh', 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <img src="/logoTime.png" alt="" />
+        </div>
+      }/> */}
 
       <Route path="/" element={<Layout />}>
         <Route index element={<Main_Page />} />
