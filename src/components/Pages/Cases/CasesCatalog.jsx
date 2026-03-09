@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicTeamAPI } from '@/lib/api';
 import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard } from '@/components/Blocks/Cases/casesHelpers';
 import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
+import caseDetailsModalClasses from '@/components/Blocks/Cases/CaseDetailsModal.module.css';
 
 function extractTextFromJSX(element) {
     if (typeof element === 'string') {
@@ -386,7 +387,7 @@ function CasesCatalog({ children, ...props }) {
                 </div>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
                 {selectedItem && (
                     <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
                 )}

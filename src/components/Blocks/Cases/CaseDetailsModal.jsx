@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useLayoutEffect, useContext } from 'react';
-import { Eye, Mail, MessageCircle, Share2, Send, ChevronUp, ChevronDown } from 'lucide-react';
+import { Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import {
   formatCaseDateRu,
   getCaseAdditionalImageUrls,
@@ -12,12 +12,16 @@ import { ModalScrollContext } from '@/components/Standart/Modal/Modal.jsx';
 import ContactModal from './ContactModal';
 import classes from './CaseDetailsModal.module.css';
 
-function SocialButton({ icon: Icon, label }) {
+function SocialButton({ icon: Icon, imageSrc, label }) {
   return (
     <div className={classes.socialBtnWrap}>
       <span className={classes.socialBtnTooltip}>{label}</span>
       <button type="button" className={classes.socialBtn} aria-label={label}>
-        <Icon size={18} />
+        {imageSrc ? (
+          <img src={imageSrc} alt="" className={classes.socialBtnImg} aria-hidden />
+        ) : (
+          Icon && <Icon size={18} />
+        )}
       </button>
     </div>
   );
@@ -306,12 +310,10 @@ export default function CaseDetailsModal({ item, teamItems }) {
         </div>
 
         <div className={classes.shareFixed}>
-          {/* <SocialButton icon={Share2} label="Поделиться" /> */}
-          <SocialButton icon={Send} label="Подлиться в Telegram" />
-          <SocialButton icon={Send} label="Подлиться в ВК" />
-          <SocialButton icon={Send} label="Подлиться в МАХ" />
-          <SocialButton icon={MessageCircle} label="Подлиться в WhatsApp" />
-          {/* <SocialButton icon={Mail} label="Почта" /> */}
+          <SocialButton imageSrc="/tg.png" label="Поделиться в Telegram" />
+          <SocialButton imageSrc="/vk.png" label="Поделиться в ВК" />
+          <SocialButton imageSrc="/max.png" label="Поделиться в МАХ" />
+          <SocialButton imageSrc="/wa.png" label="Поделиться в WhatsApp" />
         </div>
       </div>
 

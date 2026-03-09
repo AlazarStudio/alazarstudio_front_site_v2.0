@@ -5,6 +5,7 @@ import { filterCategories } from '../../../data/casesData.jsx';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
 import CaseDetailsModal from './CaseDetailsModal';
+import caseDetailsModalClasses from './CaseDetailsModal.module.css';
 import NewsDetailsModal from './NewsDetailsModal';
 import ShopDetailsModal from './ShopDetailsModal';
 import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
@@ -460,7 +461,7 @@ function Cases({ children, ...props }) {
         </div>
 
             {/* Модальное окно */}
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem?.type === 'case' ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
             {selectedItem && (
                 (selectedItem.type === 'case')
                     ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />

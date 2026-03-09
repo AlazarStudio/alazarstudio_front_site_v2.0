@@ -3,7 +3,7 @@ import classes from './Modal.module.css';
 
 export const ModalScrollContext = createContext(null);
 
-function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть", nested = false, compact = false }) {
+function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть", nested = false, compact = false, closeButtonWrapClassName }) {
     const [isClosing, setIsClosing] = useState(false);
     const scrollContainerRef = useRef(null);
 
@@ -62,9 +62,10 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
             <div 
                 className={`${classes.modalContent} ${compact ? classes.modalContent_compact : ''} ${isClosing ? classes.modalContent_closing : ''}`} 
                 onClick={(e) => e.stopPropagation()}
+                data-closing={isClosing || undefined}
             >
                 {showCloseButton && (
-                    <div className={compact ? classes.closeButtonWrap_compact : classes.closeButtonWrap}>
+                    <div className={compact ? classes.closeButtonWrap_compact : `${classes.closeButtonWrap} ${closeButtonWrapClassName || ''}`.trim()}>
                         <button
                             type="button"
                             className={compact ? classes.closeButton_compact : classes.closeButton}
