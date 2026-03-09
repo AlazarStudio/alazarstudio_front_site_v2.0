@@ -46,36 +46,72 @@ const transliterate = (text) => {
         .map(char => translitMap[char] || char)
         .join('')
         .toLowerCase()
-        // Заменяем все не-буквенно-цифровые символы на дефисы
-        .replace(/[^a-z0-9]+/g, '-')
-        // Убираем дефисы в начале и конце
-        .replace(/^-+|-+$/g, '')
-        // Убираем множественные дефисы
-        .replace(/-+/g, '-');
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .replace(/_+/g, '_');
 
     return result;
 };
 
-// Структура фильтров с тегами из данных
-export const filterCategories = {
-    all: {
-        name: 'Все',
-        tags: [] // Для категории "Все" теги не показываются
-    },
-    byField: {
-        name: 'По сферам деятельности',
-        tags: [
-            'Ритейл', 'Недвижимость', 'Гостиницы и отели', 'Продукты и товары', 'Кафе и рестораны', 'Сервис',
-            'Производство', 'Товары для детей', 'Косметка и красота', 'Спорт и здоровье', 'Мероприятия и развлечения'
-        ]
-    },
-    byType: {
-        name: 'По виду работ',
-        tags: [
-            'Веб-дизайн', 'frontend', '2024'
-        ]
-    }
+// Slug ресурса «Фильтр сайта» — совпадает с роутом бэка: GET /api/filtrsayta
+export const FILTER_SITE_SLUG = 'filtrsayta';
+
+// Минимальный fallback только при ошибке/пустом ответе API — одна категория «Все»
+export const DEFAULT_FILTER_CATEGORIES = {
+    all: { name: 'Все', tags: [] }
 };
+
+export const filterCategories = DEFAULT_FILTER_CATEGORIES;
+
+/** Строит объект категорий фильтра из записей раздела «Фильтр сайта».
+ *  record.nazvanie / name / label / title — название категории.
+ *  record.tegi — строка JSON или объект с массивом id тегов (ids / selectedIds или сам массив);
+ *  tagsById — объект или Map: id тега → название (для подстановки имён по id).
+ */
+export function buildFilterCategoriesFromRecords(records, tagsById = {}) {
+    if (!Array.isArray(records) || records.length === 0) return null;
+    const tagMap = tagsById && typeof tagsById.get === 'function' ? tagsById : new Map(Object.entries(tagsById || {}));
+    const result = { all: { name: 'Все', tags: [] } };
+    records.forEach((record, index) => {
+        const name = String(
+            record.nazvanie ?? record.name ?? record.label ?? record.title ?? ''
+        ).trim() || `Категория ${index + 1}`;
+        let tags = [];
+        const tegiRaw = record.tegi;
+        if (tegiRaw != null) {
+            let tegiObj;
+            if (typeof tegiRaw === 'string') {
+                try {
+                    tegiObj = JSON.parse(tegiRaw);
+                } catch (_) {
+                    tegiObj = null;
+                }
+            } else if (typeof tegiRaw === 'object') {
+                tegiObj = tegiRaw;
+            }
+            if (tegiObj != null) {
+                const ids = Array.isArray(tegiObj.ids) ? tegiObj.ids
+                    : Array.isArray(tegiObj.selectedIds) ? tegiObj.selectedIds
+                    : Array.isArray(tegiObj) ? tegiObj
+                    : [];
+                tags = ids.map((id) => {
+                    const s = String(id);
+                    return tagMap.get(s) ?? tagMap.get(id) ?? null;
+                }).filter(Boolean);
+                if (tags.length === 0 && ids.length > 0) {
+                    tags = ids.map((id) => String(id));
+                }
+            }
+        }
+        if (tags.length === 0) {
+            if (Array.isArray(record.tags)) tags = record.tags.map((t) => String(t).trim()).filter(Boolean);
+            else if (typeof record.tags === 'string') tags = record.tags.split(/[,;]/).map((t) => t.trim()).filter(Boolean);
+        }
+        const key = String(record.id ?? record._id?.$oid ?? record._id ?? `cat_${index}`);
+        result[key] = { name, tags };
+    });
+    return result;
+}
 
 // Типы элементов для фильтрации
 export const elementTypes = [

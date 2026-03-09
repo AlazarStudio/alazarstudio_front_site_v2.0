@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useLayoutEffect, useContext } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect, useContext, useMemo } from 'react';
 import { Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import {
   formatCaseDateRu,
@@ -27,7 +27,7 @@ function SocialButton({ icon: Icon, imageSrc, label }) {
   );
 }
 
-export default function CaseDetailsModal({ item, teamItems }) {
+export default function CaseDetailsModal({ item, teamItems, cases = [], onSelectCase }) {
   if (!item) return null;
   const source = item.sourceRecord || {};
   const task = getCaseTaskHtml(source);
@@ -179,7 +179,107 @@ export default function CaseDetailsModal({ item, teamItems }) {
     };
   }, [blockCount]);
 
+  // Открыли с главной vs переключили внутри модалки (по клику на превью)
+  const hasClickedInsideRef = useRef(false);
+  const isOpenFromMain = !hasClickedInsideRef.current;
+  // Замораживаем порядок при открытии с главной: первый открытый сверху, остальные под ним — так и остаётся при переключении
+  const frozenOrderRef = useRef(null);
+
+  const CASES_ITEM_H = 80;
+  const CASES_GAP = 12;
+  const CASES_SLOT = CASES_ITEM_H + CASES_GAP;
+
+  // При открытии с главной: выбранный первый, остальные — по убыванию совпадения тегов с открытым. После клика внутри — порядок не меняем.
+  const orderedCases = useMemo(() => {
+    if (!item || !cases.length) return cases;
+    const selected = cases.find((c) => c.id === item.id || c.url_text === item.url_text);
+    if (!selected) return cases;
+    if (isOpenFromMain) {
+      const rest = cases.filter((c) => c.id !== item.id && c.url_text !== item.url_text);
+      const openTags = selected.tags || [];
+      const openTagSet = new Set(openTags.map((t) => String(t).trim()).filter(Boolean));
+
+      const countMatchingTags = (c) => {
+        const tags = c.tags || [];
+        return tags.filter((t) => openTagSet.has(String(t).trim())).length;
+      };
+
+      const sortedRest = [...rest].sort((a, b) => {
+        const aMatches = countMatchingTags(a);
+        const bMatches = countMatchingTags(b);
+        if (bMatches !== aMatches) return bMatches - aMatches;
+        return 0;
+      });
+
+      const order = [selected, ...sortedRest];
+      frozenOrderRef.current = order;
+      return order;
+    }
+    return frozenOrderRef.current || cases;
+  }, [cases, item?.id, item?.url_text, isOpenFromMain]);
+
+  const handleSelectCase = (c) => {
+    if (c.id !== item.id && c.url_text !== item.url_text) {
+      hasClickedInsideRef.current = true;
+    }
+    onSelectCase({ ...c, type: 'case' });
+  };
+
+  // В консоль — теги у каждого кейса в списке слева
+  useEffect(() => {
+    if (orderedCases.length === 0) return;
+    orderedCases.forEach((c, i) => {
+      console.log(`Кейс ${i + 1} (${c.title}):`, c.tags || []);
+    });
+  }, [orderedCases]);
+
+  // Сдвиг списка, чтобы выбранный был по центру (только при переключении внутри модалки)
+  const [listTranslateY, setListTranslateY] = useState(0);
+  useEffect(() => {
+    if (isOpenFromMain || orderedCases.length === 0) return;
+    const selectedIdx = orderedCases.findIndex((c) => c.id === item.id || c.url_text === item.url_text);
+    if (selectedIdx < 0) return;
+    const update = () => {
+      const centerY = window.innerHeight / 2;
+      const offset = selectedIdx * CASES_SLOT + CASES_ITEM_H / 2;
+      setListTranslateY(centerY - offset);
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [item?.id, item?.url_text, orderedCases, isOpenFromMain]);
+
   return (
+    <>
+      {cases.length > 0 && onSelectCase && (
+        <div className={classes.casesFixed} aria-label="Другие кейсы">
+          <div
+            className={`${classes.casesFixedList} ${isOpenFromMain ? classes.casesFixedList_fromMain : ''}`}
+            style={!isOpenFromMain ? { transform: `translateY(${listTranslateY}px)` } : undefined}
+          >
+            {orderedCases.map((c) => {
+              const isSelected = c.id === item.id || c.url_text === item.url_text;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`${classes.casesFixedItem} ${isSelected ? classes.casesFixedItem_selected : ''}`}
+                  onClick={() => handleSelectCase(c)}
+                  aria-current={isSelected ? 'true' : undefined}
+                >
+                  <span className={classes.casesFixedThumb}>
+                    {c.imgSrc ? (
+                      <img src={c.imgSrc} alt="" />
+                    ) : (
+                      <span className={classes.casesFixedPlaceholder} />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     <div ref={containerRef} className={classes.modalInner}>
       {/* Компактный хедер: всегда в DOM для анимации выезда сверху; ref только у видимого блока сотрудников */}
       <div className={`${classes.headerStickyWrap} ${isHeaderSticky ? classes.headerStickyWrap_visible : ''}`}>
@@ -247,8 +347,8 @@ export default function CaseDetailsModal({ item, teamItems }) {
         <div className={classes.heroLeft}>
           <h2 className={classes.caseTitle}>{caseTitle}</h2>
           <div className={classes.metaLeft}>
-            <span>{views}</span>
-            <Eye size={16} />
+            {/* <span>{views}</span> */}
+            {/* <Eye size={16} /> */}
             {dateLabel && <span className={classes.date}> {dateLabel}</span>}
           </div>
         </div>
@@ -374,5 +474,6 @@ export default function CaseDetailsModal({ item, teamItems }) {
       )}
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} />
     </div>
+    </>
   );
 }

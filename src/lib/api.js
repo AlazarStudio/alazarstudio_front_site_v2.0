@@ -514,6 +514,23 @@ export const publicCasesAPI = {
     })),
 };
 
+// Публичный API «Фильтр сайта» — как кейсы, но путь ровно /filtrsayta (бэк: https://backend.alazarstudio.ru/api/filtrsayta)
+export const publicFiltrsaytaAPI = {
+  getAll: (params = {}) =>
+    api.get('/filtrsayta', { params }).then((response) => {
+      const data = response.data != null ? response.data : response;
+      const records = Array.isArray(data) ? data
+        : Array.isArray(data.records) ? data.records
+        : Array.isArray(data.filtrsayta) ? data.filtrsayta
+        : Array.isArray(data.items) ? data.items
+        : normalizePublicItemsResponse(typeof data === 'object' ? data : {}, 'filtrsayta');
+      return {
+        ...response,
+        data: { ...(typeof data === 'object' ? data : {}), records },
+      };
+    }),
+};
+
 export const publicTagsAPI = {
   getAll: (params = {}) =>
     api.get('/tags/public', { params }).then((response) => ({

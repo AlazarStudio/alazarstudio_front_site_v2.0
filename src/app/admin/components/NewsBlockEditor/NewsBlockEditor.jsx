@@ -180,8 +180,8 @@ function slugFromText(text) {
       const map = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
       return map[c] || c;
     })
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/(^_|_$)/g, '');
 }
 
 function escapeRegExp(value) {
@@ -761,8 +761,11 @@ export default function NewsBlockEditor({
   const moveRelatedEntity = (blockIndex, entityIndex, direction) => {
     const block = sortedBlocks[blockIndex];
     if (!block) return;
-    const selectedItems = (Array.isArray(block.data?.selectedItems) ? [...block.data.selectedItems] : [])
-      .filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
+    const currentIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
+    const selectedItems = (Array.isArray(block.data?.selectedItems) && block.data.selectedItems.length > 0
+      ? [...block.data.selectedItems]
+      : currentIds.map((id) => ({ id, label: `Запись ${id}`, image: '' }))
+    ).filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
     const targetIndex = entityIndex + direction;
     if (targetIndex < 0 || targetIndex >= selectedItems.length) return;
     [selectedItems[entityIndex], selectedItems[targetIndex]] = [selectedItems[targetIndex], selectedItems[entityIndex]];
@@ -796,8 +799,11 @@ export default function NewsBlockEditor({
   const moveRelatedEntityTo = (blockIndex, fromIndex, toIndex) => {
     const block = sortedBlocks[blockIndex];
     if (!block) return;
-    const selectedItems = (Array.isArray(block.data?.selectedItems) ? [...block.data.selectedItems] : [])
-      .filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
+    const currentIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
+    const selectedItems = (Array.isArray(block.data?.selectedItems) && block.data.selectedItems.length > 0
+      ? [...block.data.selectedItems]
+      : currentIds.map((id) => ({ id, label: `Запись ${id}`, image: '' }))
+    ).filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
     if (fromIndex < 0 || toIndex < 0 || fromIndex >= selectedItems.length || toIndex >= selectedItems.length || fromIndex === toIndex) return;
     const [removed] = selectedItems.splice(fromIndex, 1);
     selectedItems.splice(toIndex, 0, removed);
@@ -829,8 +835,12 @@ export default function NewsBlockEditor({
     const block = sortedBlocks[blockIndex];
     if (!block || !record?.id) return;
     if (excludedRecordId && String(record.id) === String(excludedRecordId)) return;
-    const currentItems = Array.isArray(block.data?.selectedItems) ? block.data.selectedItems : [];
-    if (currentItems.some((item) => item.id === record.id)) return;
+    // Источник истины: selectedIds; selectedItems может быть пуст после загрузки с API
+    const currentIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
+    const currentItems = Array.isArray(block.data?.selectedItems) && block.data.selectedItems.length > 0
+      ? block.data.selectedItems
+      : currentIds.map((id) => ({ id, label: `Запись ${id}`, image: '' }));
+    if (currentItems.some((item) => String(item.id) === String(record.id))) return;
     const nextItems = [...currentItems, { id: record.id, label: record.label, image: record.image || '' }];
     const nextIds = nextItems.map((item) => item.id);
 
@@ -859,9 +869,13 @@ export default function NewsBlockEditor({
   const removeRelatedEntity = (blockIndex, recordId) => {
     const block = sortedBlocks[blockIndex];
     if (!block) return;
-    const currentItems = (Array.isArray(block.data?.selectedItems) ? block.data.selectedItems : [])
-      .filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
-    const nextItems = currentItems.filter((item) => item.id !== recordId);
+    // Источник истины: selectedIds; selectedItems может быть пуст после загрузки с API
+    const currentIds = Array.isArray(block.data?.selectedIds) ? block.data.selectedIds : [];
+    const currentItems = (Array.isArray(block.data?.selectedItems) && block.data.selectedItems.length > 0
+      ? block.data.selectedItems
+      : currentIds.map((id) => ({ id, label: `Запись ${id}`, image: '' }))
+    ).filter((item) => !excludedRecordId || String(item.id) !== String(excludedRecordId));
+    const nextItems = currentItems.filter((item) => String(item.id) !== String(recordId));
     const nextIds = nextItems.map((item) => item.id);
 
     if (preserveRelatedSelections && block.id && block.data?.resourceSlug) {
@@ -1140,7 +1154,10 @@ export default function NewsBlockEditor({
               ) : (
                 <>
               {showCustomBlockHeading && (
-                <div className={styles.customBlockHeading}>{customBlockHeading}</div>
+                <div className={styles.customBlockHeading}>
+                  {customBlockHeading}
+                  {block.required === true && <span className={styles.requiredMarker} title="Обязательное поле"> *</span>}
+                </div>
               )}
               {!hideBlockNameField && (
                 <div style={{ marginBottom: 16 }}>

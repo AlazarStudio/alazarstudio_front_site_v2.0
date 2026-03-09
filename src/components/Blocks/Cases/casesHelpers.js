@@ -21,9 +21,9 @@ export function transliterate(text) {
     .map((char) => map[char] || char)
     .join('')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-+/g, '-');
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_');
 }
 
 export function extractPlainText(value) {

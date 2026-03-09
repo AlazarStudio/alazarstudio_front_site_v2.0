@@ -24,6 +24,27 @@ const SYSTEM_MENU_ITEMS = [
   { href: '/admin/settings', label: 'Настройки', isSystem: true },
 ];
 
+// Имя ресурса для API структуры: slug со ссылки → camelCase (filtr_sayta → filtrSayta, filtr-sayta → filtrSayta).
+function getStructureResourceName(slug) {
+  if (!slug || typeof slug !== 'string') return slug;
+  return String(slug)
+    .trim()
+    .split(/[-_]+/)
+    .map((part, i) => (i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()))
+    .join('');
+}
+
+async function loadStructureFieldsWithFallback(slug, structureAPI) {
+  const name = getStructureResourceName(slug);
+  try {
+    const res = await structureAPI.get(name);
+    return (res.data?.fields || []).filter((f) => f?.type !== 'additionalBlocks');
+  } catch (e) {
+    if (e?.response?.status === 404) return [];
+    throw e;
+  }
+}
+
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' | 'backend'
   const [menuItems, setMenuItems] = useState([]);
@@ -222,10 +243,10 @@ export default function AdminSettingsPage() {
     
     return result
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Удаляем все кроме букв, цифр, пробелов и дефисов
-      .replace(/\s+/g, '-') // Пробелы в дефисы
-      .replace(/-+/g, '-') // Множественные дефисы в один
-      .replace(/^-+|-+$/g, ''); // Убираем дефисы в начале и конце
+      .replace(/[^a-z0-9\s]/g, '') // только буквы, цифры, пробелы
+      .replace(/\s+/g, '_')       // пробелы в подчёркивания
+      .replace(/_+/g, '_')        // несколько подчёркиваний в одно
+      .replace(/^_+|_+$/g, '');  // убираем подчёркивания с краёв
   }, [transliterate, translateToEnglish]);
 
   // Автоматический подбор иконки на основе названия
@@ -363,6 +384,7 @@ export default function AdminSettingsPage() {
       order: i,
       label: block.label ?? '',
       showInCreateForm: block.showInCreateForm !== false,
+      required: block.required === true,
       ...(block.type === 'relatedEntities'
         ? {
           relatedResourceSlug: String(block.relatedResourceSlug || '').trim(),
@@ -377,6 +399,7 @@ export default function AdminSettingsPage() {
         order: payloadFields.length,
         label: 'additionalBlocks',
         showInCreateForm: false,
+        required: false,
       });
     }
 
@@ -1361,28 +1384,8 @@ export default function AdminSettingsPage() {
   const loadStructureFields = async (slug) => {
     try {
       console.log('📖 Загрузка структуры для slug:', slug);
-      let raw = [];
-      
-      // Получаем имя ресурса из slug (например, "cases" из "cases")
-      const resourceName = slug;
-      
-      // ВСЕГДА пытаемся загрузить структуру из БД, независимо от флагов
-      try {
-        const res = await structureAPI.get(resourceName);
-        raw = (res.data?.fields || []).filter((f) => f?.type !== 'additionalBlocks');
-        console.log('📡 Загружена структура из БД:', raw.length, 'полей');
-        
-        // Структура загружена из БД
-      } catch (error) {
-        // Если 404 - значит ресурс еще не сгенерирован или структура пустая
-        if (error.response?.status === 404) {
-          console.log('⚠️ Структура не найдена на бэке (ресурс еще не сгенерирован или структура пустая)');
-          raw = [];
-        } else {
-          console.warn('⚠️ Ошибка загрузки структуры с бэка:', error);
-          raw = [];
-        }
-      }
+      const raw = await loadStructureFieldsWithFallback(slug, structureAPI);
+      console.log('📡 Загружено полей структуры:', raw.length);
       
       // Преобразуем структуру в формат blocks для NewsBlockEditor
       const blocks = raw.map((f, i) => {
@@ -1393,6 +1396,7 @@ export default function AdminSettingsPage() {
           order: f.order ?? i,
           label: f.label ?? '',
           showInCreateForm: f.showInCreateForm !== false,
+          required: f.required === true,
           relatedResourceSlug: f.relatedResourceSlug ?? '',
           relatedResourceLabel: f.relatedResourceLabel ?? '',
         };
@@ -1450,7 +1454,7 @@ export default function AdminSettingsPage() {
       }
       setIsStructureSaving(true);
 
-      const resourceName = slug.split('-').map((word, index) => 
+      const resourceName = slug.split(/[-_]+/).map((word, index) => 
         index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
       ).join('');
       
@@ -1493,8 +1497,9 @@ export default function AdminSettingsPage() {
 
       // Проверяем, сгенерирован ли ресурс, пытаясь загрузить структуру с бэка
       let isResourceSynced = false;
+      const structureResourceName = getStructureResourceName(slug);
       try {
-        const structureRes = await structureAPI.get(resourceName);
+        const structureRes = await structureAPI.get(structureResourceName);
         if (structureRes.data?.fields && structureRes.data.fields.length > 0) {
           isResourceSynced = true;
         }
@@ -1571,7 +1576,7 @@ export default function AdminSettingsPage() {
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {
               console.log(`📝 Попытка ${attempt}/3 сохранения структуры в БД...`);
-              await structureAPI.update(resourceName, fields);
+              await structureAPI.update(getStructureResourceName(slug), fields);
               console.log('✅ Структура успешно сохранена в БД через API структуры');
               structureSaved = true;
               break;
@@ -1618,10 +1623,10 @@ export default function AdminSettingsPage() {
       } else {
         // Ресурс уже сгенерирован - обновляем структуру через API структуры
         try {
-          const resourceName = slug;
+          const structureResourceName = getStructureResourceName(slug);
           setProgressModal({
             open: true,
-            title: `Сохранение структуры ${resourceName}`,
+            title: `Сохранение структуры ${structureResourceName}`,
             steps: [
               { label: 'Сохранение структуры', description: 'Обновление структуры ресурса в БД' },
               { label: 'Синхронизация полей', description: 'Обновление полей модели ресурса' },
@@ -1630,7 +1635,7 @@ export default function AdminSettingsPage() {
             error: null,
           });
 
-          await structureAPI.update(resourceName, fields);
+          await structureAPI.update(structureResourceName, fields);
           setProgressModal((prev) => ({ ...prev, currentStep: 1 }));
           await new Promise((resolve) => setTimeout(resolve, 200));
           setProgressModal((prev) => ({ ...prev, open: false }));
@@ -1911,7 +1916,7 @@ export default function AdminSettingsPage() {
                                   setStructureModal({ open: true, itemId: item.id, itemLabel: item.label, slug });
                                   setStructureBlockSearch('');
                                   setStructureAccordionOpen(new Set(['base']));
-                                  // Загружаем текущую структуру полей
+                                  setStructureFields([]);
                                   loadStructureFields(slug);
                                 }}
                                 className={styles.viewBtn}
@@ -2558,13 +2563,32 @@ export default function AdminSettingsPage() {
                               checked={block.showInCreateForm !== false}
                               onChange={(e) => {
                                 const next = [...structureFields];
-                                next[idx] = { ...next[idx], showInCreateForm: e.target.checked };
+                                const checked = e.target.checked;
+                                next[idx] = {
+                                  ...next[idx],
+                                  showInCreateForm: checked,
+                                  ...(checked ? {} : { required: false }),
+                                };
                                 setStructureFields(next);
                               }}
                               onDragStart={(e) => e.stopPropagation()}
                             />
                             <span className={styles.visibilitySwitch} />
                             <span className={styles.visibilityLabel}>Показывать в записи</span>
+                          </label>
+                          <label className={`${styles.visibilityToggle} ${styles.structureModalCreateToggle}`}>
+                            <input
+                              type="checkbox"
+                              checked={block.required === true}
+                              onChange={(e) => {
+                                const next = [...structureFields];
+                                next[idx] = { ...next[idx], required: e.target.checked };
+                                setStructureFields(next);
+                              }}
+                              onDragStart={(e) => e.stopPropagation()}
+                            />
+                            <span className={styles.visibilitySwitch} />
+                            <span className={styles.visibilityLabel}>Обязательное</span>
                           </label>
                           <div className={styles.structureModalListActions}>
                             <button
@@ -2679,6 +2703,7 @@ export default function AdminSettingsPage() {
                                           order: structureFields.length,
                                           label: '',
                                           showInCreateForm: true,
+                                          required: true,
                                         },
                                       ])
                                     }

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { filterCategories } from '../../../data/casesData.jsx';
+import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
 import CaseDetailsModal from './CaseDetailsModal';
@@ -13,8 +13,9 @@ import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/comp
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 
 function Cases({ children, ...props }) {
-    // Состояния для фильтрации
-    const [selectedCategory, setSelectedCategory] = useState(null); // По умолчанию ничего не выбрано
+    const { filterCategories, filterLoading } = useSiteFilterCategories();
+    // Состояния для фильтрации (по умолчанию "Все")
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedTag, setSelectedTag] = useState(null); // По умолчанию ничего не выбрано (одиночный выбор)
     const [selectedType, setSelectedType] = useState(null); // По умолчанию ничего не выбрано (одиночный выбор)
     const [isFilterVisible, setIsFilterVisible] = useState(true); // Видимость оригинального фильтра
@@ -370,7 +371,7 @@ function Cases({ children, ...props }) {
     }, [selectedItem]);
 
     const rows = createRows();
-    const currentCategory = filterCategories[selectedCategory];
+    const currentCategory = filterCategories[selectedCategory ?? 'all'];
     const availableTags = currentCategory ? currentCategory.tags : [];
     const shouldShowLoader = !isCasesLoaded || isLoading;
 
@@ -464,7 +465,7 @@ function Cases({ children, ...props }) {
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem?.type === 'case' ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
             {selectedItem && (
                 (selectedItem.type === 'case')
-                    ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} cases={casesData} onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })} />
                     : (selectedItem.type === 'shop')
                         ? <ShopDetailsModal item={selectedItem} teamItems={teamFromApi} />
                     : (selectedItem.type === 'new' || selectedItem.type === 'banner')

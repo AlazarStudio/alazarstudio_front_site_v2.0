@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import classes from '../Shop/Shop.module.css';
-import { filterCategories } from '../../../data/casesData.jsx';
+import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -32,6 +32,7 @@ function extractTextFromJSX(element) {
 }
 
 function CasesCatalog({ children, ...props }) {
+    const { filterCategories } = useSiteFilterCategories();
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedTag, setSelectedTag] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -389,7 +390,7 @@ function CasesCatalog({ children, ...props }) {
 
             <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
                 {selectedItem && (
-                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} />
+                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} cases={filteredItems} onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })} />
                 )}
             </Modal>
         </div>

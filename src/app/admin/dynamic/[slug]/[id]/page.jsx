@@ -36,6 +36,7 @@ function buildStructureFields(raw) {
       order: f.order ?? i,
       label: f.label ?? '',
       showInCreateForm: f.showInCreateForm !== false,
+      required: f.required === true,
       relatedResourceSlug: f.relatedResourceSlug ?? '',
       relatedResourceLabel: f.relatedResourceLabel ?? '',
     }))
@@ -504,6 +505,7 @@ export default function DynamicRecordEditPage() {
         type: field.type,
         order: index,
         label: getBlockLabel(field),
+        required: field.required === true,
         data: {
           ...blockData,
           resourceSlug: String(blockData?.resourceSlug || field.relatedResourceSlug || ''),
@@ -519,6 +521,7 @@ export default function DynamicRecordEditPage() {
       type: field.type,
       order: index,
       label: getBlockLabel(field),
+      required: field.required === true,
       data: blockData,
     };
   }).filter((block) => {
@@ -892,6 +895,10 @@ export default function DynamicRecordEditPage() {
         const items = Array.isArray(value.items) ? value.items : [];
         return items.some((item) => asPlainText(item).length > 0);
       }
+      case 'relatedEntities': {
+        const ids = Array.isArray(value?.selectedIds) ? value.selectedIds : [];
+        return ids.length > 0;
+      }
       default:
         return Object.values(value).some((inner) => {
           if (Array.isArray(inner)) return inner.length > 0;
@@ -902,13 +909,101 @@ export default function DynamicRecordEditPage() {
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
       const fieldsToSave = Array.isArray(structureFieldsRef.current) ? structureFieldsRef.current : [];
       const recordDataToSave = recordDataRef.current && typeof recordDataRef.current === 'object' ? recordDataRef.current : {};
       const blocksToSave = Array.isArray(additionalBlocksRef.current) ? additionalBlocksRef.current : [];
       const pendingFilesToSave = pendingFilesRef.current && typeof pendingFilesRef.current === 'object' ? pendingFilesRef.current : {};
       const publishedToSave = Boolean(isPublishedRef.current);
+
+      const hasPendingStructureUpload = (field) => {
+        if (!field) return false;
+        const blockId = structureFieldToBlockId(field);
+        const pending = pendingFilesToSave?.[blockId];
+        if (!pending) return false;
+        if (field.type === 'image') return isUploadableFile(pending.url);
+        if (field.type === 'gallery') {
+          const pendingImages = Array.isArray(pending.images) ? pending.images : [];
+          return pendingImages.some((file) => isUploadableFile(file));
+        }
+        if (field.type === 'file') return isUploadableFile(pending.documentFile);
+        return false;
+      };
+
+      // Валидация только явно обязательных полей структуры
+      const requiredStructureFields = fieldsToSave.filter((field) => field.required === true);
+      const unfilledStructureFields = requiredStructureFields
+        .filter((field) => {
+          if (hasFilledValue(field.type, recordDataToSave[field.fieldKey])) return false;
+          if (hasPendingStructureUpload(field)) return false;
+          return true;
+        });
+      if (unfilledStructureFields.length > 0) {
+        const invalidKeys = unfilledStructureFields.map((field) => field.fieldKey);
+        setInvalidStructureFieldKeys(invalidKeys);
+        setPulseStructureFieldKeys(invalidKeys);
+        setInvalidAdditionalBlockIds([]);
+        setPulseAdditionalBlockIds([]);
+        const lastInvalidKey = invalidKeys[invalidKeys.length - 1];
+        if (lastInvalidKey && structureFieldRefs.current[lastInvalidKey]) {
+          structureFieldRefs.current[lastInvalidKey].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setInfoModal({
+          title: 'Заполните обязательные блоки',
+          message: `Заполните все блоки из структуры: ${unfilledStructureFields.map((field) => `"${getBlockLabel(field)}"`).join(', ')}`,
+        });
+        return;
+      }
+      setInvalidStructureFieldKeys([]);
+
+      // Валидация названий дополнительных блоков — до открытия модалки
+      const structureNameKeys = new Set(
+        fieldsToSave
+          .map((field) => labelToFieldKey(getBlockLabel(field)))
+          .filter(Boolean)
+      );
+      const additionalNameKeys = new Map();
+      const additionalErrors = [];
+      const invalidAdditionalIds = new Set();
+      blocksToSave.forEach((block, index) => {
+        const rawLabel = String(block?.label || '').trim();
+        if (!rawLabel) {
+          additionalErrors.push(`Дополнительный блок #${index + 1}: укажите "Название блока".`);
+          if (block?.id) invalidAdditionalIds.add(block.id);
+          return;
+        }
+        const normalizedName = labelToFieldKey(rawLabel) || rawLabel.toLowerCase();
+        if (structureNameKeys.has(normalizedName)) {
+          additionalErrors.push(`"${rawLabel}" уже используется в блоках структуры.`);
+          if (block?.id) invalidAdditionalIds.add(block.id);
+        }
+        if (additionalNameKeys.has(normalizedName)) {
+          const duplicateWith = additionalNameKeys.get(normalizedName);
+          additionalErrors.push(`"${rawLabel}" дублирует название "${duplicateWith}".`);
+          if (block?.id) invalidAdditionalIds.add(block.id);
+        } else {
+          additionalNameKeys.set(normalizedName, rawLabel);
+        }
+      });
+      if (additionalErrors.length > 0) {
+        const invalidIdsArray = Array.from(invalidAdditionalIds);
+        setInvalidAdditionalBlockIds(invalidIdsArray);
+        setPulseAdditionalBlockIds(invalidIdsArray);
+        setScrollToAdditionalBlockId(invalidIdsArray[invalidIdsArray.length - 1] || null);
+        setAdditionalScrollRequestId((prev) => prev + 1);
+        setInvalidStructureFieldKeys([]);
+        setPulseStructureFieldKeys([]);
+        setInfoModal({
+          title: 'Проверьте названия блоков',
+          message: `Исправьте названия дополнительных блоков: ${additionalErrors.join(' ')}`,
+        });
+        return;
+      }
+      setInvalidAdditionalBlockIds([]);
+      setPulseAdditionalBlockIds([]);
+      setScrollToAdditionalBlockId(null);
+
+      setIsSaving(true);
       const countStructureUploadFiles = (field, value) => {
         if (!field) return 0;
         const blockId = structureFieldToBlockId(field);
@@ -979,103 +1074,11 @@ export default function DynamicRecordEditPage() {
           { label: 'Сохранение данных', status: 'active', progress: 0, subLabel: 'Подготовка данных...' },
         ];
       setSaveProgress({ open: true, steps: initialSteps, totalProgress: hasUploads ? 0 : 60 });
-      const hasPendingStructureUpload = (field) => {
-        if (!field) return false;
-        const blockId = structureFieldToBlockId(field);
-        const pending = pendingFilesToSave?.[blockId];
-        if (!pending) return false;
-        if (field.type === 'image') return isUploadableFile(pending.url);
-        if (field.type === 'gallery') {
-          const pendingImages = Array.isArray(pending.images) ? pending.images : [];
-          return pendingImages.some((file) => isUploadableFile(file));
-        }
-        if (field.type === 'file') return isUploadableFile(pending.documentFile);
-        return false;
-      };
 
-      // Валидация обязательного заполнения полей структуры
-      const requiredStructureFields = fieldsToSave.filter((field) => field.showInCreateForm !== false);
-      const unfilledStructureFields = requiredStructureFields
-        .filter((field) => {
-          if (hasFilledValue(field.type, recordDataToSave[field.fieldKey])) return false;
-          if (hasPendingStructureUpload(field)) return false;
-          return true;
-        });
-      if (unfilledStructureFields.length > 0) {
-        const invalidKeys = unfilledStructureFields.map((field) => field.fieldKey);
-        setInvalidStructureFieldKeys(invalidKeys);
-        setPulseStructureFieldKeys(invalidKeys);
-        setInvalidAdditionalBlockIds([]);
-        setPulseAdditionalBlockIds([]);
-        const lastInvalidKey = invalidKeys[invalidKeys.length - 1];
-        if (lastInvalidKey && structureFieldRefs.current[lastInvalidKey]) {
-          structureFieldRefs.current[lastInvalidKey].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        setInfoModal({
-          title: 'Заполните обязательные блоки',
-          message: `Заполните все блоки из структуры: ${unfilledStructureFields.map((field) => `"${getBlockLabel(field)}"`).join(', ')}`,
-        });
-        setIsSaving(false);
-        return;
-      }
-      setInvalidStructureFieldKeys([]);
-
-      // Валидация названий дополнительных блоков: обязательность + уникальность
-      const structureNameKeys = new Set(
-        fieldsToSave
-          .map((field) => labelToFieldKey(getBlockLabel(field)))
-          .filter(Boolean)
-      );
-      const additionalNameKeys = new Map();
-      const additionalErrors = [];
-      const invalidAdditionalIds = new Set();
-
-      blocksToSave.forEach((block, index) => {
-        const rawLabel = String(block?.label || '').trim();
-        if (!rawLabel) {
-          additionalErrors.push(`Дополнительный блок #${index + 1}: укажите "Название блока".`);
-          if (block?.id) invalidAdditionalIds.add(block.id);
-          return;
-        }
-
-        const normalizedName = labelToFieldKey(rawLabel) || rawLabel.toLowerCase();
-        if (structureNameKeys.has(normalizedName)) {
-          additionalErrors.push(`"${rawLabel}" уже используется в блоках структуры.`);
-          if (block?.id) invalidAdditionalIds.add(block.id);
-        }
-        if (additionalNameKeys.has(normalizedName)) {
-          const duplicateWith = additionalNameKeys.get(normalizedName);
-          additionalErrors.push(`"${rawLabel}" дублирует название "${duplicateWith}".`);
-          if (block?.id) invalidAdditionalIds.add(block.id);
-        } else {
-          additionalNameKeys.set(normalizedName, rawLabel);
-        }
-      });
-
-      if (additionalErrors.length > 0) {
-        const invalidIdsArray = Array.from(invalidAdditionalIds);
-        setInvalidAdditionalBlockIds(invalidIdsArray);
-        setPulseAdditionalBlockIds(invalidIdsArray);
-        setScrollToAdditionalBlockId(invalidIdsArray[invalidIdsArray.length - 1] || null);
-        setAdditionalScrollRequestId((prev) => prev + 1);
-        setInvalidStructureFieldKeys([]);
-        setPulseStructureFieldKeys([]);
-        setInfoModal({
-          title: 'Проверьте названия блоков',
-          message: `Исправьте названия дополнительных блоков: ${additionalErrors.join(' ')}`,
-        });
-        setIsSaving(false);
-        return;
-      }
-      setInvalidAdditionalBlockIds([]);
-      setPulseAdditionalBlockIds([]);
-      setScrollToAdditionalBlockId(null);
-
-      // Преобразуем данные для сохранения: загружаем файлы изображений если нужно
+      // Преобразуем данные для сохранения: загружаем файлы изображений если нужно (все поля структуры)
       const dataToSave = {};
       
-      // Обрабатываем каждое поле структуры
-      for (const field of requiredStructureFields) {
+      for (const field of fieldsToSave) {
         const fieldKey = field.fieldKey;
         const value = recordDataToSave[fieldKey];
         

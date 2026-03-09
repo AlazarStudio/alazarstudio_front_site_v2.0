@@ -236,6 +236,11 @@
   line-height: 1.35;
 }
 
+.requiredMarker {
+  color: #dc2626;
+  font-weight: 600;
+}
+
 .hideTypeBlockLabels .blockLabel {
   display: none;
 }
