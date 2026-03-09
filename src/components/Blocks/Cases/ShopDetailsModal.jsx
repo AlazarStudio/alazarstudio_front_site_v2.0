@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getImageUrl } from '@/lib/api';
 import {
-  getShopDescriptionHtml,
   getShopPrice,
   getShopSpecs,
-  mapTeamItems,
 } from '@/components/Blocks/Cases/casesHelpers';
 import classes from './ShopDetailsModal.module.css';
 
@@ -76,18 +74,6 @@ function pickField(record, keys) {
     if (valueHtml || valueText) return value;
   }
   return null;
-}
-
-function TeamCard({ member }) {
-  return (
-    <div className={classes.teamCard}>
-      <img src={member.image} alt={member.name} className={classes.teamAvatar} />
-      <div>
-        <div className={classes.teamName}>{member.name}</div>
-        {member.role ? <div className={classes.teamRole}>{member.role}</div> : null}
-      </div>
-    </div>
-  );
 }
 
 function stripHtml(value) {
@@ -199,17 +185,12 @@ export default function ShopDetailsModal({ item, teamItems }) {
 
   const source = item.sourceRecord || {};
   const title = item.title || 'Товар';
-  const descriptionHtml = getShopDescriptionHtml(source);
-  const taskField = pickField(source, ['zadacha', 'task']);
-  const solutionField = pickField(source, ['reshenie', 'solution']);
-  const taskHtml = html(taskField);
-  const solutionHtml = html(solutionField);
-  const taskText = text(taskField);
-  const solutionText = text(solutionField);
+  const shopDescriptionField = pickField(source, ['opisanie_dlya_magazina']);
+  const shopDescriptionHtml = html(shopDescriptionField);
+  const shopDescriptionText = text(shopDescriptionField);
   const specs = getShopSpecs(source);
   const price = normalizePrice(getShopPrice(source));
   const dateLabel = formatDateRu(source?.created_at || source?.createdAt || item.date);
-  const members = mapTeamItems(teamItems, source);
 
   const additionalBlocks = useMemo(() => extractAdditionalBlocks(source?.additionalBlocks), [source]);
   const extraFields = useMemo(() => {
@@ -218,7 +199,7 @@ export default function ShopDetailsModal({ item, teamItems }) {
       'nazvanie', 'title', 'opisanie', 'description', 'text', 'content',
       'zadacha', 'task', 'reshenie', 'solution', 'additionalBlocks',
       'tsena', 'stoimost', 'price', 'prev_yu', 'prevyu', 'preview', 'logotip',
-      'dlya_magazina', 'isPublished', 'tegi', 'komanda', 'prosmotry',
+      'dlya_magazina', 'isPublished', 'tegi', 'komanda', 'prosmotry', 'opisanie_dlya_magazina',
     ]);
     return Object.entries(source || {})
       .filter(([key]) => !shownKeys.has(key))
@@ -331,79 +312,30 @@ export default function ShopDetailsModal({ item, teamItems }) {
           <div className={classes.priceBox}>
             <div className={classes.price}>{price > 0 ? `${price.toLocaleString('ru-RU')} ₽` : 'Цена по запросу'}</div>
             <div className={classes.metaRow}>
-              <span className={classes.metaItem}>Без корзины, оформление по заявке</span>
+              <span className={classes.metaItem}>Оформление по заявке</span>
             </div>
             <a href={mailtoHref} className={classes.ctaBtn}>Оставить заявку</a>
           </div>
 
-          {specs.length > 0 ? (
-            <section className={classes.infoCard}>
-              <h3 className={classes.infoCardTitle}>Пункты</h3>
-              <div className={classes.infoList}>
-              {specs.map((spec) => (
-                <div key={spec.key} className={classes.infoRow}>
-                  <span className={classes.infoLabel}>{spec.label}</span>
-                  <span className={classes.infoValue}>{spec.value}</span>
-                </div>
-              ))}
-              </div>
-            </section>
-          ) : null}
-
-          {extraFields.length > 0 ? (
-            <section className={classes.infoCard}>
-              <h3 className={classes.infoCardTitle}>Дополнительно</h3>
-              <div className={classes.infoList}>
-                {extraFields.map((field) => (
-                  <div key={field.key} className={classes.infoRow}>
-                    <span className={classes.infoLabel}>{field.label}</span>
-                    <span className={classes.infoValue}>{field.value}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          
         </aside>
       </div>
 
-      {(taskHtml || taskText || solutionHtml || solutionText) ? (
-        <div className={classes.darkSection}>
-          <div className={classes.twoCols}>
-            {(taskHtml || taskText) ? (
-              <section>
-                <h3 className={classes.sectionHeading}>ЗАДАЧА</h3>
-                {taskHtml
-                  ? <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: taskHtml }} />
-                  : <p className={classes.blockParagraph}>{taskText}</p>}
-              </section>
-            ) : <div />}
-            {(solutionHtml || solutionText) ? (
-              <section>
-                <h3 className={`${classes.sectionHeading} ${classes.pink}`}>РЕШЕНИЕ</h3>
-                {solutionHtml
-                  ? <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: solutionHtml }} />
-                  : <p className={classes.blockParagraph}>{solutionText}</p>}
-              </section>
-            ) : <div />}
-          </div>
-        </div>
+      {(shopDescriptionHtml || shopDescriptionText) ? (
+        <section className={classes.contentSection}>
+          <h3 className={classes.sectionTitle}>Описание</h3>
+          {shopDescriptionHtml ? (
+            <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: shopDescriptionHtml }} />
+          ) : (
+            <p className={classes.blockParagraph}>{shopDescriptionText}</p>
+          )}
+        </section>
       ) : null}
 
       {additionalBlocks.length > 0 ? (
         <section className={classes.contentSection}>
           <div className={classes.contentStack}>
             {additionalBlocks.map((block, index) => renderBlock(block, index))}
-          </div>
-        </section>
-      ) : null}
-
-      {members.length > 0 ? (
-        <section className={classes.contentSection}>
-          <h3 className={classes.sectionTitle}>Команда</h3>
-          <div className={classes.teamList}>
-            {members.map((member) => (
-              <TeamCard key={member.id} member={member} />
-            ))}
           </div>
         </section>
       ) : null}

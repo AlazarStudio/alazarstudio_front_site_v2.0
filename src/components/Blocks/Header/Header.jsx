@@ -1,13 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import classes from './Header.module.css';
 import { Link, useLocation } from "react-router-dom";
 
 function Header({ children, ...props }) {
     const [hasBackground, setHasBackground] = useState(false);
-    const [hoveredLinkKey, setHoveredLinkKey] = useState(null);
-    const [leavingLinkKeys, setLeavingLinkKeys] = useState([]);
-    const leaveTimersRef = useRef({});
-    const hoverStartedAtRef = useRef({});
     const { pathname } = useLocation();
 
     const section = pathname.split("/")[1] || "/";
@@ -48,48 +44,6 @@ function Header({ children, ...props }) {
         };
     }, [scrollNumber]);
 
-    useEffect(() => {
-        return () => {
-            Object.values(leaveTimersRef.current).forEach((timerId) => {
-                clearTimeout(timerId);
-            });
-            leaveTimersRef.current = {};
-        };
-    }, []);
-
-    const handleLinkEnter = (key) => {
-        hoverStartedAtRef.current[key] = Date.now();
-
-        const activeTimer = leaveTimersRef.current[key];
-        if (activeTimer) {
-            clearTimeout(activeTimer);
-            delete leaveTimersRef.current[key];
-        }
-
-        setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
-        setHoveredLinkKey(key);
-    };
-
-    const handleLinkLeave = (key, shouldRunLeaveAnimation = true) => {
-        setHoveredLinkKey((prev) => (prev === key ? null : prev));
-
-        if (!shouldRunLeaveAnimation) {
-            setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
-            return;
-        }
-
-        setLeavingLinkKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));
-
-        const existingTimer = leaveTimersRef.current[key];
-        if (existingTimer) {
-            clearTimeout(existingTimer);
-        }
-        leaveTimersRef.current[key] = setTimeout(() => {
-            setLeavingLinkKeys((prev) => prev.filter((item) => item !== key));
-            delete leaveTimersRef.current[key];
-        }, 760);
-    };
-
     const navItems = [
         { key: 'home', to: '/', label: 'Главная', active: isHome },
         { key: 'cases', to: '/cases', label: 'Кейсы', active: isCases },
@@ -110,15 +64,7 @@ function Header({ children, ...props }) {
                     <Link
                         key={item.key}
                         to={item.to}
-                        data-text={item.label}
-                        onMouseEnter={() => handleLinkEnter(item.key)}
-                        onMouseLeave={() => handleLinkLeave(item.key, !item.active)}
-                        className={[
-                            item.active ? classes.linkActive : '',
-                            !item.active && hoveredLinkKey === item.key ? classes.linkHovering : '',
-                            !item.active && leavingLinkKeys.includes(item.key) ? classes.linkLeaving : '',
-                            hoveredLinkKey && hoveredLinkKey !== item.key ? classes.linkDimmed : '',
-                        ].filter(Boolean).join(' ')}
+                        className={item.active ? classes.linkActive : ''}
                     >
                         {item.label}
                     </Link>

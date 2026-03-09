@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { filterCategories, elementTypes } from '../../../data/casesData.jsx';
+import { filterCategories } from '../../../data/casesData.jsx';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
 import CaseDetailsModal from './CaseDetailsModal';
@@ -241,11 +241,8 @@ function Cases({ children, ...props }) {
             setSelectedTag(null);
         } else {
             setSelectedCategory(category);
-            setSelectedTag(null); // Сбрасываем выбранный тег при смене категории
-            // Сбрасываем тип при смене категории (кроме "Все")
-            if (category !== 'all') {
-                setSelectedType(null);
-            }
+            setSelectedTag(null);
+            setSelectedType(null); // Сбрасываем тип при смене категории (включая "Все")
         }
     };
 
@@ -391,21 +388,6 @@ function Cases({ children, ...props }) {
                     </button>
                 ))}
             </div>
-
-            {/* Фильтр по типам - показывается только для категории "Все" */}
-            {selectedCategory === 'all' && (
-                <div className={classes.filterTypes}>
-                    {elementTypes.map((type) => (
-                        <button
-                            key={type.key}
-                            className={`${classes.filterType} ${selectedType === type.key ? classes.filterType_active : ''}`}
-                            onClick={() => handleTypeSelect(type.key)}
-                        >
-                            {type.name}
-                        </button>
-                    ))}
-                </div>
-            )}
 
             {/* Нижние теги */}
             {availableTags.length > 0 && (

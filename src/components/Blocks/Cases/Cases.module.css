@@ -121,7 +121,7 @@
 .filterTag {
     padding: 12px 25px;
     border-radius: 27px;
-    border: 1px solid #FFFFFF80;
+    border: none;
     background-color: #0D0D0D;
     color: #FFFFFF;
     font-family: Mulish;
@@ -133,15 +133,15 @@
 }
 
 .filterTag:hover {
-    background-color: #FFFFFF;
-    border-color: #FFFFFF;
-    color: #000000;
+    background-color: #2e2e2e;
+    /* border-color: #FFFFFF; */
+    color: #fff;
 }
 
 .filterTag_active {
-    background-color: #FFFFFF;
-    border-color: #FFFFFF;
-    color: #000000;
+    background-color: #2e2e2e;
+    /* border-color: #FFFFFF; */
+    color: #fff;
 }
 
 .animateTopVisible{

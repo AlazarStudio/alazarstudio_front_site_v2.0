@@ -176,7 +176,7 @@
 .filterTag {
     padding: 12px 25px;
     border-radius: 27px;
-    border: 1px solid #FFFFFF80;
+    border: none;
     background-color: #0D0D0D;
     color: #FFFFFF;
     font-family: Mulish;
@@ -184,19 +184,19 @@
     font-size: 12px;
     line-height: 120%;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.5s ease-in-out;
 }
 
 .filterTag:hover {
-    background-color: #FFFFFF;
-    border-color: #FFFFFF;
-    color: #000000;
+    background-color: #2e2e2e;
+    /* border-color: #FFFFFF; */
+    color: #fff;
 }
 
 .filterTag_active {
-    background-color: #FFFFFF;
-    border-color: #FFFFFF;
-    color: #000000;
+    background-color: #2e2e2e;
+    /* border-color: #FFFFFF; */
+    color: #fff;
 }
 
 .loaderContainer {
@@ -344,7 +344,7 @@
 .filterCategory {
     padding: 15px 30px;
     border-radius: 27px;
-    border: 1px solid #FFFFFF80;
+    border: none;
     background-color: #0D0D0D;
     color: #FFFFFF;
     font-family: Mulish;
@@ -357,15 +357,15 @@
 }
 
 .filterCategory:hover {
-    background-color: #FFFFFF;
+    background-color: #2e2e2e;
     border-color: #FFFFFF;
-    color: #000000;
+    color: #fff;
 }
 
 .filterCategory_active {
-    background-color: #FFFFFF;
+    background-color: #2e2e2e;
     border-color: #FFFFFF;
-    color: #000000;
+    color: #fff;
 }
 
 .animateTopVisible {
