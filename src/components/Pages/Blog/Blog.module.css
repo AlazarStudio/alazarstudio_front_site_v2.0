@@ -199,6 +199,77 @@
     color: #fff;
 }
 
+.filterContainer {
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.filterCategories {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filterCategory {
+    padding: 15px 30px;
+    border-radius: 27px;
+    border: none;
+    background-color: #0D0D0D;
+    color: #FFFFFF;
+    font-family: Mulish;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 120%;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+}
+
+.filterCategory:hover {
+    background-color: #2e2e2e;
+    color: #fff;
+}
+
+.filterCategory_active {
+    background-color: #2e2e2e;
+    color: #fff;
+}
+
+.filterFixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(13, 13, 13, 0.95);
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+.filterFixed .filterCategories {
+    justify-content: center;
+}
+
+.filterContainerFixed {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    max-width: 1400px;
+}
+
+.animateTopVisible {
+    transform: translateY(0);
+}
+
+.animateBottomVisible {
+    transform: translateY(100%);
+}
+
 .loaderContainer {
     display: flex;
     justify-content: center;

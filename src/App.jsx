@@ -1,9 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Main from '@/app/Main/Main'
 import Main_Page from "./components/Pages/Main_Page";
-import Non_Found_Page from "./components/Pages/Non_Found_Page";
 import Layout from "./components/Standart/Layout/Layout";
-import CustomCursor from "./components/Cursor/CustomCursor"
 import About from "./components/Pages/About/About";
 import Blog from "./components/Pages/Blog/Blog";
 import Shop from "./components/Pages/Shop/Shop";
@@ -11,6 +8,7 @@ import CasesCatalog from "./components/Pages/Cases/CasesCatalog";
 import Contacts from "./components/Pages/Contacts/Contacts";
 
 import NotFound from '@/app/NotFound'
+import SiteDevGate from '@/components/SiteDevGate'
 import AdminLayout from '@/app/admin/layout'
 import AdminLoginPage from '@/app/admin/login/page'
 import AdminSettingsPage from '@/app/admin/settings/page'
@@ -20,19 +18,8 @@ import AdminDynamicRecordEditPage from '@/app/admin/dynamic/[slug]/[id]/page'
 export default function App() {
   return (
     <Routes>
-      {/* <Route path="/" element={
-        <div style={{
-          width: '100%', 
-          height: '100vh', 
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-          <img src="/logoTime.png" alt="" />
-        </div>
-      }/> */}
-
-      <Route path="/" element={<Layout />}>
+      {/* Сайт: только для авторизованных в админке (пока идёт разработка) */}
+      <Route path="/" element={<SiteDevGate />}>
         <Route index element={<Main_Page />} />
         <Route path="/cases" element={<CasesCatalog />} />
         <Route path="/cases/:url_text" element={<CasesCatalog />} />

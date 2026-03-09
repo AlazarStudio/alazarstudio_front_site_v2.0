@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import classes from './Blog.module.css';
 import { IconButton, Tooltip } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
@@ -8,8 +8,12 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { publicNewsAPI } from '@/lib/api';
 import { mapNewsRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
 import NewsDetailsModal from '../../Blocks/Cases/NewsDetailsModal';
+import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 
 function Blog({ children, ...props }) {
+    const { filterCategories } = useSiteFilterCategories();
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedTag, setSelectedTag] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState('newest'); // 'newest' или 'oldest'
     const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +22,10 @@ function Blog({ children, ...props }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [newsFromApi, setNewsFromApi] = useState([]);
     const [isNewsLoaded, setIsNewsLoaded] = useState(false);
+    const [isFilterVisible, setIsFilterVisible] = useState(true);
+    const [isCasesEnded, setIsCasesEnded] = useState(false);
+    const filterRef = useRef(null);
+    const casesContainerRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
@@ -44,51 +52,68 @@ function Blog({ children, ...props }) {
         };
     }, []);
 
-    // Фильтрация, поиск и сортировка
+    // Отслеживание видимости фильтра и конца списка при скролле
     useEffect(() => {
-        const hasActiveFilters = searchQuery.trim() !== '';
+        const handleScroll = () => {
+            if (filterRef.current) {
+                const rect = filterRef.current.getBoundingClientRect();
+                setIsFilterVisible(rect.bottom > 0);
+            }
+            if (casesContainerRef.current) {
+                const containerRect = casesContainerRef.current.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                const threshold = windowHeight * 0.8;
+                setIsCasesEnded(containerRect.bottom <= threshold);
+            }
+        };
+        handleScroll();
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('resize', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, []);
 
-        // Показываем лоадер только если есть активные фильтры
-        if (hasActiveFilters) {
-            setIsLoading(true);
-        }
+    // Фильтрация по тегу, поиск и сортировка
+    useEffect(() => {
+        const hasActiveFilters = selectedTag !== null || searchQuery.trim() !== '';
+
+        if (hasActiveFilters) setIsLoading(true);
 
         let filtered = [...newsData];
 
-        // Поиск по названию и описанию
+        if (selectedTag !== null) {
+            filtered = filtered.filter(item => Array.isArray(item.tags) && item.tags.includes(selectedTag));
+        }
+
         if (searchQuery.trim() !== '') {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(item => {
                 const titleMatch = typeof item.title === 'string'
                     ? item.title.toLowerCase().includes(query)
                     : false;
-                const descMatch = item.description.toLowerCase().includes(query);
+                const descMatch = (item.description || '').toLowerCase().includes(query);
                 return titleMatch || descMatch;
             });
         }
 
-        // Сортировка по дате
         filtered.sort((a, b) => {
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
-            return sortOrder === 'newest'
-                ? dateB - dateA  // Новые первыми
-                : dateA - dateB; // Старые первыми
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
         });
 
-        // Показываем лоадер на 0.5 секунды для плавности, если есть поиск
         if (hasActiveFilters) {
             const timer = setTimeout(() => {
                 setFilteredNews(filtered);
                 setIsLoading(false);
             }, 500);
             return () => clearTimeout(timer);
-        } else {
-            // Если нет поиска, сразу показываем все новости без лоадера
-            setFilteredNews(filtered);
-            setIsLoading(false);
         }
-    }, [searchQuery, sortOrder, newsData]);
+        setFilteredNews(filtered);
+        setIsLoading(false);
+    }, [selectedTag, searchQuery, sortOrder, newsData]);
 
     // Обработчик изменения поиска
     const handleSearchChange = (e) => {
@@ -115,6 +140,53 @@ function Blog({ children, ...props }) {
     // Обработчик переключения сортировки
     const handleSortToggle = () => {
         setSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest');
+    };
+
+    const handleCategorySelect = (category) => {
+        if (category === selectedCategory) {
+            setSelectedCategory('all');
+            setSelectedTag(null);
+        } else {
+            setSelectedCategory(category);
+            setSelectedTag(null);
+        }
+    };
+
+    const handleTagSelect = (tag) => {
+        setSelectedTag(prev => prev === tag ? null : tag);
+    };
+
+    const renderFilter = (containerClass = classes.filterContainer) => {
+        const currentCategory = filterCategories[selectedCategory];
+        const availableTags = currentCategory ? currentCategory.tags : [];
+        return (
+            <div className={containerClass}>
+                <div className={classes.filterCategories}>
+                    {Object.keys(filterCategories).map((key) => (
+                        <button
+                            key={key}
+                            className={`${classes.filterCategory} ${selectedCategory === key ? classes.filterCategory_active : ''}`}
+                            onClick={() => handleCategorySelect(key)}
+                        >
+                            {filterCategories[key].name}
+                        </button>
+                    ))}
+                </div>
+                {availableTags.length > 0 && (
+                    <div className={classes.filterTags}>
+                        {availableTags.map((tag) => (
+                            <button
+                                key={tag}
+                                className={`${classes.filterTag} ${selectedTag === tag ? classes.filterTag_active : ''}`}
+                                onClick={() => handleTagSelect(tag)}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     // Синхронизация модалки с URL для блога
@@ -180,7 +252,7 @@ function Blog({ children, ...props }) {
                     </div>
                 </div>
 
-                <div className={classes.blogContent_info}>
+                <div className={classes.blogContent_info} ref={casesContainerRef}>
 
                     {/* Поиск и сортировка */}
                     <div className={classes.searchRow}>
@@ -218,6 +290,11 @@ function Blog({ children, ...props }) {
                         </Tooltip>
                     </div>
 
+                    {/* Фильтр категорий и тегов (как на главной) */}
+                    <div ref={filterRef} data-filter-container="true">
+                        {renderFilter()}
+                    </div>
+
                     {/* Прелоадер */}
                     {shouldShowLoader && (
                         <div className={classes.loaderContainer}>
@@ -245,6 +322,11 @@ function Blog({ children, ...props }) {
                             )}
                         </>
                     )}
+                </div>
+
+                {/* Фиксированный фильтр внизу экрана */}
+                <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
+                    {renderFilter(classes.filterContainerFixed)}
                 </div>
             </div>
 
