@@ -9,12 +9,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 50px;
+    /* gap: 50px; */
     width: 100%;
 }
 
 .blogContent_info{
-    width: 1400px;
+    width: 100%;
+    padding: 0 20px;
     position: relative;
     z-index: 1;
 }
@@ -51,12 +52,47 @@
     margin-bottom: 30px;
 }
 
+/* Строка: фильтры слева, поиск справа на одну линию */
+.filterBarRow {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.filterBarRow .filterContainer {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.filterBarFilters {
+    flex: 1;
+    min-width: 0;
+}
+
+.filterBarSearch {
+    flex-shrink: 0;
+    width: 500px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filterBarSearch .searchInput {
+    flex: 1;
+    min-width: 0;
+}
+
 .searchInput {
     flex: 1;
     padding: 15px 25px;
     border-radius: 27px;
-    border: 1px solid #FFFFFF80;
-    background-color: #0D0D0D;
+    border: none;
+    background-color: #2e2e2e65;
     color: #FFFFFF;
     font-family: Mulish;
     font-weight: 600;

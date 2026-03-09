@@ -342,18 +342,19 @@ function CasesCatalog({ children, ...props }) {
                 </div>
 
                 <div className={classes.blogContent_info} ref={casesContainerRef}>
-                    <div className={classes.searchRow}>
-                        <input
-                            type="text"
-                            placeholder="Поиск по кейсам..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            className={classes.searchInput}
-                        />
-                    </div>
-
-                    <div ref={filterRef} data-filter-container="true">
-                        {renderFilter()}
+                    <div className={classes.filterBarRow}>
+                        <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
+                            {renderFilter()}
+                        </div>
+                        <div className={classes.filterBarSearch}>
+                            <input
+                                type="text"
+                                placeholder="Поиск по кейсам..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className={classes.searchInput}
+                            />
+                        </div>
                     </div>
 
                     {shouldShowLoader && (

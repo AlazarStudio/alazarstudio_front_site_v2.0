@@ -253,46 +253,45 @@ function Blog({ children, ...props }) {
                 </div>
 
                 <div className={classes.blogContent_info} ref={casesContainerRef}>
-
-                    {/* Поиск и сортировка */}
-                    <div className={classes.searchRow}>
-                        {/* Поиск */}
-                        <input
-                            type="text"
-                            placeholder="Поиск по новостям..."
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            className={classes.searchInput}
-                        />
-
-                        {/* Иконка сортировки */}
-                        <Tooltip
-                            title={sortOrder === 'newest' ? 'Сначала новые' : 'Сначала старые'}
-                            arrow
-                        >
-                            <IconButton
-                                onClick={handleSortToggle}
-                                className={classes.sortIconButton}
-                                sx={{
-                                    color: '#FFFFFF',
-                                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                                    borderRadius: '27px',
-                                    padding: '12px',
-                                    '&:hover': {
-                                        backgroundColor: '#FFFFFF',
-                                        color: '#000000',
-                                        borderColor: '#FFFFFF',
-                                    },
-                                }}
+                    <div className={classes.filterBarRow}>
+                        <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
+                            {renderFilter()}
+                        </div>
+                        <div className={classes.filterBarSearch}>
+                            <input
+                                type="text"
+                                placeholder="Поиск по новостям..."
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                className={classes.searchInput}
+                            />
+                            <Tooltip
+                                title={sortOrder === 'newest' ? 'Сначала новые' : 'Сначала старые'}
+                                arrow
                             >
-                                <SortIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </div>
-
-                    {/* Фильтр категорий и тегов (как на главной) */}
-                    <div ref={filterRef} data-filter-container="true">
-                        {renderFilter()}
+                                <IconButton
+                                    onClick={handleSortToggle}
+                                    className={classes.sortIconButton}
+                                    sx={{
+                                        color: '#FFFFFF',
+                                        border: '1px solid rgba(255, 255, 255, 0.5)',
+                                        borderRadius: '27px',
+                                        padding: '12px',
+                                        '&:hover': {
+                                            backgroundColor: '#FFFFFF',
+                                            color: '#000000',
+                                            borderColor: '#FFFFFF',
+                                        },
+                                        '& .MuiSvgIcon-root': {
+                                            transform: sortOrder === 'oldest' ? 'scaleY(-1)' : 'scaleY(1)',
+                                            transition: 'transform 0.2s ease',
+                                        },
+                                    }}
+                                >
+                                    <SortIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </div>
                     </div>
 
                     {/* Прелоадер */}
