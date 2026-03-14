@@ -2,40 +2,16 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import classes from "./Contacts.module.css";
 import Discuss from "../../Blocks/Discuss/Discuss";
 import YandexMapRoute from "../../YandexMapRoute";
-
-const CONTACT_ADDRESS = "\u0427\u0435\u0440\u043A\u0435\u0441\u0441\u043A, \u041A\u0430\u0432\u043A\u0430\u0437\u0441\u043A\u0430\u044F \u0443\u043B., 56";
-const CONTACT_PHONE = "+7 928 399-53-84";
-const CONTACT_PHONE_LINK = "+79283995384";
-const CONTACT_EMAIL = "info@alazarstudio.ru";
+import { publicContactsAPI } from "@/lib/api";
 
 const UI_TEXT = {
-    pageTitle: "\u041A\u041E\u041D\u0422\u0410\u041A\u0422\u042B",
-    addressLabel: "\u0410\u0414\u0420\u0415\u0421",
-    numberLabel: "\u041D\u041E\u041C\u0415\u0420",
-    vkLabel: "\u0412\u041A\u041E\u041D\u0422\u0410\u041A\u0422\u0415",
-    mapAriaLabel: "\u041A\u0430\u0440\u0442\u0430 \u043E\u0444\u0438\u0441\u0430 ALAZAR STUDIO",
-    routeButton: "\u041F\u0420\u041E\u041B\u041E\u0416\u0418\u0422\u042C \u041C\u0410\u0420\u0428\u0420\u0423\u0422",
-    recenterAriaLabel: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0442\u043E\u0447\u043A\u0443 \u0432 \u0446\u0435\u043D\u0442\u0440 \u043A\u0430\u0440\u0442\u044B",
-};
-
-const CONTACT_COORDS = {
-    latitude: 44.2302999,
-    longitude: 42.0572466,
-};
-
-const OFFICE_PLACE = [
-    {
-        id: "alazar-office",
-        title: "ALAZAR STUDIO",
-        latitude: CONTACT_COORDS.latitude,
-        longitude: CONTACT_COORDS.longitude,
-    },
-];
-
-const SOCIAL_LINKS = {
-    telegram: "https://t.me/+79283995384",
-    instagram: "https://www.instagram.com/alazarstudio",
-    vk: "https://vk.com/alazarstudio",
+    pageTitle: "КОНТАКТЫ",
+    addressLabel: "АДРЕС",
+    numberLabel: "НОМЕР",
+    vkLabel: "ВКОНТАКТЕ",
+    mapAriaLabel: "Карта офиса ALAZAR STUDIO",
+    routeButton: "ПРОЛОЖИТЬ МАРШРУТ",
+    recenterAriaLabel: "Вернуть точку в центр карты",
 };
 
 const MAP_CARD_MARGIN = 18;
@@ -105,8 +81,8 @@ function projectPointToViewport(mapObject, coords) {
     };
 }
 
-function buildYandexRouteUrl(fromCoords) {
-    const destination = `${CONTACT_COORDS.latitude},${CONTACT_COORDS.longitude}`;
+function buildYandexRouteUrl(fromCoords, destinationCoords) {
+    const destination = `${destinationCoords.latitude},${destinationCoords.longitude}`;
     const rtext = fromCoords
         ? `${fromCoords[0]},${fromCoords[1]}~${destination}`
         : destination;
@@ -114,20 +90,120 @@ function buildYandexRouteUrl(fromCoords) {
     return `https://yandex.ru/maps/?rtext=${encodeURIComponent(rtext)}&rtt=auto`;
 }
 
-function Contacts() {
-    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT_ADDRESS)}`;
+function parseSocialNetworks(str) {
+    if (!str) return [];
+    try {
+        const parsed = typeof str === "string" ? JSON.parse(str) : str;
+        if (!parsed?.linkEnabled || !Array.isArray(parsed.values) || !Array.isArray(parsed.links)) {
+            return [];
+        }
+        return parsed.values.map((label, i) => ({
+            label: label || "",
+            url: parsed.links[i] || "#",
+        })).filter((item) => item.url && item.url !== "#");
+    } catch {
+        return [];
+    }
+}
 
-    const [activePlaceId, setActivePlaceId] = useState(OFFICE_PLACE[0]?.id ?? null);
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
+async function geocodeAddress(address) {
+    if (!address || typeof address !== "string" || !address.trim()) return null;
+    const query = address.trim();
+    const url = `${NOMINATIM_URL}?${new URLSearchParams({
+        q: query,
+        format: "json",
+        limit: "1",
+    })}`;
+    const res = await fetch(url, {
+        headers: {
+            "Accept-Language": "ru",
+            "User-Agent": "AlazarStudio-Contacts/1.0",
+        },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const first = data?.[0];
+    if (!first || first.lat == null || first.lon == null) return null;
+    const lat = parseFloat(first.lat);
+    const lon = parseFloat(first.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return { latitude: lat, longitude: lon };
+}
+
+function Contacts() {
+    const [contactsData, setContactsData] = useState(null);
+    const [contactCoords, setContactCoords] = useState(null);
+    const [activePlaceId, setActivePlaceId] = useState("alazar-office");
     const [mapObject, setMapObject] = useState(null);
     const [mapCardPosition, setMapCardPosition] = useState(MAP_CARD_DEFAULT_POSITION);
 
     const cardRef = useRef(null);
     const frameRef = useRef(null);
 
-    const activePlace = useMemo(
-        () => OFFICE_PLACE.find((place) => place.id === activePlaceId) ?? OFFICE_PLACE[0] ?? null,
-        [activePlaceId]
+    const contact = useMemo(() => {
+        const list = contactsData?.contacts;
+        if (!Array.isArray(list) || list.length === 0) return null;
+        return list.find((c) => c.isPublished !== false) ?? list[0];
+    }, [contactsData]);
+
+    const address = useMemo(
+        () => contact?.adres ?? "",
+        [contact]
     );
+    const phoneDisplay = useMemo(
+        () => contact?.nomer ?? "",
+        [contact]
+    );
+    const phoneLink = useMemo(() => {
+        const raw = contact?.nomer ?? "";
+        return raw.replace(/\D/g, "") || "";
+    }, [contact]);
+    const email = useMemo(
+        () => contact?.e_mail ?? "",
+        [contact]
+    );
+    const socialItems = useMemo(
+        () => (contact?.sotsial_nye_seti != null ? parseSocialNetworks(contact.sotsial_nye_seti) : []),
+        [contact]
+    );
+
+    const officePlace = useMemo(
+        () =>
+            contactCoords
+                ? [
+                    {
+                        id: "alazar-office",
+                        title: "ALAZAR STUDIO",
+                        latitude: contactCoords.latitude,
+                        longitude: contactCoords.longitude,
+                    },
+                ]
+                : [],
+        [contactCoords]
+    );
+
+    const activePlace = useMemo(
+        () => officePlace.find((place) => place.id === activePlaceId) ?? officePlace[0] ?? null,
+        [activePlaceId, officePlace]
+    );
+
+    useEffect(() => {
+        if (!contact?.adres) {
+            setContactCoords(null);
+            return;
+        }
+        let cancelled = false;
+        geocodeAddress(contact.adres).then((coords) => {
+            if (!cancelled) {
+                setContactCoords(coords ?? null);
+            }
+        }).catch(() => {
+            if (!cancelled) setContactCoords(null);
+        });
+        return () => { cancelled = true; };
+    }, [contact?.adres]);
 
     const activeCoords = useMemo(() => {
         if (!activePlace) {
@@ -253,6 +329,25 @@ function Contacts() {
         scheduleCardPositionUpdate();
     }, [activeCoords, scheduleCardPositionUpdate]);
 
+    useEffect(() => {
+        let cancelled = false;
+        const load = async () => {
+            try {
+                const res = await publicContactsAPI.get();
+                if (cancelled) return;
+                const data = res.data;
+                setContactsData(data);
+                console.log("Contacts API data:", data);
+            } catch {
+                if (!cancelled) {
+                    setContactsData(null);
+                }
+            }
+        };
+        load();
+        return () => { cancelled = true; };
+    }, []);
+
     const handleMapReady = useCallback((instance) => {
         setMapObject(instance || null);
     }, []);
@@ -283,24 +378,24 @@ function Contacts() {
         };
 
         if (!navigator.geolocation) {
-            openRoute(buildYandexRouteUrl(null));
+            openRoute(buildYandexRouteUrl(null, contactCoords));
             return;
         }
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const fromCoords = [position.coords.latitude, position.coords.longitude];
-                openRoute(buildYandexRouteUrl(fromCoords));
+                openRoute(buildYandexRouteUrl(fromCoords, contactCoords));
             },
             () => {
-                openRoute(buildYandexRouteUrl(null));
+                openRoute(buildYandexRouteUrl(null, contactCoords));
             },
             {
                 enableHighAccuracy: true,
                 timeout: 7000,
             }
         );
-    }, []);
+    }, [contactCoords]);
 
     return (
         <>
@@ -311,39 +406,48 @@ function Contacts() {
 
                         <div className={classes.contactsGroup}>
                             <div className={classes.contactsLabel}>{UI_TEXT.addressLabel}</div>
-                            <a className={classes.contactsValue} href={mapLink} target="_blank" rel="noreferrer">
-                                {CONTACT_ADDRESS}
-                            </a>
+                            {contactCoords ? (
+                                <a
+                                    className={classes.contactsValue}
+                                    href="#"
+                                    onClick={(e) => { e.preventDefault(); handleOpenRoute(); }}
+                                >
+                                    {address}
+                                </a>
+                            ) : (
+                                <span className={classes.contactsValue}>{address}</span>
+                            )}
                         </div>
 
                         <div className={classes.contactsGroup}>
                             <div className={classes.contactsLabel}>{UI_TEXT.numberLabel}</div>
-                            <a className={classes.contactsValue} href={`tel:${CONTACT_PHONE_LINK}`}>
-                                {CONTACT_PHONE}
+                            <a className={classes.contactsValue} href={`tel:${phoneLink}`}>
+                                {phoneDisplay}
                             </a>
                         </div>
 
-                        <div className={classes.socialList}>
-                            <a className={classes.socialLink} href={SOCIAL_LINKS.telegram} target="_blank" rel="noreferrer">
-                                TELEGRAM
-                                <span className={classes.telegramIcon} aria-hidden="true">{"\u2708"}</span>
-                            </a>
-
-                            <a className={classes.socialLink} href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer">
-                                INSTAGRAM
-                                <img src="/instagram.png" alt="Instagram" />
-                            </a>
-
-                            <a className={classes.socialLink} href={SOCIAL_LINKS.vk} target="_blank" rel="noreferrer">
-                                {UI_TEXT.vkLabel}
-                                <img src="/vk.png" alt="VK" />
-                            </a>
-                        </div>
+                        {socialItems.length > 0 &&
+                            <div className={classes.socialList}>
+                                {
+                                    socialItems.map((item, i) => (
+                                        <a
+                                            key={i}
+                                            className={classes.socialLink}
+                                            href={item.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            {item.label.toUpperCase()}
+                                        </a>
+                                    ))
+                                }
+                            </div>
+                        }
 
                         <div className={classes.contactsGroup}>
                             <div className={classes.contactsLabel}>E-MAIL</div>
-                            <a className={classes.contactsValue} href={`mailto:${CONTACT_EMAIL}`}>
-                                {CONTACT_EMAIL}
+                            <a className={classes.contactsValue} href={`mailto:${email}`}>
+                                {email}
                             </a>
                         </div>
                     </div>
@@ -354,60 +458,62 @@ function Contacts() {
                 </div>
             </section>
 
-            <section className={classes.contactsMapSection} aria-label={UI_TEXT.mapAriaLabel}>
-                <YandexMapRoute
-                    places={OFFICE_PLACE}
-                    height={640}
-                    className={classes.contactsMapCanvas}
-                    onPlacemarkClick={handlePlacemarkClick}
-                    onMapReady={handleMapReady}
-                    mapControls={["searchControl", "zoomControl"]}
-                    controlPositions={{
-                        searchControl: { right: 18, top: 14 },
-                        zoomControl: { right: 18, top: 86 },
-                    }}
-                    markerType="dot"
-                    markerPreset="islands#pinkCircleDotIcon"
-                    markerColor="#E5097F"
-                    singlePointZoom={16}
-                    restrictMapArea={[[-85, -179.99], [85, 179.99]]}
-                    minZoom={2}
-                    maxZoom={20}
-                />
+            {contactCoords && (
+                <section className={classes.contactsMapSection} aria-label={UI_TEXT.mapAriaLabel}>
+                    <YandexMapRoute
+                        places={officePlace}
+                        height={640}
+                        className={classes.contactsMapCanvas}
+                        onPlacemarkClick={handlePlacemarkClick}
+                        onMapReady={handleMapReady}
+                        mapControls={[]}
+                        controlPositions={{
+                            searchControl: { right: 18, top: 14 },
+                            zoomControl: { right: 18, top: 86 },
+                        }}
+                        markerType="dot"
+                        markerPreset="islands#pinkCircleDotIcon"
+                        markerColor="#E5097F"
+                        singlePointZoom={16}
+                        restrictMapArea={[[-85, -179.99], [85, 179.99]]}
+                        minZoom={2}
+                        maxZoom={20}
+                    />
 
-                <div className={classes.contactsMapOverlay} aria-hidden="true" />
+                    <div className={classes.contactsMapOverlay} aria-hidden="true" />
 
-                <div
-                    ref={cardRef}
-                    className={classes.contactsMapCard}
-                    style={{
-                        left: `${mapCardPosition.left}px`,
-                        top: `${mapCardPosition.top}px`,
-                    }}
-                >
-                    <div className={classes.mapBrandRow}>
-                        <div className={classes.mapBrandLogoWrap}>
-                            <img className={classes.mapBrandLogo} src="/A.png" alt="" aria-hidden="true" />
+                    <div
+                        ref={cardRef}
+                        className={classes.contactsMapCard}
+                        style={{
+                            left: `${mapCardPosition.left}px`,
+                            top: `${mapCardPosition.top}px`,
+                        }}
+                    >
+                        <div className={classes.mapBrandRow}>
+                            <div className={classes.mapBrandLogoWrap}>
+                                <img className={classes.mapBrandLogo} src="/A.png" alt="" aria-hidden="true" />
+                            </div>
+                            <img className={classes.mapBrandWordmark} src="/Vector.png" alt="ALAZAR STUDIO" />
                         </div>
-                        <img className={classes.mapBrandWordmark} src="/Vector.png" alt="ALAZAR STUDIO" />
-                    </div>
 
-                    <button type="button" className={classes.mapRouteButton} onClick={handleOpenRoute}>
-                        {UI_TEXT.routeButton}
-                    </button>
-
-                    {mapCardPosition.isOffscreen && (
-                        <button
-                            type="button"
-                            className={classes.mapRecenterButton}
-                            onClick={handleFocusActivePoint}
-                            aria-label={UI_TEXT.recenterAriaLabel}
-                        >
-                            {"\u2193"}
+                        <button type="button" className={classes.mapRouteButton} onClick={handleOpenRoute}>
+                            {UI_TEXT.routeButton}
                         </button>
-                    )}
-                </div>
-            </section>
+
+                        {/* {mapCardPosition.isOffscreen && (
+                            <button
+                                type="button"
+                                className={classes.mapRecenterButton}
+                                onClick={handleFocusActivePoint}
+                                aria-label={UI_TEXT.recenterAriaLabel}
+                            >
+                                {"\u2193"}
+                            </button>
+                        )} */}
+                    </div>
+                </section>
+            )}
         </>
     );
 }

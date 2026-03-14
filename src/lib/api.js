@@ -419,6 +419,11 @@ export const publicFooterAPI = {
   get: () => api.get('/footer', { params: { _t: Date.now() }, headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } }),
 };
 
+// Contacts API (public — для страницы контактов)
+export const publicContactsAPI = {
+  get: () => api.get('/contacts'),
+};
+
 // Feedback API (форма обратной связи в футере)
 export const feedbackAPI = {
   send: (data) => api.post('/footer/feedback', data),
