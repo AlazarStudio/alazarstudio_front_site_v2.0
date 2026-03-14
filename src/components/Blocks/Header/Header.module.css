@@ -83,6 +83,10 @@
     width: 340px;
 }
 
+.widthlogo img {
+    height: 40px;
+}
+
 .header_contact_btns {
     display: flex;
     align-items: center;

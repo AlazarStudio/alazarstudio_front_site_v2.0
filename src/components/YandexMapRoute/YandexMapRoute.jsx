@@ -25,11 +25,14 @@ function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+const LOCKED_BEHAVIORS = ['drag', 'scrollZoom', 'dblClickZoom', 'multiTouch', 'rightMouseButtonMagnifier'];
+
 export default function YandexMapRoute({
   places = [],
   height = MAP_HEIGHT,
   className,
   showRouteFromMe = false,
+  interactionLocked = true,
   onPlacemarkClick,
   mapControls,
   markerType = 'numbered',
@@ -70,7 +73,7 @@ export default function YandexMapRoute({
   const coordsOrdered = pointsWithCoords.map((p) => [Number(p.latitude), Number(p.longitude)]);
 
   const controlsToUse = useMemo(() => {
-    if (Array.isArray(mapControls) && mapControls.length > 0) return mapControls;
+    if (Array.isArray(mapControls)) return mapControls;
     return getDefaultControls(showRouteFromMe);
   }, [mapControls, showRouteFromMe]);
 
@@ -184,6 +187,10 @@ export default function YandexMapRoute({
       }
       searchControl.options.set('noPlacemark', true);
       searchControl.options.set('placeholderContent', '');
+    }
+
+    if (interactionLocked) {
+      map.behaviors.disable(LOCKED_BEHAVIORS);
     }
 
     const placemarks = [];
@@ -314,6 +321,16 @@ export default function YandexMapRoute({
     minZoom,
     maxZoom,
   ]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.behaviors) return;
+    if (interactionLocked) {
+      map.behaviors.disable(LOCKED_BEHAVIORS);
+    } else {
+      map.behaviors.enable(LOCKED_BEHAVIORS);
+    }
+  }, [interactionLocked]);
 
   const handleBuildRoute = () => {
     if (!scriptReady || !window.ymaps || !mapRef.current || coordsOrdered.length === 0) return;
@@ -483,10 +500,11 @@ export default function YandexMapRoute({
   if (!showRouteFromMe) {
     return (
       <div
-        ref={containerRef}
         className={className}
-        style={{ width: '100%', height, borderRadius: 8, overflow: 'hidden' }}
-      />
+        style={{ position: 'relative', width: '100%', height, borderRadius: 8, overflow: 'hidden' }}
+      >
+        <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      </div>
     );
   }
 

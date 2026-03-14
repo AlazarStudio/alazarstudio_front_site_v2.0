@@ -138,6 +138,7 @@ function Contacts() {
     const [activePlaceId, setActivePlaceId] = useState("alazar-office");
     const [mapObject, setMapObject] = useState(null);
     const [mapCardPosition, setMapCardPosition] = useState(MAP_CARD_DEFAULT_POSITION);
+    const [mapLocked, setMapLocked] = useState(true);
 
     const cardRef = useRef(null);
     const frameRef = useRef(null);
@@ -464,6 +465,7 @@ function Contacts() {
                         places={officePlace}
                         height={640}
                         className={classes.contactsMapCanvas}
+                        interactionLocked={mapLocked}
                         onPlacemarkClick={handlePlacemarkClick}
                         onMapReady={handleMapReady}
                         mapControls={[]}
@@ -491,10 +493,29 @@ function Contacts() {
                         }}
                     >
                         <div className={classes.mapBrandRow}>
-                            <div className={classes.mapBrandLogoWrap}>
-                                <img className={classes.mapBrandLogo} src="/A.png" alt="" aria-hidden="true" />
-                            </div>
-                            <img className={classes.mapBrandWordmark} src="/Vector.png" alt="ALAZAR STUDIO" />
+                            {/* <div className={classes.mapBrandLogoWrap}>
+                                <img className={classes.mapBrandLogo} src="/alazar-logo.png" alt="" aria-hidden="true" />
+                            </div> */}
+                            <img className={classes.mapBrandWordmark} src="/alazar-logo.png" alt="ALAZAR STUDIO" />
+                            <button
+                                type="button"
+                                className={classes.mapLockButton}
+                                onClick={() => setMapLocked((prev) => !prev)}
+                                title={mapLocked ? "Если хотите взаимодействовать с картой, нажмите чтобы разблокировать" : "Заблокировать карту"}
+                                aria-label={mapLocked ? "Разблокировать карту" : "Заблокировать карту"}
+                            >
+                                {mapLocked ? (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
+                                ) : (
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                        <path d="M7 11V7a5 5 0 0 1 5-5 5 5 0 0 1 5 5" />
+                                    </svg>
+                                )}
+                            </button>
                         </div>
 
                         <button type="button" className={classes.mapRouteButton} onClick={handleOpenRoute}>

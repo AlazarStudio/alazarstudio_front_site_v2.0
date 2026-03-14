@@ -98,7 +98,7 @@
     content: "";
     position: absolute;
     inset: -8% -10% -10%;
-    background: radial-gradient(circle at 50% 55%, rgba(229, 9, 127, 0.40) 0%, rgba(229, 9, 127, 0.20) 32%, rgba(229, 9, 127, 0) 72%);
+    /* background: radial-gradient(circle at 50% 55%, rgba(229, 9, 127, 0.40) 0%, rgba(229, 9, 127, 0.20) 32%, rgba(229, 9, 127, 0) 72%); */
     filter: blur(12px);
     pointer-events: none;
     z-index: 0;
@@ -125,10 +125,10 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    background:
+    /* background:
         radial-gradient(circle at 18% 90%, rgba(44, 123, 255, 0.28) 0%, rgba(44, 123, 255, 0) 42%),
         radial-gradient(circle at 84% 14%, rgba(229, 9, 127, 0.30) 0%, rgba(229, 9, 127, 0) 46%),
-        linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+        linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%); */
     mix-blend-mode: screen;
     opacity: 0.82;
 }
@@ -139,13 +139,13 @@
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    background: repeating-linear-gradient(
+    /* background: repeating-linear-gradient(
         180deg,
         rgba(255, 255, 255, 0.08) 0,
         rgba(255, 255, 255, 0.08) 1px,
         rgba(255, 255, 255, 0) 1px,
         rgba(255, 255, 255, 0) 4px
-    );
+    ); */
     opacity: 0.08;
 }
 
@@ -159,6 +159,7 @@
 }
 
 .contactsMapOverlay {
+    display: none;
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -238,12 +239,37 @@
 }
 
 .mapBrandWordmark {
-    width: 132px;
-    height: auto;
+    width: calc(100% - 72px);
+    height: 60px;
     display: block;
     object-fit: contain;
+    background-color: #000;
+    border-radius: 10px;
+    padding: 12px;
 }
 
+.mapLockButton {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mapLockButton:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
 
 .mapRouteButton,
 .mapRecenterButton {
@@ -331,7 +357,8 @@
 }
 
 .contactsMapSection :global([class*="ymaps-2-1"][class*="copyright"]) {
-    opacity: 0.45;
+    opacity: 1;
+    z-index: 10;
 }
 
 
