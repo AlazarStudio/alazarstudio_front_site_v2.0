@@ -1,0 +1,72 @@
+﻿.subtitle{
+    color: #fff;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    width: 350px;
+    height: 110px;
+    background-color: #342424;
+    font-size: 20px;
+    font-weight: 600;
+    background: radial-gradient(
+    ellipse farthest-corner at 50% 100%,
+    rgba(229, 9, 126, 0.491) 10%,
+    rgba(0, 0, 0, 0.6) 60%
+  );
+}
+.block_row{
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.block_image{
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    margin-bottom: 24px;
+    --glass-mask-image: url("/message_glass.png");
+    --glass-hue: 0deg;
+    --glass-saturation: 100%;
+    --glass-brightness: 100%;
+}
+
+.block_image::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-mask-image: var(--glass-mask-image);
+    mask-image: var(--glass-mask-image);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background: radial-gradient(
+        circle at 68% 56%,
+        rgb(255, 9, 140) 0%,
+        rgba(229, 9, 127, 0.78) 32%,
+        rgba(229, 9, 127, 0.45) 56%,
+        rgba(229, 9, 127, 0) 84%
+    );
+}
+.image{
+    width: min(165px, 42vw);
+    height: auto;
+    display: block;
+    position: relative;
+    z-index: 2;
+    filter:
+        hue-rotate(var(--glass-hue))
+        saturate(var(--glass-saturation))
+        brightness(var(--glass-brightness));
+}
+.block{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}

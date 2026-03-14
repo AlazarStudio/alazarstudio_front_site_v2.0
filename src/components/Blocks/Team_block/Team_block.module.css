@@ -1,0 +1,238 @@
+﻿.block {
+    color: #fff;
+    width: min(1320px, calc(100% - 32px));
+    margin: 0 auto;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    display: grid;
+    grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+}
+
+.leftPanel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 540px;
+}
+
+.rightPanel {
+    min-width: 0;
+}
+
+.team1 {
+    display: flex;
+    flex-direction: column;
+    gap: 46px;
+}
+
+.block_team {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.title2 {
+    font-size: 48px;
+    font-weight: 500;
+    line-height: 1;
+    color: rgba(229, 9, 127, 1);
+}
+
+.block_service {
+    max-width: 320px;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 1);
+}
+
+.arrows {
+    display: flex;
+    gap: 20px;
+}
+
+.arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+    border: 1px solid rgba(255, 255, 255, 0.56);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.arrow img {
+    display: block;
+    width: 30px;
+    height: 20px;
+}
+
+.teamSlider {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(380px, 380px);
+    gap: 28px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-gutter: stable;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 0 14px;
+}
+
+.teamSlider::-webkit-scrollbar {
+    display: none;
+}
+
+.teamCard {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    cursor: pointer;
+    outline: none;
+}
+.arrow:hover{
+    background-color: rgba(255, 255, 255, 0.488);
+    
+}
+.person_image {
+    --move-x: 0px;
+    --move-y: 0px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 180px 180px 180px 0;
+    background: #1f2733;
+    cursor: pointer;
+}
+
+.person_image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 24%;
+    display: block;
+    will-change: transform;
+    transform: translate3d(var(--move-x), var(--move-y), 0) scale(1.01);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.person_image:hover img {
+    transform: translate3d(var(--move-x), var(--move-y), 0) scale(1.08);
+}
+
+.name {
+    font-size: 33px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.speciality_name {
+    padding: 10px 26px;
+    border: 1px solid rgba(113, 46, 66, 1);
+    border-radius: 35px;
+    color: rgba(229, 9, 127, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    transition: .3s;
+}
+.speciality_name:hover{
+    background-color: rgba(229, 9, 127, .3);
+}
+.person_link {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.link_logo,
+.logo_link {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.link_logo img,
+.logo_link img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.title_link {
+    line-height: 1.2;
+}
+
+@media (max-width: 1024px) {
+    .block {
+        padding-top: 72px;
+        padding-bottom: 72px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .leftPanel {
+        min-height: auto;
+        gap: 24px;
+    }
+
+    .title,
+    .title2 {
+        font-size: 40px;
+    }
+
+    .block_service {
+        max-width: none;
+        font-size: 20px;
+    }
+
+    .teamSlider {
+        grid-auto-columns: minmax(240px, 280px);
+    }
+
+    .name {
+        font-size: 40px;
+    }
+
+    .speciality_name {
+        font-size: 26px;
+    }
+}
+
+
+
+.teamCard:focus-visible {
+    box-shadow: 0 0 0 2px rgba(229, 9, 127, 0.8);
+    border-radius: 16px;
+}
+
+

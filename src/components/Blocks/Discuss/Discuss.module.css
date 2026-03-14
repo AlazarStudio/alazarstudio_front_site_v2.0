@@ -149,3 +149,21 @@
     right: 0;
     pointer-events: none;
 }
+.discuss_formOnly {
+    width: min(520px, 100%);
+}
+
+.discuss_formOnly form {
+    width: 100%;
+}
+.discuss_formOnly .formBG {
+    opacity: 0.48;
+    filter: blur(2px);
+}
+
+.discuss_formOnly form {
+    background-color: rgba(0, 0, 0, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+

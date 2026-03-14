@@ -1,0 +1,182 @@
+﻿.present_block {
+    position: relative;
+    width: 100%;
+    min-height: 820px;
+    height: min(100vh, 920px);
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 136px;
+}
+
+.present_block::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 100% 56%, rgba(229, 9, 127, 0.34) 0%, rgba(229, 9, 127, 0) 62%),
+        radial-gradient(90% 40% at 50% 110%, rgba(229, 9, 127, 0.46) 0%, rgba(229, 9, 127, 0) 72%);
+    z-index: 0;
+}
+
+.present_block_center {
+    width: min(1320px, calc(100% - 32px));
+    display: grid;
+    grid-template-columns: minmax(560px, 620px) minmax(0, 1fr);
+    align-items: start;
+    gap: 36px;
+    z-index: 2;
+}
+
+.leftSlot {
+    display: flex;
+    align-items: flex-start;
+    min-height: 610px;
+    padding-top: 86px;
+}
+
+.imagesStage {
+    position: relative;
+    width: 100%;
+    max-width: 880px;
+    aspect-ratio: 16 / 10;
+    margin-left: auto;
+    margin-top: -16px;
+}
+
+.stageItem {
+    position: absolute;
+    line-height: 0;
+    --glass-mask-image: url("/glass_heart2.png");
+}
+
+.stageItem::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-mask-image: var(--glass-mask-image);
+    mask-image: var(--glass-mask-image);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    background: radial-gradient(
+        circle at 68% 56%,
+        rgb(255, 9, 140) 0%,
+        rgba(229, 9, 127, 0.78) 32%,
+        rgba(229, 9, 127, 0.45) 56%,
+        rgba(229, 9, 127, 0) 84%
+    );
+}
+
+.stageItemImage {
+    width: 100%;
+    height: auto;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+
+.itemHeart {
+    width: 180px;
+    top: 3%;
+    left: 23%;
+    transform: rotate(-8deg);
+}
+
+.itemLightning {
+    width: 150px;
+    top: 14%;
+    right: 0;
+    transform: rotate(8deg);
+}
+
+.itemPlus {
+    width: 160px;
+    top: 43%;
+    left: 6%;
+    transform: rotate(-24deg);
+}
+
+.itemSquare {
+    width: 120px;
+    bottom: 11%;
+    right: 21%;
+    transform: rotate(-12deg);
+}
+
+.itemStar {
+    width: 120px;
+    right: -5%;
+    bottom: -16%;
+    transform: rotate(7deg);
+}
+
+.present_block_ellipce {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.present_block_ellipce img {
+    width: 100%;
+    position: absolute;
+    bottom: -1px;
+    z-index: 3;
+}
+
+.present_block_line {
+    height: 100%;
+    position: absolute;
+    border: 1px solid #ed3a8638;
+    z-index: 1;
+}
+
+.line1 {
+    left: 13%;
+}
+
+.line2 {
+    left: 29%;
+}
+
+.line3 {
+    right: 29%;
+}
+
+.line4 {
+    right: 13%;
+}
+
+@media (max-width: 1024px) {
+    .present_block {
+        min-height: auto;
+        height: auto;
+        padding-top: 92px;
+    }
+
+    .present_block_center {
+        grid-template-columns: 1fr;
+        gap: 26px;
+    }
+
+    .leftSlot {
+        min-height: auto;
+        padding-top: 0;
+    }
+
+    .imagesStage {
+        max-width: 720px;
+        margin-top: 0;
+    }
+}
+

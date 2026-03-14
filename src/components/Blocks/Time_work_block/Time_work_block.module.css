@@ -1,0 +1,122 @@
+﻿.block {
+    height: 650px;
+    width: 100%;
+    margin-top: 100px;
+    padding: 0;
+    background: #ffffff;
+    border-top: 2px solid #1086d0;
+    border-bottom: 2px solid #1086d0;
+    display: flex;
+    align-items: stretch;
+}
+
+.content {
+    width: min(1320px, calc(100% - 32px));
+    height: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    gap: 42px 72px;
+    align-items: stretch;
+    justify-items: center;
+}
+
+.brandColumn {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    align-self: stretch;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.brandImage {
+    width: auto;
+    max-width: 270px;
+    height: 100%;
+    display: block;
+}
+
+.metricsColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0;
+    width: 100%;
+    max-width: 520px;
+    align-self: stretch;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    box-sizing: border-box;
+}
+
+.metricsColumn:last-child {
+    justify-content: flex-start;
+    gap: 42px;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metricTitle {
+    margin: 0;
+    color: #000;
+    font-size: 36px;
+    line-height: 1;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.metricSubtitle {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.84);
+    font-size: 20px;
+    line-height: 1.38;
+    font-weight: 400;
+    max-width: 540px;
+}
+
+@media (max-width: 1180px) {
+    .content {
+        grid-template-columns: 180px minmax(0, 1fr) minmax(0, 1fr);
+        gap: 28px 36px;
+    }
+}
+
+@media (max-width: 860px) {
+    .block {
+        height: auto;
+        padding: 26px 0 34px;
+    }
+
+    .content {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 26px;
+    }
+
+    .brandColumn {
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .brandImage {
+        width: clamp(150px, 36vw, 220px);
+        height: auto;
+    }
+
+    .metricsColumn {
+        gap: 24px;
+        justify-content: flex-start;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}

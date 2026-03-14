@@ -1,0 +1,70 @@
+﻿export const teamMembers = [
+    {
+        slug: "azamat",
+        image: "/Azamat.jpg",
+        name: "АЗАМАТ",
+        role: "CEO",
+        faceY: "24%",
+        socials: [
+            { type: "instagram", label: "@urtenovcom" },
+            { type: "vk", label: "@urtenovcom" },
+        ],
+    },
+    {
+        slug: "alim",
+        image: "/Alim.jpg",
+        name: "АЛИМ",
+        role: "FULL STACK",
+        faceY: "23%",
+    },
+    {
+        slug: "ruslan",
+        image: "/Ruslan.jpg",
+        name: "РУСЛАН",
+        role: "BACK END",
+        faceY: "23%",
+    },
+    {
+        slug: "muhammad",
+        image: "/Muhammad.jpg",
+        name: "МУХАММАД",
+        role: "ПРОДАКТ МЕНЕДЖЕР",
+        faceY: "24%",
+    },
+    {
+        slug: "musa",
+        image: "/Musa.png",
+        name: "МУСА",
+        role: "FULL STACK",
+        faceY: "25%",
+    },
+    {
+        slug: "amina",
+        image: "/Amina.jpg",
+        name: "АМИНА",
+        role: "UI/UX ДИЗАЙНЕР",
+        faceY: "24%",
+        socials: [
+            { type: "instagram", label: "@racher.ch" },
+            { type: "be", label: "Amina Racher" },
+            { type: "group", label: "racher.artstation.com" },
+        ],
+    },
+    {
+        slug: "victoria",
+        image: "/Victoria.jpg",
+        name: "ВИКТОРИЯ",
+        role: "ГРАФИЧЕСКИЙ ДИЗАЙНЕР",
+        faceY: "24%",
+        socials: [
+            { type: "instagram", label: "@vilovataya_v" },
+        ],
+    },
+    {
+        slug: "hallu",
+        image: "/Hall`u.jpg",
+        name: "ХАЛЛЮ",
+        role: "ГРАФИЧЕСКИЙ ДИЗАЙНЕР",
+        faceY: "23%",
+    },
+];
