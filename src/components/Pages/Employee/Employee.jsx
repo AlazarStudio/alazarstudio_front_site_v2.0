@@ -209,7 +209,7 @@ function Employee() {
                             onMouseMove={handleImageMove}
                             onMouseLeave={resetImageMove}
                         >
-                            <img src={member.image} alt={member.name} style={{ objectPosition: `center ${member.faceY || "24%"}` }} />
+                            <img src={`https://backend.alazarstudio.ru${member.image}`} alt={member.name} style={{ objectPosition: `center ${member.faceY || "24%"}` }} />
                         </div>
 
                         <div className={classes.info}>
