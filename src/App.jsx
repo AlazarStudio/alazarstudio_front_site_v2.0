@@ -6,6 +6,7 @@ import Blog from "./components/Pages/Blog/Blog";
 import Shop from "./components/Pages/Shop/Shop";
 import CasesCatalog from "./components/Pages/Cases/CasesCatalog";
 import Contacts from "./components/Pages/Contacts/Contacts";
+import Employee from "./components/Pages/Employee/Employee";
 
 import NotFound from '@/app/NotFound'
 import SiteDevGate from '@/components/SiteDevGate'
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/shop/:url_text" element={<Shop />} />
         <Route path="/about" element={<About />} />
         <Route path="/contacts" element={<Contacts />} />
+        <Route path="/team/:memberSlug" element={<Employee />} />
       </Route>
 
       <Route path="/admin/login" element={<AdminLoginPage />} />
