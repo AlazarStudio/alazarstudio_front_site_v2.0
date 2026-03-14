@@ -3,7 +3,39 @@ import { useNavigate } from "react-router-dom";
 import { teamMembers } from "./teamMembers";
 import classes from './Team_block.module.css';
 
-function Team_block({}) {
+function normalizeMember(apiMember) {
+    return {
+        slug: apiMember.id,
+        name: apiMember.fio ?? '',
+        role: apiMember.dolzhnost ?? '',
+        image: apiMember.avatar ?? '',
+        faceY: '24%',
+        socials: [],
+    };
+}
+
+const TEAM_LEAD_ORDER = {
+    'Уртенов Азамат': 0,
+    'Джатдоев Алим': 1,
+    'Каппушев Мухаммад': 2,
+    'Гочияев Руслан': 3,
+    'Кубанов Муса': 4,
+    'Чагарова Амина': 5,
+    'Виловатая Виктория': 6,
+    'Каппушева Халю': 7,
+};
+
+function Team_block({ team = [] }) {
+    const published = Array.isArray(team) ? team.filter((m) => m?.isPublished !== false) : [];
+    let members = published.length > 0 ? published.map(normalizeMember) : teamMembers;
+    if (published.length > 0) {
+        members = [...members].sort((a, b) => {
+            const ia = TEAM_LEAD_ORDER[a.name] !== undefined ? TEAM_LEAD_ORDER[a.name] : 2;
+            const ib = TEAM_LEAD_ORDER[b.name] !== undefined ? TEAM_LEAD_ORDER[b.name] : 2;
+            return ia - ib;
+        });
+    }
+
     const sliderRef = useRef(null);
     const animationFrameRef = useRef(null);
     const navigate = useNavigate();
@@ -150,7 +182,7 @@ function Team_block({}) {
 
             <div className={classes.rightPanel}>
                 <div ref={sliderRef} className={classes.teamSlider}>
-                    {teamMembers.map((member) => (
+                    {members.map((member) => (
                         <article
                             className={classes.teamCard}
                             data-card
