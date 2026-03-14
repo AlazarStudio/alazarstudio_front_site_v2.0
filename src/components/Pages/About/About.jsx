@@ -16,8 +16,6 @@ function About({ children, ...props }) {
       <Work_block/>
       <Time_work_block/>
       <Team_block/>
-
-
     </>
   );
 }

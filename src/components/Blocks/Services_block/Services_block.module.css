@@ -1,7 +1,7 @@
 ﻿.block {
     /* margin-top: 100px; */
     color: #fff;
-    width: min(1320px, calc(100% - 32px));
+    width: min(1400px, calc(100% - 32px));
     margin-left: auto;
     margin-right: auto;
 }

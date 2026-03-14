@@ -7,9 +7,9 @@ function Present_block({ children, ...props }) {
             <div className={classes.present_block}>
                 <div className={classes.present_block_center}>
                     <div className={classes.present_block_left}>
-                        <div className={classes.present_block_left_text}>web-devolopment</div>
+                        <div className={classes.present_block_left_text}>Веб-разработка</div>
                         <div className={classes.present_block_left_text_large}>&</div>
-                        <div className={classes.present_block_left_text_second}>graphic design</div>
+                        <div className={classes.present_block_left_text_second}>графический дизайн</div>
 
                         <div className={classes.present_block_left_text_min}>
                             Комплексные цифровые решения

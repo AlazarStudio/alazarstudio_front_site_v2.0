@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { teamMembers } from "./teamMembers";
 import classes from './Team_block.module.css';
@@ -79,7 +79,15 @@ function Team_block({}) {
         const gap = parseFloat(sliderStyles.columnGap || sliderStyles.gap || "0");
         const step = cardWidth + gap;
         const maxLeft = Math.max(0, slider.scrollWidth - slider.clientWidth);
-        const nextLeft = Math.max(0, Math.min(slider.scrollLeft + direction * step, maxLeft));
+        let nextLeft = slider.scrollLeft + direction * step;
+
+        if (direction === 1 && nextLeft >= maxLeft - 1) {
+            nextLeft = maxLeft;
+        } else if (direction === -1 && nextLeft <= 1) {
+            nextLeft = 0;
+        } else {
+            nextLeft = Math.max(0, Math.min(nextLeft, maxLeft));
+        }
 
         animateScrollTo(slider, nextLeft);
     };

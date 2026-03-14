@@ -7,7 +7,7 @@ function Work_block({}) {
         { imageSrc: "/list1.png", title: "Знакомство и разбор задачи" },
         { imageSrc: "/list2.png", title: "Анализ и предложение решения" },
         { imageSrc: "/list3.png", title: "Дизайн / архитектура" },
-        { imageSrc: "/list4.png", title: "Реализацияи тестирование" },
+        { imageSrc: "/list4.png", title: "Реализация и тестирование" },
         { imageSrc: "/list5.png", title: "Передача, поддержка, развитие" },
     ];
 

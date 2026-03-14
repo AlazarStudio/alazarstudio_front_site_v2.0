@@ -23,7 +23,7 @@
 }
 
 .present_block_center {
-    width: min(1320px, calc(100% - 32px));
+    width: min(1400px, calc(100% - 32px));
     display: grid;
     grid-template-columns: minmax(560px, 620px) minmax(0, 1fr);
     align-items: start;
