@@ -3,12 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { teamMembers } from "./teamMembers";
 import classes from './Team_block.module.css';
 
+const BACKEND_BASE = import.meta.env.VITE_BACKEND_IMAGE_BASE || "https://backend.alazarstudio.ru";
+
 function normalizeMember(apiMember) {
+    const rawAvatar = apiMember.avatar ?? "";
+    const image = rawAvatar
+        ? rawAvatar.startsWith("http")
+            ? rawAvatar
+            : `${BACKEND_BASE}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
+        : "";
     return {
         slug: apiMember.id,
         name: apiMember.fio ?? '',
         role: apiMember.dolzhnost ?? '',
-        image: apiMember.avatar ?? '',
+        image,
         faceY: '24%',
         socials: [],
     };
@@ -198,7 +206,7 @@ function Team_block({ team = [] }) {
                                 onMouseMove={handleMemberImageMove}
                                 onMouseLeave={resetMemberImageMove}
                             >
-                                <img src={`https://backend.alazarstudio.ru${member.image}`} alt={member.name} style={{ objectPosition: `center ${member.faceY || "24%"}` }} />
+                                <img src={member.image} alt={member.name} style={{ objectPosition: `center ${member.faceY || "24%"}` }} />
                             </div>
 
                             <div className={classes.name}>{member.name}</div>
