@@ -74,6 +74,7 @@ function Services_block({ services = [] }) {
               isOpen={contactModalOpen}
               onClose={() => setContactModalOpen(false)}
               nested={false}
+              source="Блок услуг: оставить заявку"
             />,
             document.body
           )

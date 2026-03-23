@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getImageUrl } from '@/lib/api';
+import ContactModal from '@/components/Blocks/Cases/ContactModal';
 import {
   getShopPrice,
   getShopSpecs,
@@ -263,10 +264,8 @@ export default function ShopDetailsModal({ item, teamItems }) {
   };
   const activeImage = images[activeImageIndex] || '/placeholder.jpg';
 
-  const inquiryEmail = 'info@alazarstudio.ru';
-  const subject = encodeURIComponent(`Заявка на товар: ${title}`);
-  const body = encodeURIComponent(`Здравствуйте! Интересует товар "${title}".`);
-  const mailtoHref = `mailto:${inquiryEmail}?subject=${subject}&body=${body}`;
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const defaultOrderComment = `Здравствуйте! Интересует товар "${title}".`;
 
   return (
     <div className={classes.modalInner}>
@@ -314,7 +313,13 @@ export default function ShopDetailsModal({ item, teamItems }) {
             <div className={classes.metaRow}>
               <span className={classes.metaItem}>Оформление по заявке</span>
             </div>
-            <a href={mailtoHref} className={classes.ctaBtn}>Оставить заявку</a>
+            <button
+              type="button"
+              className={classes.ctaBtn}
+              onClick={() => setContactModalOpen(true)}
+            >
+              Оставить заявку
+            </button>
           </div>
 
           
@@ -339,6 +344,13 @@ export default function ShopDetailsModal({ item, teamItems }) {
           </div>
         </section>
       ) : null}
+
+      <ContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+        source={`Магазин: ${title}`}
+        defaultComment={defaultOrderComment}
+      />
     </div>
   );
 }

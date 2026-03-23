@@ -566,7 +566,11 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
           </div>
         </>
       )}
-      <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} />
+      <ContactModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+        source={`Кейс: ${item?.title || 'проект'}`}
+      />
       <MaxShareModal
         isOpen={maxShareModalOpen}
         onClose={() => setMaxShareModalOpen(false)}

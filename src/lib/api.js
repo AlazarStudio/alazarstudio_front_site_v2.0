@@ -5,7 +5,7 @@ let cachedBackendUrl = null;
 
 // Функция для получения базового URL API
 // Единственный источник: backendApiUrl из config (кэш) или полный VITE_API_URL в env. Без fallback на /api.
-function getApiBaseUrl() {
+export function getApiBaseUrl() {
   if (cachedBackendUrl) {
     return cachedBackendUrl.endsWith('/api') ? cachedBackendUrl : `${cachedBackendUrl}/api`;
   }
@@ -427,6 +427,11 @@ export const publicContactsAPI = {
 // Feedback API (форма обратной связи в футере)
 export const feedbackAPI = {
   send: (data) => api.post('/footer/feedback', data),
+};
+
+// Заявка с сайта → письмо на почту (POST /api/contact/request)
+export const contactRequestAPI = {
+  send: (data) => api.post('/contact/request', data),
 };
 
 // Pages API (admin — для управления страницами сайта)

@@ -10,6 +10,16 @@
   color: #0a0a0f;
 }
 
+.formError {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.08);
+  border-radius: 8px;
+}
+
 .form {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '@/components/Standart/Modal/Modal.jsx';
+import { contactRequestAPI, getApiBaseUrl } from '@/lib/api';
 import classes from './ContactModal.module.css';
 
 const initialForm = {
@@ -12,16 +13,39 @@ const initialForm = {
   consent: false,
 };
 
-export default function ContactModal({ isOpen, onClose, nested = true }) {
+function buildMessageBody({ comment, company, budget }) {
+  const parts = [String(comment || '').trim()];
+  const c = String(company || '').trim();
+  const b = String(budget || '').trim();
+  if (c) parts.push(`Компания: ${c}`);
+  if (b) parts.push(`Бюджет: ${b}`);
+  return parts.filter(Boolean).join('\n\n');
+}
+
+export default function ContactModal({
+  isOpen,
+  onClose,
+  nested = true,
+  source = 'Сайт: заявка',
+  defaultComment = '',
+}) {
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (!isOpen) {
       setForm(initialForm);
       setSubmitting(false);
+      setSubmitError('');
+      return;
     }
-  }, [isOpen]);
+    setForm({
+      ...initialForm,
+      comment: defaultComment || '',
+    });
+    setSubmitError('');
+  }, [isOpen, defaultComment]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -31,16 +55,40 @@ export default function ContactModal({ isOpen, onClose, nested = true }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.consent) return;
+    if (!getApiBaseUrl()) {
+      setSubmitError('Не настроен адрес сервера. Укажите backend в config.json или VITE_API_URL.');
+      return;
+    }
+    const message = buildMessageBody(form);
+    if (message.length < 5) {
+      setSubmitError('Заполните комментарий (не менее 5 символов).');
+      return;
+    }
     setSubmitting(true);
-    // TODO: отправка на бэкенд
-    setTimeout(() => {
-      setSubmitting(false);
+    setSubmitError('');
+    try {
+      await contactRequestAPI.send({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim() || undefined,
+        message,
+        source: String(source || '').trim() || 'Сайт: заявка',
+      });
       setForm(initialForm);
       onClose();
-    }, 800);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Не удалось отправить заявку. Попробуйте позже.';
+      setSubmitError(typeof msg === 'string' ? msg : 'Ошибка отправки.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -48,6 +96,7 @@ export default function ContactModal({ isOpen, onClose, nested = true }) {
       <div className={classes.wrap}>
         <h2 className={classes.title}>Оставить заявку</h2>
         <form className={classes.form} onSubmit={handleSubmit}>
+          {submitError ? <p className={classes.formError} role="alert">{submitError}</p> : null}
           <input
             type="text"
             name="name"
