@@ -3,6 +3,14 @@
   position: relative;
 }
 
+.wrapSuccessOnly .title {
+  margin-bottom: 16px;
+}
+
+.wrapSuccessOnly .formSuccess {
+  margin-bottom: 0;
+}
+
 .title {
   margin: 0 0 24px;
   font-size: 24px;
@@ -17,6 +25,16 @@
   line-height: 1.4;
   color: #b00020;
   background: rgba(176, 0, 32, 0.08);
+  border-radius: 8px;
+}
+
+.formSuccess {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #0d5c2e;
+  background: rgba(13, 92, 46, 0.1);
   border-radius: 8px;
 }
 

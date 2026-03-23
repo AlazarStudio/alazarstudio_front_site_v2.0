@@ -44,7 +44,7 @@ function About({ children, ...props }) {
       <Services_block services={services} />
       <Work_block/>
       <Team_block team={team} />
-      <Discuss />
+      <Discuss source="Страница «О нас»: обсудить проект" />
     </>
   );
 }

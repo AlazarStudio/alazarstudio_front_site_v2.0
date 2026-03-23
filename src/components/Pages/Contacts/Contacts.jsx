@@ -454,7 +454,7 @@ function Contacts() {
                     </div>
 
                     <div className={classes.contactsRight}>
-                        <Discuss formOnly />
+                        <Discuss formOnly source="Страница «Контакты»: обсудить проект" />
                     </div>
                 </div>
             </section>
