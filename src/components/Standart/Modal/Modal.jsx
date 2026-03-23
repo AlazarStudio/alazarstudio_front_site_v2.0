@@ -1,11 +1,59 @@
-import React, { useEffect, useState, useCallback, useRef, createContext, useContext } from "react";
+import React, { useEffect, useState, useCallback, useRef, createContext } from "react";
 import classes from './Modal.module.css';
 
 export const ModalScrollContext = createContext(null);
 
+const MODAL_LOCK_COUNT_KEY = "__alazarModalLockCount";
+const MODAL_LOCK_SCROLL_Y_KEY = "__alazarModalLockScrollY";
+
+function lockPageScroll() {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const lockCount = Number(window[MODAL_LOCK_COUNT_KEY] || 0);
+    if (lockCount === 0) {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        window[MODAL_LOCK_SCROLL_Y_KEY] = scrollY;
+
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.width = "100%";
+    }
+
+    window[MODAL_LOCK_COUNT_KEY] = lockCount + 1;
+}
+
+function unlockPageScroll() {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const lockCount = Number(window[MODAL_LOCK_COUNT_KEY] || 0);
+    if (lockCount <= 1) {
+        const scrollY = Number(window[MODAL_LOCK_SCROLL_Y_KEY] || 0);
+
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+
+        window[MODAL_LOCK_COUNT_KEY] = 0;
+        window[MODAL_LOCK_SCROLL_Y_KEY] = 0;
+        window.scrollTo(0, scrollY);
+        return;
+    }
+
+    window[MODAL_LOCK_COUNT_KEY] = lockCount - 1;
+}
+
 function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "\u0417\u0430\u043A\u0440\u044B\u0442\u044C", nested = false, compact = false, closeButtonWrapClassName }) {
     const [isClosing, setIsClosing] = useState(false);
     const scrollContainerRef = useRef(null);
+    const isScrollLockedByThisModalRef = useRef(false);
 
     const handleClose = useCallback(() => {
         setIsClosing((prev) => {
@@ -23,14 +71,21 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
     useEffect(() => {
         if (nested) return;
         if (isOpen) {
-            document.body.style.overflow = 'hidden';
+            if (!isScrollLockedByThisModalRef.current) {
+                lockPageScroll();
+                isScrollLockedByThisModalRef.current = true;
+            }
             setIsClosing(false);
-        } else {
-            document.body.style.overflow = '';
+        } else if (isScrollLockedByThisModalRef.current) {
+            unlockPageScroll();
+            isScrollLockedByThisModalRef.current = false;
         }
 
         return () => {
-            document.body.style.overflow = '';
+            if (isScrollLockedByThisModalRef.current) {
+                unlockPageScroll();
+                isScrollLockedByThisModalRef.current = false;
+            }
         };
     }, [isOpen, nested]);
 

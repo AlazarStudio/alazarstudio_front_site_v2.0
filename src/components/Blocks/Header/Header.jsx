@@ -135,7 +135,7 @@ function Header() {
 
     const contactItems = [
         { key: "phone", href: `tel:${phoneLink}`, label: phoneDisplay, icon: PhoneRoundedIcon },
-        // { key: "email", href: `mailto:${email}`, label: email, icon: AlternateEmailRoundedIcon },
+        { key: "email", href: `mailto:${email}`, label: email, icon: AlternateEmailRoundedIcon },
     ];
 
     const handleRequestClick = () => {

@@ -56,17 +56,20 @@ function Footer() {
                             >
                                 {OFFICE_ADDRESS}
                             </a>
-                            <a href="tel:+79283995384" className={classes.officePhone}>
+                            {/* <a href="tel:+79283995384" className={classes.officePhone}>
                                 +7 928 399-53-84
-                            </a>
+                            </a> */}
                         </div>
 
                         <div className={classes.leftCol}>
                             <a href="mailto:info@alazarstudio.ru" className={classes.email}>
                                 info@alazarstudio.ru
                             </a>
-                            <a href="mailto:info@alazarstudio.com" className={classes.email}>
+                            {/* <a href="mailto:info@alazarstudio.com" className={classes.email}>
                                 info@alazarstudio.com
+                            </a> */}
+                            <a href="tel:+79283995384" className={classes.officePhone}>
+                                +7 928 399-53-84
                             </a>
                         </div>
                     </div>
