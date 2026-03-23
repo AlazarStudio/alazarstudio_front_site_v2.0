@@ -198,10 +198,9 @@
     object-fit: contain;
 }
 
+/* Размер canvas задаётся в JS (bleed вокруг буквы); не переопределять !important */
 .discuss_img canvas {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
+    display: block;
 }
 
 .hiddenBlock {
@@ -252,7 +251,7 @@
         width: 100%;
         flex: 1 1 auto;
         justify-content: center;
-        overflow: hidden;
+        overflow: visible;
         align-items: center;
     }
 }

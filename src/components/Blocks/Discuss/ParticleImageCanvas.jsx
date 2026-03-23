@@ -54,10 +54,13 @@ function drawPolygon(context, points, color, scaleX, scaleY, offsetX, offsetY) {
 function drawLogo(context, width, height) {
     context.clearRect(0, 0, width, height);
 
-    const horizontalPadding = Math.max(6, width * 0.018);
-    const verticalPadding = Math.max(4, height * 0.008);
-    const scaleX = (width - horizontalPadding * 2) / LOGO_VIEWBOX.width;
-    const scaleY = (height - verticalPadding * 2) / LOGO_VIEWBOX.height;
+    const horizontalPadding = Math.max(12, width * 0.045);
+    const verticalPadding = Math.max(10, height * 0.045);
+    const safeWidth = Math.max(1, width - horizontalPadding * 2);
+    const safeHeight = Math.max(1, height - verticalPadding * 2);
+    const scale = Math.min(safeWidth / LOGO_VIEWBOX.width, safeHeight / LOGO_VIEWBOX.height);
+    const scaleX = scale;
+    const scaleY = scale;
 
     const drawWidth = LOGO_VIEWBOX.width * scaleX;
     const drawHeight = LOGO_VIEWBOX.height * scaleY;
@@ -82,6 +85,8 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
         }
 
         const mouse = { x: 0, y: 0, active: false };
+        /** Текущий bleed: координаты частиц сдвинуты на +bleed относительно обёртки */
+        const bleedState = { px: 0 };
         const particles = [];
         const sizeState = { width: 0, height: 0 };
         let animationFrameId = 0;
@@ -164,40 +169,54 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
                 return;
             }
 
-            const width = Math.max(1, Math.floor(wrapper.clientWidth));
-            const height = Math.max(1, Math.floor(wrapper.clientHeight));
+            const viewW = Math.max(1, Math.floor(wrapper.clientWidth));
+            const viewH = Math.max(1, Math.floor(wrapper.clientHeight));
             const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
 
-            sizeState.width = width;
-            sizeState.height = height;
+            // «Bleed»: canvas больше видимого блока, буква строится на полном viewW×viewH — не мельчает.
+            // Смещение визуально компенсируется position + отрицательные left/top.
+            const rawBleed = Math.ceil(REPEL_RADIUS + MAX_REPEL_IMPULSE + MAX_SPEED * 6 + 28);
+            const maxBleedW = Math.max(0, Math.floor((viewW - 48) / 2));
+            const maxBleedH = Math.max(0, Math.floor((viewH - 48) / 2));
+            const bleed = Math.min(rawBleed, maxBleedW, maxBleedH, Math.floor(Math.min(viewW, viewH) * 0.28));
+            bleedState.px = bleed;
 
-            canvas.width = Math.round(width * dpr);
-            canvas.height = Math.round(height * dpr);
-            canvas.style.width = `${width}px`;
-            canvas.style.height = `${height}px`;
+            const bufW = viewW + bleed * 2;
+            const bufH = viewH + bleed * 2;
+
+            sizeState.width = bufW;
+            sizeState.height = bufH;
+
+            canvas.width = Math.round(bufW * dpr);
+            canvas.height = Math.round(bufH * dpr);
+            canvas.style.position = "absolute";
+            canvas.style.left = `${-bleed}px`;
+            canvas.style.top = `${-bleed}px`;
+            canvas.style.width = `${bufW}px`;
+            canvas.style.height = `${bufH}px`;
             context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             const offscreen = document.createElement("canvas");
-            offscreen.width = width;
-            offscreen.height = height;
+            offscreen.width = viewW;
+            offscreen.height = viewH;
             const offscreenContext = offscreen.getContext("2d");
 
             if (!offscreenContext) {
                 return;
             }
 
-            drawLogo(offscreenContext, width, height);
+            drawLogo(offscreenContext, viewW, viewH);
 
-            const imageData = offscreenContext.getImageData(0, 0, width, height);
+            const imageData = offscreenContext.getImageData(0, 0, viewW, viewH);
             const data = imageData.data;
-            const gap = width < 520 ? 7 : 8;
-            const dotSize = width < 520 ? 1.7 : 2;
+            const gap = viewW < 520 ? 7 : 8;
+            const dotSize = viewW < 520 ? 1.7 : 2;
 
             particles.length = 0;
 
-            for (let y = 0; y < height; y += gap) {
-                for (let x = 0; x < width; x += gap) {
-                    const index = (y * width + x) * 4;
+            for (let y = 0; y < viewH; y += gap) {
+                for (let x = 0; x < viewW; x += gap) {
+                    const index = (y * viewW + x) * 4;
                     const alpha = data[index + 3];
 
                     if (alpha <= ALPHA_THRESHOLD) {
@@ -209,10 +228,10 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
                     const blue = data[index + 2];
 
                     particles.push({
-                        x,
-                        y,
-                        baseX: x,
-                        baseY: y,
+                        x: x + bleed,
+                        y: y + bleed,
+                        baseX: x + bleed,
+                        baseY: y + bleed,
                         vx: 0,
                         vy: 0,
                         density: 0.9 + Math.random() * 0.45,
@@ -226,8 +245,9 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
 
         const handleMouseMove = (event) => {
             const rect = wrapper.getBoundingClientRect();
-            mouse.x = event.clientX - rect.left;
-            mouse.y = event.clientY - rect.top;
+            const b = bleedState.px;
+            mouse.x = event.clientX - rect.left + b;
+            mouse.y = event.clientY - rect.top + b;
             mouse.active = true;
         };
 
