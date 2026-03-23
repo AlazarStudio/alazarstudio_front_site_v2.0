@@ -3,23 +3,23 @@ import classes from './Modal.module.css';
 
 export const ModalScrollContext = createContext(null);
 
-function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "Закрыть", nested = false, compact = false, closeButtonWrapClassName }) {
+function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "\u0417\u0430\u043A\u0440\u044B\u0442\u044C", nested = false, compact = false, closeButtonWrapClassName }) {
     const [isClosing, setIsClosing] = useState(false);
     const scrollContainerRef = useRef(null);
 
     const handleClose = useCallback(() => {
         setIsClosing((prev) => {
-            if (prev) return prev; // Предотвращаем множественные вызовы
-            // Ждем завершения анимации перед вызовом onClose
+            if (prev) return prev; // РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµРј РјРЅРѕР¶РµСЃС‚РІРµРЅРЅС‹Рµ РІС‹Р·РѕРІС‹
+            // Р–РґРµРј Р·Р°РІРµСЂС€РµРЅРёСЏ Р°РЅРёРјР°С†РёРё РїРµСЂРµРґ РІС‹Р·РѕРІРѕРј onClose
             setTimeout(() => {
                 setIsClosing(false);
                 onClose();
-            }, 300); // Длительность анимации slideDown
+            }, 300); // Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ Р°РЅРёРјР°С†РёРё slideDown
             return true;
         });
     }, [onClose]);
 
-    // Блокируем скролл при открытом модальном окне (только для корневой модалки, вложенные не трогают body)
+    // Р‘Р»РѕРєРёСЂСѓРµРј СЃРєСЂРѕР»Р» РїСЂРё РѕС‚РєСЂС‹С‚РѕРј РјРѕРґР°Р»СЊРЅРѕРј РѕРєРЅРµ (С‚РѕР»СЊРєРѕ РґР»СЏ РєРѕСЂРЅРµРІРѕР№ РјРѕРґР°Р»РєРё, РІР»РѕР¶РµРЅРЅС‹Рµ РЅРµ С‚СЂРѕРіР°СЋС‚ body)
     useEffect(() => {
         if (nested) return;
         if (isOpen) {
@@ -34,7 +34,7 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
         };
     }, [isOpen, nested]);
 
-    // Закрытие по Escape
+    // Р—Р°РєСЂС‹С‚РёРµ РїРѕ Escape
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape' && isOpen && !isClosing) {
@@ -51,7 +51,7 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
         };
     }, [isOpen, isClosing, handleClose]);
 
-    // Не рендерим, если модалка закрыта и не в процессе закрытия
+    // РќРµ СЂРµРЅРґРµСЂРёРј, РµСЃР»Рё РјРѕРґР°Р»РєР° Р·Р°РєСЂС‹С‚Р° Рё РЅРµ РІ РїСЂРѕС†РµСЃСЃРµ Р·Р°РєСЂС‹С‚РёСЏ
     if (!isOpen && !isClosing) return null;
 
     return (
@@ -72,7 +72,7 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
                             onClick={handleClose}
                             aria-label={closeButtonAriaLabel}
                         >
-                            <span className={classes.closeButtonIcon}>×</span>
+                            <span className={classes.closeButtonIcon}>{"\u00D7"}</span>
                         </button>
                     </div>
                 )}

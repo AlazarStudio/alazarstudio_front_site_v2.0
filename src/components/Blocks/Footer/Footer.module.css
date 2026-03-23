@@ -6,100 +6,101 @@
 }
 
 .section {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     padding: 32px 24px;
+    box-sizing: border-box;
 }
 
-.topRow {
+.heroRow {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
+    gap: 40px;
+}
+
+.brandCol {
+    display: flex;
+    flex-direction: column;
     gap: 24px;
+    min-width: 220px;
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: 400;
+    display: inline-flex;
+    align-items: center;
+    font-size: clamp(22px, 2.2vw, 28px);
+    font-weight: 600;
     color: #fff;
     text-decoration: none;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
-
-.logo img {
-    height: 50px;
-} 
 
 .logo:hover {
     color: #e5097e;
 }
 
-.socialWrap {
+.socialList {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.socialRow {
-    display: flex;
+    align-items: center;
+    gap: 14px;
     flex-wrap: wrap;
-    gap: 10px;
 }
 
-.socialPill {
+.socialCircle {
+    width: 52px;
+    height: 52px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 24px;
-    background-color: #e5097e;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 500;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
     text-decoration: none;
-    transition: background 0.25s ease, opacity 0.25s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
-.socialPill:hover {
-    background-color: #c4086f;
-    opacity: 0.95;
+.socialCircle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(229, 9, 126, 0.22);
+    background: #f7f7f7;
 }
 
-.socialLetter {
-    font-weight: 600;
-    text-transform: uppercase;
+.socialIcon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    display: block;
+    filter: grayscale(1) brightness(0);
 }
 
-.socialLabel {
-    letter-spacing: 0.02em;
+.contactSide {
+    margin-left: auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: clamp(16px, 4vw, 56px);
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
 }
 
 .divider {
     height: 1px;
     background: rgba(255, 255, 255, 0.12);
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Средняя секция — три колонки */
-.middleRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: start;
-}
-
-@media (max-width: 900px) {
-    .middleRow {
-        grid-template-columns: 1fr;
-    }
+    width: 100%;
 }
 
 .leftCol {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    min-width: 0;
+    flex: 1 1 0;
 }
 
 .email {
@@ -113,30 +114,12 @@
     color: #e5097e;
 }
 
-.reviewBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    border-radius: 24px;
-    background-color: #252525;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    width: fit-content;
-    transition: background 0.25s ease, color 0.25s ease;
-}
-
-.reviewBtn:hover {
-    background-color: #333;
-    color: #e5097e;
-}
-
 .officeCol {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
+    flex: 1 1 0;
 }
 
 .officeTitle {
@@ -149,6 +132,12 @@
     font-size: 14px;
     color: rgba(255, 255, 255, 0.75);
     line-height: 1.4;
+    text-decoration: none;
+    transition: color 0.25s ease;
+}
+
+.officeAddress:hover {
+    color: #e5097e;
 }
 
 .officePhone {
@@ -160,6 +149,12 @@
 
 .officePhone:hover {
     color: #e5097e;
+}
+
+.officeAddress,
+.email,
+.officePhone {
+    overflow-wrap: anywhere;
 }
 
 /* Нижняя секция: юридические ссылки + резидент */
@@ -237,6 +232,21 @@
     max-width: 100%;
 }
 
+@media (min-width: 769px) {
+    .contactSide {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: min(100%, 560px);
+        gap: clamp(18px, 2vw, 28px);
+    }
+
+    .leftCol,
+    .officeCol {
+        flex: 0 1 260px;
+        width: min(260px, 100%);
+    }
+}
+
 @media (max-width: 768px) {
     .footer {
         margin-top: 80px;
@@ -246,21 +256,123 @@
         padding: 24px 16px;
     }
 
-    .topRow {
+    .heroRow {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .socialWrap {
+    .brandCol,
+    .contactSide {
         width: 100%;
+    }
+
+    .brandCol {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .logo {
+        width: auto;
+        display: inline-flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: clamp(16px, 4.6vw, 20px);
+        letter-spacing: 0.12em;
+    }
+
+    .socialList {
+        width: auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .contactSide {
+        margin-left: 0;
+        gap: 16px;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+
+    .leftCol,
+    .officeCol {
+        width: calc(50% - 8px);
+    }
+
+    .leftCol {
+        gap: 12px;
+    }
+
+    .officeTitle,
+    .email,
+    .officePhone {
+        font-size: 14px;
     }
 
     .bottomRow {
         flex-direction: column;
     }
 
+    .legalWrap,
+    .legalPills {
+        width: 100%;
+    }
+
+    .legalPills {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .legalPill {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+        text-align: center;
+        padding: 10px 12px;
+        line-height: 1.35;
+    }
+
     .residentBlock {
         width: 100%;
         min-width: unset;
+    }
+}
+
+@media (max-width: 560px) {
+    .logo {
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 360px) {
+    .brandCol {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .socialList {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .contactSide {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .officeCol,
+    .leftCol {
+        width: 100%;
+    }
+
+    .legalPills {
+        grid-template-columns: 1fr;
     }
 }

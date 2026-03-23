@@ -3,14 +3,16 @@ import Modal from '@/components/Standart/Modal/Modal.jsx';
 import classes from './ContactModal.module.css';
 
 const initialForm = {
-  fio: '',
+  name: '',
   phone: '',
   email: '',
-  message: '',
+  company: '',
+  budget: '',
+  comment: '',
   consent: false,
 };
 
-export default function ContactModal({ isOpen, onClose }) {
+export default function ContactModal({ isOpen, onClose, nested = true }) {
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,16 +44,16 @@ export default function ContactModal({ isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} nested compact>
+    <Modal isOpen={isOpen} onClose={onClose} nested={nested} compact>
       <div className={classes.wrap}>
         <h2 className={classes.title}>Оставить заявку</h2>
         <form className={classes.form} onSubmit={handleSubmit}>
           <input
             type="text"
-            name="fio"
-            value={form.fio}
+            name="name"
+            value={form.name}
             onChange={handleChange}
-            placeholder="ФИО"
+            placeholder="Ваше имя"
             className={classes.input}
             required
           />
@@ -60,7 +62,7 @@ export default function ContactModal({ isOpen, onClose }) {
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="Номер телефона"
+            placeholder="Телефон"
             className={classes.input}
             required
           />
@@ -69,17 +71,33 @@ export default function ContactModal({ isOpen, onClose }) {
             name="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="E-mail"
+            placeholder="E-MAIL"
             className={classes.input}
             required
           />
-          <textarea
-            name="message"
-            value={form.message}
+          <input
+            type="text"
+            name="company"
+            value={form.company}
             onChange={handleChange}
-            placeholder="Текст обращения"
-            className={classes.textarea}
-            rows={4}
+            placeholder="Компания"
+            className={classes.input}
+          />
+          <input
+            type="text"
+            name="budget"
+            value={form.budget}
+            onChange={handleChange}
+            placeholder="Бюджет"
+            className={classes.input}
+          />
+          <input
+            type="text"
+            name="comment"
+            value={form.comment}
+            onChange={handleChange}
+            placeholder="Комментарий"
+            className={classes.input}
             required
           />
           <label className={classes.consentLabel}>
@@ -92,7 +110,7 @@ export default function ContactModal({ isOpen, onClose }) {
               required
             />
             <span>
-              Я согласен на обработку персональных данных в соответствии с политикой конфиденциальности
+              Я согласен с правилами обработки персональных данных
             </span>
           </label>
           <button type="submit" className={classes.submitBtn} disabled={submitting || !form.consent}>

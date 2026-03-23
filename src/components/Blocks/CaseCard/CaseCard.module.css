@@ -577,3 +577,87 @@
     object-fit: cover;
     will-change: transform;
 }
+
+@media (max-width: 767px) {
+    .type_case,
+    .type_shop,
+    .type_new,
+    .type_banner {
+        width: 100%;
+    }
+
+    .case {
+        border-radius: 18px;
+    }
+
+    .case_img,
+    .new_container_img,
+    .banner_img_container {
+        border-radius: 16px;
+    }
+
+    .type_new,
+    .type_banner {
+        padding: 14px;
+    }
+
+    .case_bottom {
+        padding: 14px 14px 18px;
+        gap: 12px;
+    }
+
+    .case_bottom_title,
+    .new_container_title {
+        font-size: 20px;
+        line-height: 130%;
+    }
+
+    .new_container {
+        gap: 14px;
+    }
+
+    .new_container_desc,
+    .case_bottom_desc,
+    .case_bottom_desc_single {
+        font-size: 12px;
+        line-height: 145%;
+        -webkit-line-clamp: 4;
+    }
+
+    .case_bottom_tags {
+        gap: 10px;
+    }
+
+    .case_bottom_tag,
+    .shop_card,
+    .new_container_label,
+    .new_container_date,
+    .banner_tag {
+        font-size: 10px;
+    }
+
+    .case_bottom_tag,
+    .shop_card,
+    .new_container_readMore {
+        padding: 9px 14px;
+    }
+
+    .new_container_date_tag {
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .new_container_readMore {
+        font-size: 12px;
+        margin-bottom: 0;
+    }
+
+    .shop_price {
+        font-size: 20px;
+    }
+
+    .case_img_team {
+        padding-left: 12px;
+        padding-bottom: 12px;
+    }
+}

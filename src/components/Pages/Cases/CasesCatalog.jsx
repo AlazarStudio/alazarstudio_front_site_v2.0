@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import classes from '../Shop/Shop.module.css';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
@@ -45,6 +46,7 @@ function CasesCatalog({ children, ...props }) {
     const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
+    const autoActionHandledRef = useRef(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isCasesLoaded, setIsCasesLoaded] = useState(false);
@@ -270,6 +272,26 @@ function CasesCatalog({ children, ...props }) {
     }, [routeUrlText, navigate, casesData]);
 
     useEffect(() => {
+        if (!location.state?.openFirstCaseRequest || autoActionHandledRef.current || !isCasesLoaded) {
+            return;
+        }
+
+        const firstCase = casesData[0];
+        if (!firstCase?.url_text) {
+            return;
+        }
+
+        autoActionHandledRef.current = true;
+        navigate(`/cases/${firstCase.url_text}`, {
+            replace: true,
+            state: {
+                modalBackground: "/cases",
+                autoOpenContactModal: true,
+            },
+        });
+    }, [location.state, isCasesLoaded, casesData, navigate]);
+
+    useEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
 
         const timer = setTimeout(() => {
@@ -389,11 +411,22 @@ function CasesCatalog({ children, ...props }) {
                 </div>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
                 {selectedItem && (
-                    <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} cases={filteredItems} onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })} />
+                    <CaseDetailsModal
+                        item={selectedItem}
+                        teamItems={teamFromApi}
+                        cases={filteredItems}
+                        onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })}
+                        autoOpenContactModal={Boolean(location.state?.autoOpenContactModal)}
+                    />
                 )}
-            </Modal>
+                    </Modal>,
+                    document.body
+                )
+                : null}
         </div>
     );
 }

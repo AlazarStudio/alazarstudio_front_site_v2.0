@@ -27,6 +27,7 @@ function labelToFieldKey(label) {
   return slug.replace(/-/g, '_');
 }
 
+
 /** Строим массив полей структуры с уникальными fieldKey из label (транслит + подчёркивания) */
 function buildStructureFields(raw) {
   const fields = raw

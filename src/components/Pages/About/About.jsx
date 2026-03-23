@@ -4,8 +4,8 @@ import Present_block from "../../Blocks/Present_block/Present_block";
 import Scalable_block from "../../Blocks/Scalable_block/Scalable_block";
 import Services_block from "../../Blocks/Services_block/Services_block";
 import Work_block from "../../Blocks/Work_block/Work_block";
-import Time_work_block from "../../Blocks/Time_work_block/Time_work_block";
 import Team_block from "../../Blocks/Team_block/Team_block";
+import Discuss from "../../Blocks/Discuss/Discuss";
 import { publicServicesAPI, publicTeamAPI } from "@/lib/api";
 
 function About({ children, ...props }) {
@@ -43,8 +43,8 @@ function About({ children, ...props }) {
       <Scalable_block/>
       <Services_block services={services} />
       <Work_block/>
-      <Time_work_block/>
       <Team_block team={team} />
+      <Discuss />
     </>
   );
 }

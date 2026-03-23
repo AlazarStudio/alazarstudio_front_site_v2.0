@@ -3,79 +3,78 @@ import { Link } from "react-router-dom";
 import classes from "./Footer.module.css";
 
 const SOCIAL = [
-    { label: "Behance", letter: "B" },
-    { label: "GitHub", letter: "G" },
-    { label: "VK", letter: "V" },
-    { label: "Telegram", letter: "T" },
-    { label: "Youtube", letter: "Y" },
-    { label: "Red Basset", letter: "R" },
+    { label: "Instagram", icon: "/instagram.png", href: "#" },
+    { label: "VK", icon: "/vk.png", href: "#" },
 ];
 
 const LEGAL_LINE1 = [
     "Пользовательское соглашение",
     "Политика конфиденциальности",
     "Согласие на обработку",
-    "Сведения о СОУТ",
+    "Политика Cookie",
 ];
-const LEGAL_LINE2 = ["Ценовая политика", "Политика Cookie"];
+
+const LEGAL_LINE2 = [];
+const OFFICE_REGION = "Карачаево-Черкесская Республика";
+const OFFICE_ADDRESS = "г. Черкесск, ул. Кавказская, 56";
+const OFFICE_MAP_URL = `https://yandex.ru/maps/?text=${encodeURIComponent(OFFICE_ADDRESS)}`;
+const COPYRIGHT_TEXT =
+    "Информация на сайте не является публичной офертой. Пользовательское соглашение и Политика обработки персональных данных доступны по ссылкам выше. Сведения о специальной оценке условий труда (СОУТ). © 2018-2026, ООО МИШ ДИЗАЙН. ОГРН, ИНН, ОКВЭД и направления деятельности согласно приказу Министерства цифрового развития.";
 
 function Footer() {
     return (
         <footer className={classes.footer}>
-            {/* Верхняя секция: логотип mish + соцсети в два ряда */}
             <div className={classes.section}>
-                <div className={classes.topRow}>
-                    <Link to="/" className={classes.logo}>
-                        <img src="/alazar-logo.png" alt="ALAZAR STUDIO" />
-                    </Link>
-                    <div className={classes.socialWrap}>
-                        <div className={classes.socialRow}>
-                            {SOCIAL.slice(0, 4).map((s, i) => (
-                                <a key={i} href="#" className={classes.socialPill} aria-label={s.label}>
-                                    <span className={classes.socialLetter}>{s.letter}</span>
-                                    <span className={classes.socialLabel}>{s.label}</span>
-                                </a>
-                            ))}
-                        </div>
-                        <div className={classes.socialRow}>
-                            {SOCIAL.slice(4, 6).map((s, i) => (
-                                <a key={i} href="#" className={classes.socialPill} aria-label={s.label}>
-                                    <span className={classes.socialLetter}>{s.letter}</span>
-                                    <span className={classes.socialLabel}>{s.label}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className={classes.divider} />
-
-            {/* Средняя секция: три колонки — email+кнопка | Москва | Нижний Новгород */}
-            <div className={classes.section}>
-                <div className={classes.middleRow}>
-                    <div className={classes.leftCol}>
-                        <a href="mailto:hello@mish.design" className={classes.email}>
-                            hello@mish.design
-                        </a>
-                        <Link to="/contacts" className={classes.reviewBtn}>
-                            Оставить отзыв
+                <div className={classes.heroRow}>
+                    <div className={classes.brandCol}>
+                        <Link to="/" className={classes.logo}>
+                            ALAZAR STUDIO
                         </Link>
+
+                        <div className={classes.socialList}>
+                            {SOCIAL.map((social) => (
+                                <a
+                                    key={social.label}
+                                    href={social.href}
+                                    className={classes.socialCircle}
+                                    aria-label={social.label}
+                                >
+                                    <img src={social.icon} alt="" className={classes.socialIcon} aria-hidden="true" />
+                                </a>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className={classes.officeCol}>
-                        <div className={classes.officeTitle}>Карачаево-Черкесская Республика</div>
-                        <div className={classes.officeAddress}>г. Черкесск, ул. Кавказская, 56</div>
-                        <a href="tel:+79283995384" className={classes.officePhone}>
-                            +7 928 399-53-84
-                        </a>
+                    <div className={classes.contactSide}>
+                        <div className={classes.officeCol}>
+                            <div className={classes.officeTitle}>{OFFICE_REGION}</div>
+                            <a
+                                href={OFFICE_MAP_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={classes.officeAddress}
+                            >
+                                {OFFICE_ADDRESS}
+                            </a>
+                            <a href="tel:+79283995384" className={classes.officePhone}>
+                                +7 928 399-53-84
+                            </a>
+                        </div>
+
+                        <div className={classes.leftCol}>
+                            <a href="mailto:info@alazarstudio.ru" className={classes.email}>
+                                info@alazarstudio.ru
+                            </a>
+                            <a href="mailto:info@alazarstudio.com" className={classes.email}>
+                                info@alazarstudio.com
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div className={classes.divider} />
 
-            {/* Юридические ссылки в два ряда + блок Резидент */}
             <div className={classes.section}>
                 <div className={classes.bottomRow}>
                     <div className={classes.legalWrap}>
@@ -86,35 +85,24 @@ function Footer() {
                                 </a>
                             ))}
                         </div>
-                        <div className={classes.legalPills}>
-                            {LEGAL_LINE2.map((text, i) => (
-                                <a key={i} href="#" className={classes.legalPill}>
-                                    {text}
-                                </a>
-                            ))}
-                        </div>
+                        {LEGAL_LINE2.length > 0 && (
+                            <div className={classes.legalPills}>
+                                {LEGAL_LINE2.map((text, i) => (
+                                    <a key={i} href="#" className={classes.legalPill}>
+                                        {text}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    {/* <div className={classes.residentBlock}>
-                        <span className={classes.residentLine1}>Резидент</span>
-                        <span className={classes.residentIcon} aria-hidden>
-                            ○ ○ ○
-                        </span>
-                        <span className={classes.residentLine2}>ИНТЦ</span>
-                        <span className={classes.residentLine2}>КВАНТОВАЯ ДОЛИНА</span>
-                    </div> */}
                 </div>
             </div>
 
             <div className={classes.divider} />
 
-            {/* Копирайт и дисклеймер */}
             <div className={classes.section}>
                 <div className={classes.copyright}>
-                    Информация на сайте не является публичной офертой. Пользовательское соглашение и
-                    Политика обработки персональных данных доступны по ссылкам выше. Сведения о
-                    специальной оценке условий труда (СОУТ). © 2018-2026, ООО МИШ ДИЗАЙН. ОГРН, ИНН,
-                    ОКВЭД и направления деятельности согласно приказу Министерства цифрового
-                    развития.
+                    {COPYRIGHT_TEXT}
                 </div>
             </div>
         </footer>

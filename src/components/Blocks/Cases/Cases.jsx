@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
@@ -462,7 +463,9 @@ function Cases({ children, ...props }) {
         </div>
 
             {/* Модальное окно */}
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem?.type === 'case' ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem?.type === 'case' ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
             {selectedItem && (
                 (selectedItem.type === 'case')
                     ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} cases={casesData} onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })} />
@@ -477,7 +480,10 @@ function Cases({ children, ...props }) {
                         </div>
                     )
             )}
-            </Modal>
+                    </Modal>,
+                    document.body
+                )
+                : null}
         </>
     );
 }

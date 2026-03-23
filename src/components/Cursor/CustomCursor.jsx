@@ -1,6 +1,16 @@
 import { useEffect, useRef } from 'react';
 import './CustomCursor.css';
 
+function shouldHideCustomCursor() {
+  if (typeof window === 'undefined') return false;
+
+  return (
+    window.innerWidth <= 767 ||
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(hover: none)').matches
+  );
+}
+
 /**
  * Кастомный "желейный" курсор с деформацией от скорости
  * 
@@ -43,9 +53,7 @@ const CustomCursor = () => {
   const cursorRef = useRef(null);
 
   useEffect(() => {
-    // Проверка на touch-устройство
-    const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
-    if (hasCoarsePointer) return;
+    if (shouldHideCustomCursor()) return;
 
     // Проверка prefers-reduced-motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -140,13 +148,33 @@ const CustomCursor = () => {
 
   // Обработка data-cursor атрибутов
   useEffect(() => {
+    if (shouldHideCustomCursor()) return;
     if (!cursorRef.current) return;
+
+    const labelTargets = {
+      media: '.cursor-media-content .cursor-label',
+      case: '.cursor-case-content .cursor-label',
+    };
+
+    const defaultLabels = {
+      media: '',
+      case: 'Открыть <br /> кейс',
+    };
+
+    const setCursorLabel = (mode, label) => {
+      if (!cursorRef.current || !labelTargets[mode]) return;
+      const target = cursorRef.current.querySelector(labelTargets[mode]);
+      if (!target) return;
+      target.innerHTML = label ?? defaultLabels[mode] ?? '';
+    };
 
     const resetCursorState = () => {
       if (!cursorRef.current) return;
       cursorRef.current.setAttribute('data-mode', 'default');
       cursorRef.current.removeAttribute('data-label');
       cursorRef.current.removeAttribute('data-slider-direction');
+      setCursorLabel('media', defaultLabels.media);
+      setCursorLabel('case', defaultLabels.case);
     };
 
     const applyCursorFromElement = (cursorElement, clientX) => {
@@ -158,8 +186,12 @@ const CustomCursor = () => {
 
       if (cursorLabel && (cursorMode === 'media' || cursorMode === 'case')) {
         cursorRef.current.setAttribute('data-label', cursorLabel);
+        setCursorLabel(cursorMode, cursorLabel);
       } else {
         cursorRef.current.removeAttribute('data-label');
+        if (cursorMode === 'media' || cursorMode === 'case') {
+          setCursorLabel(cursorMode, defaultLabels[cursorMode]);
+        }
       }
 
       if (cursorMode === 'slider') {
@@ -230,8 +262,7 @@ const CustomCursor = () => {
   }, []);
 
   // Проверка на touch-устройство для рендера
-  const hasCoarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
-  if (hasCoarsePointer) return null;
+  if (shouldHideCustomCursor()) return null;
 
   return (
     <div
@@ -300,4 +331,3 @@ const CustomCursor = () => {
 };
 
 export default CustomCursor;
-

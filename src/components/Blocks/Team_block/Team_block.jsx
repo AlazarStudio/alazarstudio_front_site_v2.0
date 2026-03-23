@@ -1,9 +1,58 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { teamMembers } from "./teamMembers";
 import classes from './Team_block.module.css';
 
 const BACKEND_BASE = import.meta.env.VITE_BACKEND_IMAGE_BASE || "https://backend.alazarstudio.ru";
+
+function normalizeSocials(apiMember) {
+    const arraySource = Array.isArray(apiMember?.socials)
+        ? apiMember.socials
+        : Array.isArray(apiMember?.social)
+            ? apiMember.social
+            : [];
+
+    if (arraySource.length > 0) {
+        return arraySource
+            .map((item) => {
+                const type = String(item?.type || item?.name || "").trim().toLowerCase();
+                const label = String(item?.label || item?.title || item?.url || item?.href || item?.value || "").trim();
+                if (!type || !label) {
+                    return null;
+                }
+
+                return { type, label };
+            })
+            .filter(Boolean);
+    }
+
+    const socialFieldMap = [
+        { type: "instagram", keys: ["instagram", "instagramUrl", "instagram_url"] },
+        { type: "vk", keys: ["vk", "vkUrl", "vk_url", "vkontakte"] },
+        { type: "be", keys: ["be", "behance", "behanceUrl", "behance_url"] },
+        { type: "group", keys: ["group", "artstation", "groupUrl", "group_url", "artstationUrl", "artstation_url"] },
+    ];
+
+    return socialFieldMap
+        .map(({ type, keys }) => {
+            for (const key of keys) {
+                const value = apiMember?.[key];
+                if (typeof value === "string" && value.trim()) {
+                    return { type, label: value.trim() };
+                }
+
+                if (value && typeof value === "object") {
+                    const label = String(value.label || value.title || value.url || value.href || value.value || "").trim();
+                    if (label) {
+                        return { type, label };
+                    }
+                }
+            }
+
+            return null;
+        })
+        .filter(Boolean);
+}
 
 function normalizeMember(apiMember) {
     const rawAvatar = apiMember.avatar ?? "";
@@ -12,13 +61,14 @@ function normalizeMember(apiMember) {
             ? rawAvatar
             : `${BACKEND_BASE}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
         : "";
+
     return {
         slug: apiMember.id,
         name: apiMember.fio ?? '',
         role: apiMember.dolzhnost ?? '',
         image,
         faceY: '24%',
-        socials: [],
+        socials: normalizeSocials(apiMember),
     };
 }
 
@@ -34,18 +84,17 @@ const TEAM_LEAD_ORDER = {
 };
 
 function Team_block({ team = [] }) {
-    const published = Array.isArray(team) ? team.filter((m) => m?.isPublished !== false) : [];
+    const published = Array.isArray(team) ? team.filter((member) => member?.isPublished !== false) : [];
     let members = published.length > 0 ? published.map(normalizeMember) : teamMembers;
+
     if (published.length > 0) {
         members = [...members].sort((a, b) => {
-            const ia = TEAM_LEAD_ORDER[a.name] !== undefined ? TEAM_LEAD_ORDER[a.name] : 2;
-            const ib = TEAM_LEAD_ORDER[b.name] !== undefined ? TEAM_LEAD_ORDER[b.name] : 2;
+            const ia = TEAM_LEAD_ORDER[a.name] !== undefined ? TEAM_LEAD_ORDER[a.name] : 999;
+            const ib = TEAM_LEAD_ORDER[b.name] !== undefined ? TEAM_LEAD_ORDER[b.name] : 999;
             return ia - ib;
         });
     }
 
-    const sliderRef = useRef(null);
-    const animationFrameRef = useRef(null);
     const navigate = useNavigate();
 
     const socialIconByType = {
@@ -60,76 +109,6 @@ function Team_block({ team = [] }) {
         vk: "VK",
         be: "Behance",
         group: "Group",
-    };
-
-    useEffect(() => {
-        return () => {
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-        };
-    }, []);
-
-    const easeOutCubic = (t) => {
-        return 1 - Math.pow(1 - t, 3);
-    };
-
-    const animateScrollTo = (slider, targetLeft, duration = 420) => {
-        const startLeft = slider.scrollLeft;
-        const delta = targetLeft - startLeft;
-
-        if (Math.abs(delta) < 1) {
-            return;
-        }
-
-        if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-        }
-
-        const startTime = performance.now();
-
-        const tick = (now) => {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const eased = easeOutCubic(progress);
-            slider.scrollLeft = startLeft + delta * eased;
-
-            if (progress < 1) {
-                animationFrameRef.current = requestAnimationFrame(tick);
-            } else {
-                animationFrameRef.current = null;
-            }
-        };
-
-        animationFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    const scrollByCard = (direction) => {
-        const slider = sliderRef.current;
-        if (!slider) {
-            return;
-        }
-
-        const firstCard = slider.querySelector("[data-card]");
-        if (!firstCard) {
-            return;
-        }
-
-        const cardWidth = firstCard.getBoundingClientRect().width;
-        const sliderStyles = window.getComputedStyle(slider);
-        const gap = parseFloat(sliderStyles.columnGap || sliderStyles.gap || "0");
-        const step = cardWidth + gap;
-        const maxLeft = Math.max(0, slider.scrollWidth - slider.clientWidth);
-        let nextLeft = slider.scrollLeft + direction * step;
-
-        if (direction === 1 && nextLeft >= maxLeft - 1) {
-            nextLeft = maxLeft;
-        } else if (direction === -1 && nextLeft <= 1) {
-            nextLeft = 0;
-        } else {
-            nextLeft = Math.max(0, Math.min(nextLeft, maxLeft));
-        }
-
-        animateScrollTo(slider, nextLeft);
     };
 
     const handleMemberImageMove = (event) => {
@@ -157,6 +136,10 @@ function Team_block({ team = [] }) {
         navigate(`/team/${member.slug}`);
     };
 
+    const handleCardMetaClick = (event) => {
+        event.stopPropagation();
+    };
+
     const handleMemberCardKeyDown = (event, member) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
@@ -177,23 +160,13 @@ function Team_block({ team = [] }) {
                         Глубокое погружение в каждый проект, энергия и свежий взгляд обеспечивают высокий результат.
                     </div>
                 </div>
-
-                <div className={classes.arrows}>
-                    <button className={classes.arrow} type="button" onClick={() => scrollByCard(-1)}>
-                        <img src="/Arrowleft.png" alt="Предыдущий сотрудник" />
-                    </button>
-                    <button className={classes.arrow} type="button" onClick={() => scrollByCard(1)}>
-                        <img src="/Arrowright.png" alt="Следующий сотрудник" />
-                    </button>
-                </div>
             </div>
 
             <div className={classes.rightPanel}>
-                <div ref={sliderRef} className={classes.teamSlider}>
+                <div className={classes.teamGrid}>
                     {members.map((member) => (
                         <article
                             className={classes.teamCard}
-                            data-card
                             key={member.slug}
                             role="button"
                             tabIndex={0}
@@ -203,17 +176,28 @@ function Team_block({ team = [] }) {
                             <div
                                 className={classes.person_image}
                                 data-cursor="case"
+                                data-cursor-label="Перейти"
                                 onMouseMove={handleMemberImageMove}
                                 onMouseLeave={resetMemberImageMove}
                             >
                                 <img src={member.image} alt={member.name} style={{ objectPosition: `center ${member.faceY || "24%"}` }} />
                             </div>
 
-                            <div className={classes.name}>{member.name}</div>
-                            <div className={classes.speciality_name}>{member.role}</div>
+                            <div
+                                className={classes.name}
+                                onClick={handleCardMetaClick}
+                            >
+                                {member.name}
+                            </div>
+                            <div
+                                className={classes.speciality_name}
+                                onClick={handleCardMetaClick}
+                            >
+                                {member.role}
+                            </div>
 
                             {Array.isArray(member.socials) && member.socials.length > 0 && (
-                                <div className={classes.person_link}>
+                                <div className={classes.person_link} onClick={handleCardMetaClick}>
                                     {member.socials.map((social, socialIndex) => {
                                         const icon = socialIconByType[social.type];
                                         if (!icon) {
@@ -242,4 +226,3 @@ function Team_block({ team = [] }) {
 }
 
 export default Team_block;
-

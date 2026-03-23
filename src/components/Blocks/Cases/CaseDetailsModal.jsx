@@ -73,7 +73,7 @@ function SocialButton({ icon: Icon, imageSrc, label, shareUrl, onClick, copyUrlB
   );
 }
 
-export default function CaseDetailsModal({ item, teamItems, cases = [], onSelectCase }) {
+export default function CaseDetailsModal({ item, teamItems, cases = [], onSelectCase, autoOpenContactModal = false }) {
   if (!item) return null;
   const source = item.sourceRecord || {};
   const task = getCaseTaskHtml(source);
@@ -110,6 +110,7 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
   const lastDisplayedIndexRef = useRef(0);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const autoOpenContactHandledRef = useRef(false);
   const [developersDropdownOpen, setDevelopersDropdownOpen] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   const developersDropdownRef = useRef(null);
@@ -163,6 +164,15 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [developersDropdownOpen]);
+
+  useEffect(() => {
+    if (!autoOpenContactModal || autoOpenContactHandledRef.current) {
+      return;
+    }
+
+    autoOpenContactHandledRef.current = true;
+    setContactModalOpen(true);
+  }, [autoOpenContactModal]);
 
   const scrollToBlock = (index) => {
     const el = blockRefs.current[index];
@@ -286,6 +296,27 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
       hasClickedInsideRef.current = true;
     }
     onSelectCase({ ...c, type: 'case' });
+  };
+
+  const handleMiniCaseMove = (event) => {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+    if (!rect.width || !rect.height) {
+      return;
+    }
+
+    const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
+    const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
+    const maxShift = 8;
+
+    card.style.setProperty('--move-x', `${(relativeX * maxShift).toFixed(2)}px`);
+    card.style.setProperty('--move-y', `${(relativeY * maxShift).toFixed(2)}px`);
+  };
+
+  const resetMiniCaseMove = (event) => {
+    const card = event.currentTarget;
+    card.style.setProperty('--move-x', '0px');
+    card.style.setProperty('--move-y', '0px');
   };
 
   // В консоль — теги у каждого кейса в списке слева

@@ -5,10 +5,16 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-white text-gray-900 antialiased;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
 
@@ -34,8 +40,21 @@ body {
   overflow-x: hidden;
 }
 
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .centerBlock {
   display: flex;
   justify-content: space-between;
-  width: 1400px;
+  width: min(1400px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+@media (max-width: 767px) {
+  .centerBlock {
+    width: calc(100% - 24px);
+  }
 }

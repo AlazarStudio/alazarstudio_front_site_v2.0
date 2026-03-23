@@ -17,21 +17,21 @@ const stubStyle = {
 export default function SiteDevGate() {
   const { user, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div style={stubStyle}>
-        <img src="/logoTime.png" alt="" />
-      </div>
-    )
-  }
+  // if (loading) {
+  //   return (
+  //     <div style={stubStyle}>
+  //       <img src="/logoTime.png" alt="" />
+  //     </div>
+  //   )
+  // }
 
-  if (!user) {
-    return (
-      <div style={stubStyle}>
-        <img src="/logoTime.png" alt="" />
-      </div>
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <div style={stubStyle}>
+  //       <img src="/logoTime.png" alt="" />
+  //     </div>
+  //   )
+  // }
 
   return <Layout />
 }

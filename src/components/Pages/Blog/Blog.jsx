@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import classes from './Blog.module.css';
 import { IconButton, Tooltip } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
@@ -29,7 +29,10 @@ function Blog({ children, ...props }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { url_text: routeUrlText } = useParams();
-    const newsData = Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : [];
+    const newsData = useMemo(
+        () => (Array.isArray(newsFromApi) ? newsFromApi.map(mapNewsRecordToCard) : []),
+        [newsFromApi]
+    );
     const shouldShowLoader = !isNewsLoaded || isLoading;
 
     useEffect(() => {

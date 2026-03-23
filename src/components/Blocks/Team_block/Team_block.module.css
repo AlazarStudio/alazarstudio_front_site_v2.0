@@ -8,21 +8,17 @@
     grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
     gap: 40px;
     align-items: start;
-    overflow: visible;
 }
 
 .leftPanel {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 540px;
+    gap: 46px;
 }
 
 .rightPanel {
     min-width: 0;
-    /* растягиваем до правого края вьюпорта; минимум — ширина под 3 карточки (380*3 + 28*2) */
-    width: calc((3 * 409px + 2 * 28px));
-    /* margin-right: calc((100vw - 100%) / -2); */
+    width: 100%;
 }
 
 .team1 {
@@ -58,65 +54,21 @@
     color: rgba(255, 255, 255, 1);
 }
 
-.arrows {
-    display: flex;
-    gap: 20px;
-}
-
-.arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 70px;
-    height: 70px;
-    border: 1px solid rgba(255, 255, 255, 0.56);
-    border-radius: 50%;
-    background: transparent;
-    cursor: pointer;
-    transition: .3s;
-}
-
-.arrow img {
-    display: block;
-    width: 30px;
-    height: 20px;
-}
-
-.teamSlider {
+.teamGrid {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(400px, 400px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 28px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x proximity;
-    scrollbar-gutter: stable;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-right: 28px;
-}
-
-.teamSlider::-webkit-scrollbar {
-    display: none;
 }
 
 .teamCard {
-    scroll-snap-align: start;
     display: flex;
     flex-direction: column;
     gap: 18px;
+    min-width: 0;
     cursor: pointer;
     outline: none;
 }
 
-/* последняя карточка прилипает по правому краю — полностью видна при скролле в конец */
-.teamCard:last-child {
-    scroll-snap-align: end;
-}
-.arrow:hover{
-    background-color: rgba(255, 255, 255, 0.488);
-    
-}
 .person_image {
     --move-x: 0px;
     --move-y: 0px;
@@ -147,6 +99,7 @@
     font-size: 33px;
     font-weight: 800;
     line-height: 1;
+    cursor: default;
 }
 
 .speciality_name {
@@ -154,24 +107,30 @@
     border: 1px solid rgba(113, 46, 66, 1);
     border-radius: 35px;
     color: rgba(229, 9, 127, 1);
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: fit-content;
+    align-self: flex-start;
     font-size: 18px;
     font-weight: 700;
     line-height: 1;
+    position: relative;
+    z-index: 1;
+    cursor: default;
     transition: .3s;
 }
-.speciality_name:hover{
+
+.speciality_name:hover {
     background-color: rgba(229, 9, 127, .3);
 }
+
 .person_link {
     display: flex;
     flex-direction: column;
     gap: 8px;
     font-size: 16px;
     font-weight: 600;
+    cursor: default;
 }
 
 .link {
@@ -201,6 +160,21 @@
     line-height: 1.2;
 }
 
+.teamCard:focus-visible {
+    box-shadow: 0 0 0 2px rgba(229, 9, 127, 0.8);
+    border-radius: 16px;
+}
+
+@media (max-width: 1180px) {
+    .teamGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .name {
+        font-size: 30px;
+    }
+}
+
 @media (max-width: 1024px) {
     .block {
         padding-top: 72px;
@@ -210,7 +184,10 @@
     }
 
     .leftPanel {
-        min-height: auto;
+        gap: 24px;
+    }
+
+    .team1 {
         gap: 24px;
     }
 
@@ -223,25 +200,18 @@
         max-width: none;
         font-size: 20px;
     }
+}
 
-    .teamSlider {
-        grid-auto-columns: minmax(240px, 280px);
+@media (max-width: 640px) {
+    .teamGrid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .name {
-        font-size: 40px;
+        font-size: 28px;
     }
 
     .speciality_name {
-        font-size: 26px;
+        font-size: 16px;
     }
 }
-
-
-
-.teamCard:focus-visible {
-    box-shadow: 0 0 0 2px rgba(229, 9, 127, 0.8);
-    border-radius: 16px;
-}
-
-

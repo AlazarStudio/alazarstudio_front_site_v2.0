@@ -8,12 +8,15 @@
 .discuss {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: clamp(40px, 5vw, 96px);
 }
 
 .discuss_form {
     position: relative;
     width: 40%;
+    flex: 0 0 40%;
 }
 
 .discuss_form form {
@@ -117,15 +120,23 @@
 }
 
 .discuss_img {
-    width: 50%;
-    height: 100%;
+    width: auto;
+    flex: 0 0 auto;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: stretch;
     position: relative;
-    overflow: hidden;
-    position: relative;
+    overflow: visible;
+    min-width: 0;
     /* z-index: 999999; */
+}
+
+.discuss_particle {
+    width: var(--particle-width, min(100%, 820px));
+    height: var(--particle-height, auto);
+    max-width: none;
+    flex: 0 0 auto;
+    transform: none;
 }
 
 .discuss_img img {
@@ -166,4 +177,98 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+@media (max-width: 1024px) {
+    .discuss {
+        flex-direction: column;
+        gap: 32px;
+    }
 
+    .discuss_form,
+    .discuss_img {
+        width: 100%;
+    }
+
+    .discuss_particle {
+        width: min(100%, 520px);
+        height: auto;
+        margin: 0 auto;
+        transform: none;
+    }
+
+    .discuss_img {
+        width: 100%;
+        flex: 1 1 auto;
+        justify-content: center;
+        overflow: hidden;
+        align-items: center;
+    }
+}
+
+@media (max-width: 767px) {
+    .discussContainer {
+        margin-top: 96px;
+        padding: 0 0 24px;
+    }
+
+    .discuss {
+        gap: 0;
+    }
+
+    .discuss_form,
+    .discuss_formOnly {
+        width: 100%;
+        flex: 1 1 auto;
+        overflow: hidden;
+        border-radius: 22px;
+    }
+
+    .discuss_form form,
+    .discuss_formOnly form {
+        padding: 28px 18px 24px;
+        border-radius: 22px;
+    }
+
+    .discuss_form form .formTitle {
+        font-size: 22px;
+        margin-bottom: 28px;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .discuss_form form input {
+        margin-bottom: 20px;
+        height: 38px;
+        font-size: 14px;
+    }
+
+    .discuss_form form label {
+        font-size: 13px;
+    }
+
+    .discuss_form form .formInclude {
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .discuss_form form .formInclude p {
+        font-size: 12px;
+        line-height: 150%;
+    }
+
+    .discuss_form form button {
+        width: 100%;
+        max-width: 220px;
+        height: 44px;
+        font-size: 13px;
+    }
+
+    .discuss_img {
+        display: none;
+    }
+
+    .formBG {
+        width: 115%;
+        max-width: 420px;
+    }
+}
