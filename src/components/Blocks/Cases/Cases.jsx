@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import classes from './Cases.module.css';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -348,27 +348,26 @@ function Cases({ children, ...props }) {
         }
     }, [routeType, routeUrlText, location.pathname, navigate, isCasesLoaded, casesData, newsData, shopData, bannersData]);
 
-    // Прокрутка к карточке при открытии по URL
-    useEffect(() => {
+    // Прокрутка к карточке при открытии модалки — до useEffect модалки (overflow), иначе ломается порядок с position:fixed.
+    useLayoutEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
 
-        // Ждем, чтобы DOM точно прорендерился
-        const timer = setTimeout(() => {
+        const scrollToCard = () => {
             const selector = `[data-url-text="${selectedItem.url_text}"]`;
             const cardElement = document.querySelector(selector);
-            if (cardElement) {
-                const rect = cardElement.getBoundingClientRect();
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const offsetTop = rect.top + scrollTop - 120; // небольшой отступ под хедер
+            if (!cardElement) return false;
+            const rect = cardElement.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const offsetTop = rect.top + scrollTop - 120;
+            window.scrollTo({ top: offsetTop, left: 0, behavior: "auto" });
+            return true;
+        };
 
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth',
-                });
-            }
-        }, 0);
-
-        return () => clearTimeout(timer);
+        if (scrollToCard()) return undefined;
+        const id = requestAnimationFrame(() => {
+            scrollToCard();
+        });
+        return () => cancelAnimationFrame(id);
     }, [selectedItem]);
 
     const rows = createRows();

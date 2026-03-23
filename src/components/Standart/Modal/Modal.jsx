@@ -4,23 +4,14 @@ import classes from './Modal.module.css';
 export const ModalScrollContext = createContext(null);
 
 const MODAL_LOCK_COUNT_KEY = "__alazarModalLockCount";
-const MODAL_LOCK_SCROLL_Y_KEY = "__alazarModalLockScrollY";
 
 function lockPageScroll() {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
     const lockCount = Number(window[MODAL_LOCK_COUNT_KEY] || 0);
     if (lockCount === 0) {
-        const scrollY = window.scrollY || window.pageYOffset || 0;
-        window[MODAL_LOCK_SCROLL_Y_KEY] = scrollY;
-
         document.documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${scrollY}px`;
-        document.body.style.left = "0";
-        document.body.style.right = "0";
-        document.body.style.width = "100%";
     }
 
     window[MODAL_LOCK_COUNT_KEY] = lockCount + 1;
@@ -31,19 +22,9 @@ function unlockPageScroll() {
 
     const lockCount = Number(window[MODAL_LOCK_COUNT_KEY] || 0);
     if (lockCount <= 1) {
-        const scrollY = Number(window[MODAL_LOCK_SCROLL_Y_KEY] || 0);
-
         document.documentElement.style.overflow = "";
         document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
-        document.body.style.width = "";
-
         window[MODAL_LOCK_COUNT_KEY] = 0;
-        window[MODAL_LOCK_SCROLL_Y_KEY] = 0;
-        window.scrollTo(0, scrollY);
         return;
     }
 

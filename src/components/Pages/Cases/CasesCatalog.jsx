@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import classes from '../Shop/Shop.module.css';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
@@ -291,25 +291,25 @@ function CasesCatalog({ children, ...props }) {
         });
     }, [location.state, isCasesLoaded, casesData, navigate]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
 
-        const timer = setTimeout(() => {
+        const scrollToCard = () => {
             const selector = `[data-url-text="${selectedItem.url_text}"]`;
             const cardElement = document.querySelector(selector);
-            if (cardElement) {
-                const rect = cardElement.getBoundingClientRect();
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const offsetTop = rect.top + scrollTop - 120;
+            if (!cardElement) return false;
+            const rect = cardElement.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const offsetTop = rect.top + scrollTop - 120;
+            window.scrollTo({ top: offsetTop, left: 0, behavior: "auto" });
+            return true;
+        };
 
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth',
-                });
-            }
-        }, 0);
-
-        return () => clearTimeout(timer);
+        if (scrollToCard()) return undefined;
+        const id = requestAnimationFrame(() => {
+            scrollToCard();
+        });
+        return () => cancelAnimationFrame(id);
     }, [selectedItem]);
 
     const renderFilter = (containerClass = classes.filterContainer) => {
