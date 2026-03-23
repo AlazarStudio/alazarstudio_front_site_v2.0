@@ -8,7 +8,7 @@ const REPEL_FORCE = 2.6;
 const MAX_REPEL_IMPULSE = 6;
 const RETURN_FORCE = 0.0012;
 const FRICTION = 0.974;
-const LUNAR_GRAVITY = 0.005;
+const LUNAR_GRAVITY = 0;
 const MAX_SPEED = 10;
 
 const LOGO_VIEWBOX = {
