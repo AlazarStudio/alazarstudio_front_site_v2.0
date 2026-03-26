@@ -226,8 +226,25 @@
     font-weight: 600;
     font-size: 12px;
     line-height: 120%;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
     transition: all 0.5s ease-in-out;
+}
+
+.filterTagCount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 700;
 }
 
 .filterTag:hover {

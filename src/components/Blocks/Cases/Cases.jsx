@@ -373,6 +373,29 @@ function Cases({ children, ...props }) {
     const rows = createRows();
     const currentCategory = filterCategories[selectedCategory ?? 'all'];
     const availableTags = currentCategory ? currentCategory.tags : [];
+    const tagCountSourceData = useMemo(() => {
+        let source = [...casesData, ...newsData, ...shopData, ...bannersData];
+        if (selectedCategory === 'all' && selectedType !== null) {
+            source = source.filter((item) => item.type === selectedType);
+        }
+        return source;
+    }, [casesData, newsData, shopData, bannersData, selectedCategory, selectedType]);
+    const availableTagCounts = useMemo(() => {
+        const counts = {};
+        availableTags.forEach((tag) => {
+            counts[tag] = tagCountSourceData.reduce(
+                (acc, item) => (item.tags.includes(tag) ? acc + 1 : acc),
+                0
+            );
+        });
+        return counts;
+    }, [availableTags, tagCountSourceData]);
+    const visibleTags = useMemo(
+        () => availableTags
+            .filter((tag) => (availableTagCounts[tag] ?? 0) > 0)
+            .sort((a, b) => (availableTagCounts[b] ?? 0) - (availableTagCounts[a] ?? 0)),
+        [availableTags, availableTagCounts]
+    );
     const shouldShowLoader = !isCasesLoaded || isLoading;
 
     // Функция для рендеринга фильтра
@@ -392,15 +415,16 @@ function Cases({ children, ...props }) {
             </div>
 
             {/* Нижние теги */}
-            {availableTags.length > 0 && (
+            {visibleTags.length > 0 && (
                 <div className={classes.filterTags}>
-                    {availableTags.map((tag) => (
+                    {visibleTags.map((tag) => (
                         <button
                             key={tag}
                             className={`${classes.filterTag} ${selectedTag === tag ? classes.filterTag_active : ''}`}
                             onClick={() => handleTagSelect(tag)}
                         >
-                            {tag}
+                            <span>{tag}</span>
+                            <span className={classes.filterTagCount}>{availableTagCounts[tag] ?? 0}</span>
                         </button>
                     ))}
                 </div>

@@ -315,6 +315,16 @@ function CasesCatalog({ children, ...props }) {
     const renderFilter = (containerClass = classes.filterContainer) => {
         const currentCategory = filterCategories[selectedCategory];
         const availableTags = currentCategory ? currentCategory.tags : [];
+        const availableTagCounts = availableTags.reduce((acc, tag) => {
+            acc[tag] = casesData.reduce(
+                (sum, item) => (item.tags.includes(tag) ? sum + 1 : sum),
+                0
+            );
+            return acc;
+        }, {});
+        const visibleTags = availableTags
+            .filter((tag) => (availableTagCounts[tag] ?? 0) > 0)
+            .sort((a, b) => (availableTagCounts[b] ?? 0) - (availableTagCounts[a] ?? 0));
 
         return (
             <div className={containerClass}>
@@ -330,15 +340,16 @@ function CasesCatalog({ children, ...props }) {
                     ))}
                 </div>
 
-                {availableTags.length > 0 && (
+                {visibleTags.length > 0 && (
                     <div className={classes.filterTags}>
-                        {availableTags.map((tag) => (
+                        {visibleTags.map((tag) => (
                             <button
                                 key={tag}
                                 className={`${classes.filterTag} ${selectedTag === tag ? classes.filterTag_active : ''}`}
                                 onClick={() => handleTagSelect(tag)}
                             >
-                                {tag}
+                                <span>{tag}</span>
+                                <span className={classes.filterTagCount}>{availableTagCounts[tag] ?? 0}</span>
                             </button>
                         ))}
                     </div>
