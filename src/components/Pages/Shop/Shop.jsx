@@ -299,10 +299,6 @@ function Shop({ children, ...props }) {
         setIsModalOpen(true);
     }, [routeUrlText, navigate, shopData]);
 
-    if (isInvalidDetailRoute) {
-        return <NotFound />;
-    }
-
     // Скролл к карточке товара при открытии по URL
     useEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
@@ -363,7 +359,9 @@ function Shop({ children, ...props }) {
         );
     };
 
-    return (
+    return isInvalidDetailRoute ? (
+        <NotFound />
+    ) : (
         <section className={classes.blogContainer} aria-labelledby="shop-page-title">
             <div className={classes.blogContent}>
                 {/* Заголовок */}

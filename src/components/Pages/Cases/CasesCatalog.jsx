@@ -341,10 +341,6 @@ function CasesCatalog({ children, ...props }) {
         setIsModalOpen(true);
     }, [routeUrlText, navigate, casesData]);
 
-    if (isInvalidDetailRoute) {
-        return <NotFound />;
-    }
-
     useEffect(() => {
         if (!location.state?.openFirstCaseRequest || autoActionHandledRef.current || !isCasesLoaded) {
             return;
@@ -432,7 +428,9 @@ function CasesCatalog({ children, ...props }) {
         );
     };
 
-    return (
+    return isInvalidDetailRoute ? (
+        <NotFound />
+    ) : (
         <section className={classes.blogContainer} aria-labelledby="cases-page-title">
             <div className={classes.blogContent}>
                 <header className={classes.blogTitle}>

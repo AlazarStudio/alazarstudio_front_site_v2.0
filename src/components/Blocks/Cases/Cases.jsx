@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import classes from './Cases.module.css';
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import Modal from '../../Standart/Modal/Modal.jsx';
 import CaseCard from "../CaseCard/CaseCard.jsx";
@@ -14,7 +14,6 @@ import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/comp
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
-import NotFound from "@/app/NotFound";
 
 function Cases({ children, ...props }) {
     const { filterCategories, filterLoading } = useSiteFilterCategories();
@@ -457,7 +456,7 @@ function Cases({ children, ...props }) {
     });
 
     if (isInvalidDetailRoute) {
-        return <NotFound />;
+        return <Navigate to="/404" replace />;
     }
 
     // Функция для рендеринга фильтра

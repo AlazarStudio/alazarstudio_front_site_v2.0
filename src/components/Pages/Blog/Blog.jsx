@@ -294,10 +294,6 @@ function Blog({ children, ...props }) {
         setIsModalOpen(true);
     }, [routeUrlText, navigate, newsData, isNewsLoaded]);
 
-    if (isInvalidDetailRoute) {
-        return <NotFound />;
-    }
-
     // Скролл к карточке новости при открытии по URL
     useEffect(() => {
         if (!selectedItem || !selectedItem.url_text) return;
@@ -320,7 +316,9 @@ function Blog({ children, ...props }) {
         return () => clearTimeout(timer);
     }, [selectedItem]);
 
-    return (
+    return isInvalidDetailRoute ? (
+        <NotFound />
+    ) : (
         <section className={classes.blogContainer} aria-labelledby="blog-page-title">
             <div className={classes.blogContent}>
                 {/* Заголовок */}
