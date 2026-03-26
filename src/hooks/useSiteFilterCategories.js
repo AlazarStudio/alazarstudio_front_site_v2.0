@@ -39,6 +39,7 @@ export function useSiteFilterCategories() {
       });
     return () => { cancelled = true; };
   }, []);
+  // console.log(filterCategories);
 
   return { filterCategories, filterLoading: loading };
 }

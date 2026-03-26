@@ -524,10 +524,10 @@ export const publicCasesAPI = {
     })),
 };
 
-// Публичный API «Фильтр сайта» — как кейсы, но путь ровно /filtrsayta (бэк: https://backend.alazarstudio.ru/api/filtrsayta)
+// Публичный API «Фильтр сайта» — используем public endpoint
 export const publicFiltrsaytaAPI = {
   getAll: (params = {}) =>
-    api.get('/filtrsayta', { params }).then((response) => {
+    api.get('/filtrsayta/public', { params }).then((response) => {
       const data = response.data != null ? response.data : response;
       const records = Array.isArray(data) ? data
         : Array.isArray(data.records) ? data.records
