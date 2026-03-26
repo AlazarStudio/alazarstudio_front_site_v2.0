@@ -8,7 +8,7 @@ const SCATTER_VARIANT = "random";
 function Present_main_block({ children, ...props }) {
     return (
         <>
-            <div className={classes.present_block}>
+            <section className={classes.present_block} aria-labelledby="main-hero-title">
                 <div className={classes.present_block_center}>
                     <div className={classes.prespresent_block_left}>
                         <ParticleImageCanvas
@@ -23,13 +23,22 @@ function Present_main_block({ children, ...props }) {
                         />
                     </div>
                     <div className={classes.prespresent_block_right}>
-                        <div className={classes.prespresent_block_right_name}>ALAZAR STUDIO</div>
-                        <div className={classes.prespresent_block_right_description}>
-                            студия WEB-разработки и графического дизайна
-                        </div>
+                        <h1
+                            id="main-hero-title"
+                            className={classes.prespresent_block_right_name}
+                            aria-describedby="main-hero-description"
+                        >
+                            <span className={classes.prespresent_block_right_name_subtitle}>
+                                студия WEB-разработки и графического дизайна
+                            </span>
+                            ALAZAR STUDIO
+                        </h1>
+                        <p id="main-hero-description" className={classes.prespresent_block_right_description_secondary}>
+                            Комплексные цифровые решения под ключ: от идеи до готового продукта с последующей поддержкой
+                        </p>
                     </div>
                 </div>
-            </div>
+            </section>
         </>
     );
 }
