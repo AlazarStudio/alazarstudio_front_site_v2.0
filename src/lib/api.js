@@ -349,7 +349,7 @@ export const servicesAPI = {
 
 // Services API (public — для страницы «Услуги» на сайте)
 export const publicServicesAPI = {
-  getAll: (params) => api.get('/services', { params }),
+  getAll: (params) => api.get('/services/public', { params }),
   getByIdOrSlug: (idOrSlug) => api.get(`/services/${idOrSlug}`),
   createReview: (serviceId, data) => api.post(`/services/${serviceId}/reviews`, data),
 };
@@ -421,7 +421,7 @@ export const publicFooterAPI = {
 
 // Contacts API (public — для страницы контактов)
 export const publicContactsAPI = {
-  get: () => api.get('/contacts'),
+  get: () => api.get('/contacts/public'),
 };
 
 // Feedback API (форма обратной связи в футере)
