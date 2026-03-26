@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useLayoutEffect, useContext, useMemo } from 'react';
 import { Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   formatCaseDateRu,
   getCaseAdditionalImageUrls,
@@ -7,6 +8,7 @@ import {
   getCaseTaskHtml,
   getCaseViews,
   mapTeamItems,
+  transliterate,
 } from '@/components/Blocks/Cases/casesHelpers';
 import { ModalScrollContext } from '@/components/Standart/Modal/Modal.jsx';
 import ContactModal from './ContactModal';
@@ -75,6 +77,7 @@ function SocialButton({ icon: Icon, imageSrc, label, shareUrl, onClick, copyUrlB
 
 export default function CaseDetailsModal({ item, teamItems, cases = [], onSelectCase, autoOpenContactModal = false }) {
   if (!item) return null;
+  const location = useLocation();
   const source = item.sourceRecord || {};
   const task = getCaseTaskHtml(source);
   const solution = getCaseSolutionHtml(source);
@@ -120,6 +123,11 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
   const TRANSITION_COOLDOWN_MS = 350;
   const blockCount = additionalImages.length;
   const MAX_VISIBLE_AVATARS = 4;
+  const getMemberProfileUrl = (member) => {
+    const slug = transliterate(member?.name || '');
+    if (slug) return `/team/${slug}`;
+    return `/team/${member?.id || ''}`;
+  };
 
   useLayoutEffect(() => {
     const scrollRoot =
@@ -377,10 +385,12 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
             {members.length > 0 && (
               <div className={classes.heroTeamWrap} ref={isHeaderSticky ? developersDropdownRef : undefined}>
                 {members.length === 1 ? (
-                  <div className={classes.headerStickyTeamSingle}>
+                  <Link to={getMemberProfileUrl(members[0])} state={{ fromPath: location.pathname }} className={classes.teamMemberLink}>
+                    <div className={classes.headerStickyTeamSingle}>
                     <img src={members[0].image} alt={members[0].name} className={classes.headerStickyAvatar} />
                     <span className={classes.headerStickyTeamName}>{members[0].name}</span>
-                  </div>
+                    </div>
+                  </Link>
                 ) : (
                   <>
                     <button
@@ -408,13 +418,15 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
                     {developersDropdownOpen && isHeaderSticky && (
                       <div className={classes.heroTeamDropdown}>
                         {members.map((member) => (
-                          <div key={member.id} className={classes.heroTeamDropdownItem}>
+                          <Link to={getMemberProfileUrl(member)} state={{ fromPath: location.pathname }} key={member.id} className={classes.teamMemberLink}>
+                            <div className={classes.heroTeamDropdownItem}>
                             <img src={member.image} alt={member.name} className={classes.heroTeamDropdownAvatar} />
                             <div>
                               <div className={classes.heroTeamDropdownName}>{member.name}</div>
                               {member.role && <div className={classes.heroTeamDropdownRole}>{member.role}</div>}
                             </div>
-                          </div>
+                            </div>
+                          </Link>
                         ))}
                       </div>
                     )}
@@ -442,13 +454,15 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
           {members.length > 0 && (
             <div className={classes.heroTeamWrap} ref={isHeaderSticky ? undefined : developersDropdownRef}>
               {members.length === 1 ? (
-                <div className={classes.heroTeamSingle}>
+                <Link to={getMemberProfileUrl(members[0])} state={{ fromPath: location.pathname }} className={classes.teamMemberLink}>
+                  <div className={classes.heroTeamSingle}>
                   <img src={members[0].image} alt={members[0].name} className={classes.heroTeamAvatar} />
                   <div>
                     <div className={classes.heroTeamName}>{members[0].name}</div>
                     {members[0].role && <div className={classes.heroTeamRole}>{members[0].role}</div>}
                   </div>
-                </div>
+                  </div>
+                </Link>
               ) : (
                 <>
                   <button
@@ -476,13 +490,15 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
                   {developersDropdownOpen && !isHeaderSticky && (
                     <div className={classes.heroTeamDropdown}>
                       {members.map((member) => (
-                        <div key={member.id} className={classes.heroTeamDropdownItem}>
+                        <Link to={getMemberProfileUrl(member)} state={{ fromPath: location.pathname }} key={member.id} className={classes.teamMemberLink}>
+                          <div className={classes.heroTeamDropdownItem}>
                           <img src={member.image} alt={member.name} className={classes.heroTeamDropdownAvatar} />
                           <div>
                             <div className={classes.heroTeamDropdownName}>{member.name}</div>
                             {member.role && <div className={classes.heroTeamDropdownRole}>{member.role}</div>}
                           </div>
-                        </div>
+                          </div>
+                        </Link>
                       ))}
                     </div>
                   )}

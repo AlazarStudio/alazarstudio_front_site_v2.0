@@ -9,6 +9,7 @@ import Discuss from "../../Blocks/Discuss/Discuss";
 import { publicServicesAPI, publicTeamAPI } from "@/lib/api";
 import { useSeo } from "@/hooks/useSeo";
 import { SITE_BASE_URL, SITE_NAME } from "@/lib/seo";
+import { transliterate } from "@/components/Blocks/Cases/casesHelpers";
 
 function About({ children, ...props }) {
   const [services, setServices] = useState([]);
@@ -75,7 +76,7 @@ function About({ children, ...props }) {
               .filter((member) => member?.isPublished !== false && member?.id)
               .map((member) => (
                 <li key={member.id}>
-                  <a href={`/team/${member.id}`}>{member.fio || member.id}</a>
+                  <a href={`/team/${transliterate(member.fio || "") || member.id}`}>{member.fio || member.id}</a>
                 </li>
               ))}
           </ul>

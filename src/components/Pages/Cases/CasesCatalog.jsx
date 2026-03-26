@@ -475,6 +475,7 @@ function CasesCatalog({ children, ...props }) {
                                         <CaseCard
                                             key={index}
                                             {...item}
+                                            teamItems={teamFromApi}
                                             onClick={() => handleItemClick(item)}
                                         />
                                     ))}

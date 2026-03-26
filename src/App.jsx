@@ -32,6 +32,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contacts" element={<Contacts />} />
         <Route path="/team/:memberSlug" element={<Employee />} />
+        <Route path="/team/:memberSlug/:type/:url_text" element={<Employee />} />
       </Route>
 
       <Route path="/admin/login" element={<AdminLoginPage />} />

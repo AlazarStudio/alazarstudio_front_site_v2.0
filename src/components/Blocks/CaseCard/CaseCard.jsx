@@ -4,7 +4,7 @@ import { mapTeamItems } from '@/components/Blocks/Cases/casesHelpers';
 
 const MAX_VISIBLE_AVATARS = 4;
 
-function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price = 0, date, onClick, url_text, isStock, sourceRecord, teamItems = [] }) {
+function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price = 0, date, onClick, url_text, isStock, sourceRecord, teamItems = [], cardWidth }) {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -57,6 +57,11 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
         }
     };
 
+    const caseCardStyle = {
+        cursor: 'pointer',
+        ...(cardWidth ? { width: cardWidth } : {}),
+    };
+
     const stopPropagation = (e) => {
         e.stopPropagation();
     };
@@ -83,7 +88,7 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     onMouseLeave={handleMouseLeave}
                     onClick={handleClick}
                     data-cursor={type}
-                    style={{ cursor: 'pointer' }}
+                    style={caseCardStyle}
                     data-url-text={url_text}
                 >
                     {detailHref && (
@@ -165,7 +170,7 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     onMouseLeave={handleMouseLeave}
                     onClick={handleClick}
                     data-cursor={type}
-                    style={{ cursor: 'pointer' }}
+                    style={caseCardStyle}
                     data-url-text={url_text}
                 >
                     {detailHref && (
@@ -212,7 +217,7 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     onMouseLeave={handleMouseLeave}
                     onClick={handleClick}
                     data-cursor={type}
-                    style={{ cursor: 'pointer' }}
+                    style={caseCardStyle}
                     data-url-text={url_text}
                 >
                     {detailHref && (
@@ -261,7 +266,7 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     onMouseLeave={handleMouseLeave}
                     onClick={handleClick}
                     data-cursor={type}
-                    style={{ cursor: 'pointer' }}
+                    style={caseCardStyle}
                     data-url-text={url_text}
                 >
                     {detailHref && (

@@ -1,6 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { teamMembers } from "./teamMembers";
+import { transliterate } from "@/components/Blocks/Cases/casesHelpers";
 import classes from './Team_block.module.css';
 
 const BACKEND_BASE = import.meta.env.VITE_BACKEND_IMAGE_BASE || "https://backend.alazarstudio.ru";
@@ -62,8 +63,9 @@ function normalizeMember(apiMember) {
             : `${BACKEND_BASE}${rawAvatar.startsWith("/") ? "" : "/"}${rawAvatar}`
         : "";
 
+    const slugFromName = transliterate(apiMember.fio ?? "");
     return {
-        slug: apiMember.id,
+        slug: slugFromName || String(apiMember.id || ""),
         name: apiMember.fio ?? '',
         role: apiMember.dolzhnost ?? '',
         image,
@@ -96,6 +98,7 @@ function Team_block({ team = [] }) {
     }
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const socialIconByType = {
         instagram: "/instagram.png",
@@ -133,7 +136,9 @@ function Team_block({ team = [] }) {
     };
 
     const openMemberPage = (member) => {
-        navigate(`/team/${member.slug}`);
+        navigate(`/team/${member.slug}`, {
+            state: { fromPath: location.pathname },
+        });
     };
 
     const handleCardMetaClick = (event) => {

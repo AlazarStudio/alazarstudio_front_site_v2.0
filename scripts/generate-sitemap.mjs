@@ -155,6 +155,15 @@ function urlTextFromRecord(record, fallbackPrefix) {
   return `${fallbackPrefix}-${id || Date.now()}`;
 }
 
+function teamSlugFromRecord(record) {
+  const direct = safeText(record?.url_text || record?.slug);
+  if (direct) return direct;
+  const fio = extractText(parseMaybeJson(record?.fio || record?.name || record?.title));
+  const translit = transliterate(fio);
+  if (translit) return translit;
+  return safeText(record?.id || record?._id?.$oid || record?._id);
+}
+
 function createUrlEntry(pathname, options = {}) {
   const loc = new URL(pathname, SITE_BASE_URL).toString();
   return {
@@ -235,7 +244,7 @@ async function collectDynamicEntries(apiBase) {
   });
 
   team.forEach((record) => {
-    const memberSlug = safeText(record?.id || record?._id?.$oid || record?._id);
+    const memberSlug = teamSlugFromRecord(record);
     if (!memberSlug) return;
     dynamic.push(createUrlEntry(`/team/${memberSlug}`, {
       lastmod: resolveRecordDate(record),

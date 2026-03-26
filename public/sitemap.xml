@@ -2,19 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/about</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/cases</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -86,13 +86,13 @@
   </url>
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/contacts</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/news</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -104,55 +104,55 @@
   </url>
   <url>
     <loc>https://xn--80aaa1as7a.xn--p1ai/shop</loc>
-    <lastmod>2026-03-26T15:24:27.317Z</lastmod>
+    <lastmod>2026-03-26T16:13:14.063Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a03fcb6708f4f2ae97d5b3</loc>
-    <lastmod>2026-03-03T13:15:10.748Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a041726708f4f2ae97e0c3</loc>
-    <lastmod>2026-03-03T13:15:06.663Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a041a16708f4f2ae97e1ed</loc>
-    <lastmod>2026-03-03T13:15:02.875Z</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a6de6b5c96fcdaeb46c07b</loc>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/chagarova_amina</loc>
     <lastmod>2026-03-03T13:14:49.891Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a6def85c96fcdaeb46c07c</loc>
-    <lastmod>2026-03-03T13:15:36.803Z</lastmod>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/dzhatdoev_alim</loc>
+    <lastmod>2026-03-03T13:15:10.748Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a6df1b5c96fcdaeb46c07d</loc>
-    <lastmod>2026-03-03T13:16:11.235Z</lastmod>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/gochiyaev_ruslan</loc>
+    <lastmod>2026-03-03T13:15:06.663Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69a6df335c96fcdaeb46c07e</loc>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/kappushev_muhammad</loc>
+    <lastmod>2026-03-23T16:59:28.348Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/kappusheva_halimat</loc>
     <lastmod>2026-03-23T17:00:06.999Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://xn--80aaa1as7a.xn--p1ai/team/69b542a8ed34d80fa95a7207</loc>
-    <lastmod>2026-03-23T16:59:28.348Z</lastmod>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/kubanov_musa</loc>
+    <lastmod>2026-03-03T13:15:02.875Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/urtenov_azamat</loc>
+    <lastmod>2026-03-03T13:15:36.803Z</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--80aaa1as7a.xn--p1ai/team/vilovataya_viktoriya</loc>
+    <lastmod>2026-03-03T13:16:11.235Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

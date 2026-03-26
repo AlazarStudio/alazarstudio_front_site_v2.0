@@ -217,6 +217,12 @@
   white-space: nowrap;
 }
 
+.teamMemberLink {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
 .hero {
   padding: 30px 50px 20px;
   background: #ffffff;
