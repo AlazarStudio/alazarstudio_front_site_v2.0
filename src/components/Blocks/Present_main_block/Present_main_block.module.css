@@ -1,0 +1,90 @@
+.present_block {
+    width: 100%;
+    height: auto;
+    min-height: fit-content;
+    background-color: #000;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 120px;
+    padding-bottom: 80px;
+}
+
+.present_block_center {
+    width: 1400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    /* margin-top: -150px; */
+}
+
+.prespresent_block_left {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow: visible;
+}
+
+.presentParticle {
+    width: min(34vw, 460px);
+    aspect-ratio: 3599.16 / 3120.19;
+    height: auto;
+    display: block;
+    max-width: 100%;
+    flex: 0 0 auto;
+    /* Увеличиваем рабочую область для canvas, не меняя размер буквы */
+    padding: 38px;
+    box-sizing: content-box;
+}
+
+.prespresent_block_right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 560px;
+}
+
+.prespresent_block_right_name {
+    color: #fff;
+    font-family: Mulish;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.prespresent_block_right_description {
+    color: #fff;
+    font-family: Mulish;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+@media (max-width: 1024px) {
+    .present_block_center {
+        width: 100%;
+        padding: 0 20px;
+        margin-top: -80px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 28px;
+    }
+
+    .presentParticle {
+        width: min(64vw, 360px);
+        padding: 26px;
+    }
+
+    .prespresent_block_right_name {
+        font-size: 42px;
+    }
+
+    .prespresent_block_right_description {
+        font-size: 18px;
+    }
+}

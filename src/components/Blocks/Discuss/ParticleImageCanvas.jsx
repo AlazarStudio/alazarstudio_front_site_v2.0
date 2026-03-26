@@ -9,7 +9,7 @@ const MAX_REPEL_IMPULSE = 6;
 const RETURN_FORCE = 0.0012;
 const FRICTION = 0.974;
 const LUNAR_GRAVITY = 0;
-const MAX_SPEED = 10;
+const MAX_SPEED = 20;
 
 const LOGO_VIEWBOX = {
     width: 3599.16,
@@ -71,7 +71,17 @@ function drawLogo(context, width, height) {
     drawPolygon(context, PINK_POLYGON, "#e5097f", scaleX, scaleY, offsetX, offsetY);
 }
 
-function ParticleImageCanvas({ alt = "", className = "", style }) {
+function ParticleImageCanvas({
+    alt = "",
+    className = "",
+    style,
+    bleedMultiplier = 1,
+    bleedViewportRatio = 0.28,
+    constrainBleedByView = true,
+    assembleOnFirstVisible = false,
+    initialScatterStrength = 0.22,
+    initialScatterShape = "random",
+}) {
     const wrapperRef = useRef(null);
     const canvasRef = useRef(null);
 
@@ -88,9 +98,11 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
         /** Текущий bleed: координаты частиц сдвинуты на +bleed относительно обёртки */
         const bleedState = { px: 0 };
         const particles = [];
+        const assembleState = { active: !assembleOnFirstVisible, activated: !assembleOnFirstVisible };
         const sizeState = { width: 0, height: 0 };
         let animationFrameId = 0;
         let resizeObserver = null;
+        let visibilityObserver = null;
         let destroyed = false;
 
         const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
@@ -104,6 +116,14 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
             context.clearRect(0, 0, width, height);
 
             particles.forEach((particle) => {
+                if (!assembleState.active) {
+                    context.fillStyle = particle.color;
+                    context.beginPath();
+                    context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    context.fill();
+                    return;
+                }
+
                 if (!prefersReducedMotion && mouse.active) {
                     const dx = particle.x - mouse.x;
                     const dy = particle.y - mouse.y;
@@ -175,10 +195,19 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
 
             // «Bleed»: canvas больше видимого блока, буква строится на полном viewW×viewH — не мельчает.
             // Смещение визуально компенсируется position + отрицательные left/top.
-            const rawBleed = Math.ceil(REPEL_RADIUS + MAX_REPEL_IMPULSE + MAX_SPEED * 6 + 28);
+            const safeBleedMultiplier = Number.isFinite(bleedMultiplier) && bleedMultiplier > 0
+                ? bleedMultiplier
+                : 1;
+            const rawBleed = Math.ceil((REPEL_RADIUS + MAX_REPEL_IMPULSE + MAX_SPEED * 6 + 28) * safeBleedMultiplier);
             const maxBleedW = Math.max(0, Math.floor((viewW - 48) / 2));
             const maxBleedH = Math.max(0, Math.floor((viewH - 48) / 2));
-            const bleed = Math.min(rawBleed, maxBleedW, maxBleedH, Math.floor(Math.min(viewW, viewH) * 0.28));
+            const safeBleedViewportRatio = Number.isFinite(bleedViewportRatio) && bleedViewportRatio > 0
+                ? bleedViewportRatio
+                : 0.28;
+            const viewportBleedCap = Math.floor(Math.min(viewW, viewH) * safeBleedViewportRatio);
+            const bleed = constrainBleedByView
+                ? Math.min(rawBleed, maxBleedW, maxBleedH, viewportBleedCap)
+                : Math.min(rawBleed, viewportBleedCap);
             bleedState.px = bleed;
 
             const bufW = viewW + bleed * 2;
@@ -213,6 +242,7 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
             const dotSize = viewW < 520 ? 1.7 : 2;
 
             particles.length = 0;
+            const seedParticles = [];
 
             for (let y = 0; y < viewH; y += gap) {
                 for (let x = 0; x < viewW; x += gap) {
@@ -226,12 +256,13 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
                     const red = data[index];
                     const green = data[index + 1];
                     const blue = data[index + 2];
-
-                    particles.push({
-                        x: x + bleed,
-                        y: y + bleed,
-                        baseX: x + bleed,
-                        baseY: y + bleed,
+                    const baseX = x + bleed;
+                    const baseY = y + bleed;
+                    seedParticles.push({
+                        x: baseX,
+                        y: baseY,
+                        baseX,
+                        baseY,
                         vx: 0,
                         vy: 0,
                         density: 0.9 + Math.random() * 0.45,
@@ -241,6 +272,71 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
                     });
                 }
             }
+
+            if (!assembleState.activated) {
+                const scatterRadius = Math.min(viewW, viewH) * Math.max(0, initialScatterStrength);
+                const centerX = bleed + viewW / 2;
+                const centerY = bleed + viewH / 2;
+                const total = seedParticles.length || 1;
+                const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+                const shape = String(initialScatterShape || "random").toLowerCase();
+
+                seedParticles.forEach((particle, index) => {
+                    const t = (index + 0.5) / total;
+                    let x = particle.baseX;
+                    let y = particle.baseY;
+
+                    if (shape === "sphere") {
+                        const radius = Math.sqrt(t) * scatterRadius;
+                        const angle = index * goldenAngle;
+                        x = centerX + Math.cos(angle) * radius;
+                        y = centerY + Math.sin(angle) * radius;
+                    } else if (shape === "ring") {
+                        const angle = index * goldenAngle;
+                        const radius = scatterRadius;
+                        x = centerX + Math.cos(angle) * radius;
+                        y = centerY + Math.sin(angle) * radius;
+                    } else if (shape === "spiral") {
+                        const angle = index * 0.32;
+                        const radius = t * scatterRadius;
+                        x = centerX + Math.cos(angle) * radius;
+                        y = centerY + Math.sin(angle) * radius;
+                    } else if (shape === "grid") {
+                        const cols = Math.max(1, Math.round(Math.sqrt(total)));
+                        const rows = Math.max(1, Math.ceil(total / cols));
+                        const col = index % cols;
+                        const row = Math.floor(index / cols);
+                        const cellW = (scatterRadius * 2) / Math.max(1, cols - 1 || 1);
+                        const cellH = (scatterRadius * 2) / Math.max(1, rows - 1 || 1);
+                        x = centerX - scatterRadius + col * cellW;
+                        y = centerY - scatterRadius + row * cellH;
+                    } else if (shape === "line") {
+                        x = centerX - scatterRadius + t * (scatterRadius * 2);
+                        y = centerY;
+                    } else if (shape === "from-left") {
+                        const baseX = centerX - scatterRadius * 2.2;
+                        const baseY = centerY - scatterRadius + t * (scatterRadius * 2);
+                        const jitterX = (Math.random() - 0.2) * scatterRadius * 0.35;
+                        const jitterY = (Math.random() - 0.2) * scatterRadius * 0.45;
+                        const waveY = Math.sin(index * 0.22) * scatterRadius * 0.08;
+                        x = baseX + jitterX;
+                        y = baseY + jitterY + waveY;
+                    } else if (shape === "from-right") {
+                        x = centerX + scatterRadius * 2.2;
+                        y = centerY - scatterRadius + t * (scatterRadius * 2);
+                    } else {
+                        const scatterAngle = Math.random() * Math.PI;
+                        const scatterDistance = Math.random() * scatterRadius;
+                        x = particle.baseX + Math.cos(scatterAngle * 20) * scatterDistance;
+                        y = particle.baseY + Math.sin(scatterAngle * 50) * scatterDistance;
+                    }
+
+                    particle.x = x;
+                    particle.y = y;
+                });
+            }
+
+            particles.push(...seedParticles);
         };
 
         const handleMouseMove = (event) => {
@@ -263,6 +359,21 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
         });
         resizeObserver.observe(wrapper);
 
+        if (assembleOnFirstVisible && typeof IntersectionObserver !== "undefined") {
+            visibilityObserver = new IntersectionObserver(
+                (entries) => {
+                    const entry = entries[0];
+                    if (!entry?.isIntersecting) return;
+                    assembleState.active = true;
+                    assembleState.activated = true;
+                    visibilityObserver?.disconnect();
+                    visibilityObserver = null;
+                },
+                { threshold: 0.2 }
+            );
+            visibilityObserver.observe(wrapper);
+        }
+
         rebuildParticles();
         animationFrameId = window.requestAnimationFrame(drawParticles);
 
@@ -270,6 +381,7 @@ function ParticleImageCanvas({ alt = "", className = "", style }) {
             destroyed = true;
             window.cancelAnimationFrame(animationFrameId);
             resizeObserver?.disconnect();
+            visibilityObserver?.disconnect();
             wrapper.removeEventListener("mousemove", handleMouseMove);
             wrapper.removeEventListener("mouseleave", handleMouseLeave);
         };
