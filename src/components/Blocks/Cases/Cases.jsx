@@ -497,6 +497,7 @@ function Cases({ children, ...props }) {
                     Подборка кейсов, новостей, предложений магазина и акций
                 </h2>
                 <div className={classes.cases} ref={casesContainerRef}>
+                    <h2 className={classes.sectionHeading}>Кейсы, публикации и продукты студии</h2>
                     {/* Оригинальный фильтр */}
                     <div ref={filterRef} data-filter-container="true">
                         {renderFilter()}
