@@ -1,8 +1,9 @@
 ﻿import React from "react";
 import classes from './Work_block.module.css';
 import CenterBlock from "../../Standart/CenterBlock/CenterBlock";
+import Scalable_block from "../Scalable_block/Scalable_block";
 
-function Work_block({}) {
+function Work_block({ }) {
     const cards = [
         { imageSrc: "/list1.png", title: "Знакомство и разбор задачи" },
         { imageSrc: "/list2.png", title: "Анализ и предложение решения" },
@@ -21,34 +22,36 @@ function Work_block({}) {
         }
     };
 
-    return ( 
+    return (
         <>
-    
-        <CenterBlock>
-            <div className={classes.title}>
-                КАК МЫ РАБОТАЕМ
-            </div>
-            <div className={classes.block_row}>
-                {cards.map((card, index) => (
-                    <div className={classes.block} key={`${card.imageSrc}-${index}`}>
-                        <div
-                            className={classes.block_image}
-                            style={{ "--glass-mask-image": `url("${card.imageSrc}")` }}
-                        >
-                            <img
-                                className={classes.image}
-                                src={card.imageSrc}
-                                alt=""
-                                onLoad={handleImageLoad}
-                            />
+
+            <CenterBlock>
+                <div className={classes.title}>
+                    КАК МЫ РАБОТАЕМ
+                </div>
+
+                <div className={classes.block_row}>
+
+                    {cards.map((card, index) => (
+                        <div className={classes.block} key={`${card.imageSrc}-${index}`}>
+                            <div
+                                className={classes.block_image}
+                                style={{ "--glass-mask-image": `url("${card.imageSrc}")` }}
+                            >
+                                <img
+                                    className={classes.image}
+                                    src={card.imageSrc}
+                                    alt=""
+                                    onLoad={handleImageLoad}
+                                />
+                            </div>
+                            <div className={classes.subtitle}>{card.title}</div>
                         </div>
-                        <div className={classes.subtitle}>{card.title}</div>
-                    </div>
-                ))}
-            </div>
-        </CenterBlock>
+                    ))}
+                </div>
+            </CenterBlock>
         </>
-     );
+    );
 }
 
 export default Work_block;

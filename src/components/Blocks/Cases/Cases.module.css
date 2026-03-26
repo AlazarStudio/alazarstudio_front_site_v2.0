@@ -3,7 +3,7 @@
     justify-content: center;
     position: relative;
     z-index: 3;
-    /* padding-top: 120px; */
+    padding-top: 100px;
 }
 
 .filterContainer {
@@ -78,6 +78,7 @@
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .filterFixed .filterCategories {
@@ -116,6 +117,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
+    justify-content: center;
 }
 
 .filterTag {
