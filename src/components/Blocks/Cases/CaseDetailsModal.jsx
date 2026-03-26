@@ -319,14 +319,6 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
     card.style.setProperty('--move-y', '0px');
   };
 
-  // В консоль — теги у каждого кейса в списке слева
-  useEffect(() => {
-    if (orderedCases.length === 0) return;
-    orderedCases.forEach((c, i) => {
-      console.log(`Кейс ${i + 1} (${c.title}):`, c.tags || []);
-    });
-  }, [orderedCases]);
-
   // Сдвиг списка, чтобы выбранный был по центру (только при переключении внутри модалки)
   const [listTranslateY, setListTranslateY] = useState(0);
   useEffect(() => {

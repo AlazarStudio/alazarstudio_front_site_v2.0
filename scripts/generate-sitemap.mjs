@@ -9,7 +9,7 @@ const publicDir = path.join(projectRoot, "public");
 const configPath = path.join(publicDir, "config.json");
 const outputPath = path.join(publicDir, "sitemap.xml");
 
-const SITE_BASE_URL = "https://алазар.рф";
+const SITE_BASE_URL = "https://xn--80aaa1as7a.xn--p1ai";
 const DEFAULT_LASTMOD = new Date().toISOString();
 
 const STATIC_URLS = [
@@ -219,8 +219,6 @@ async function collectDynamicEntries(apiBase) {
     if (boolField(record, "dlya_magazina")) {
       dynamic.push(createUrlEntry(`/shop/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
       dynamic.push(createUrlEntry(`/shopitem/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.7" }));
-    } else {
-      dynamic.push(createUrlEntry(`/case/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
     }
   });
 
@@ -228,7 +226,6 @@ async function collectDynamicEntries(apiBase) {
     const urlText = urlTextFromRecord(record, "news");
     const lastmod = resolveRecordDate(record);
     dynamic.push(createUrlEntry(`/news/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
-    dynamic.push(createUrlEntry(`/new/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.7" }));
   });
 
   stocks.forEach((record) => {

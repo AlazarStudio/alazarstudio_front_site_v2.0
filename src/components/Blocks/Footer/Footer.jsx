@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import classes from "./Footer.module.css";
 
 const SOCIAL = [
-    { label: "Instagram", icon: "/instagram.png", href: "#" },
-    { label: "VK", icon: "/vk.png", href: "#" },
+    { label: "Instagram", icon: "/instagram.png" },
+    { label: "VK", icon: "/vk.png" },
 ];
 
 const LEGAL_LINE1 = [
@@ -33,14 +33,13 @@ function Footer() {
 
                         <nav className={classes.socialList} aria-label="Социальные сети">
                             {SOCIAL.map((social) => (
-                                <a
+                                <span
                                     key={social.label}
-                                    href={social.href}
                                     className={classes.socialCircle}
                                     aria-label={social.label}
                                 >
                                     <img src={social.icon} alt="" className={classes.socialIcon} aria-hidden="true" />
-                                </a>
+                                </span>
                             ))}
                         </nav>
                     </div>
@@ -77,17 +76,17 @@ function Footer() {
                     <div className={classes.legalWrap}>
                         <nav className={classes.legalPills} aria-label="Юридическая информация">
                             {LEGAL_LINE1.map((text, i) => (
-                                <a key={i} href="#" className={classes.legalPill}>
+                                <span key={i} className={classes.legalPill}>
                                     {text}
-                                </a>
+                                </span>
                             ))}
                         </nav>
                         {LEGAL_LINE2.length > 0 && (
                             <nav className={classes.legalPills} aria-label="Дополнительная юридическая информация">
                                 {LEGAL_LINE2.map((text, i) => (
-                                    <a key={i} href="#" className={classes.legalPill}>
+                                    <span key={i} className={classes.legalPill}>
                                         {text}
-                                    </a>
+                                    </span>
                                 ))}
                             </nav>
                         )}

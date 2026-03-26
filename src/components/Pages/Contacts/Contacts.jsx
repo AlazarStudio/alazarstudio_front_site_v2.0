@@ -387,7 +387,6 @@ function Contacts() {
                 if (cancelled) return;
                 const data = res.data;
                 setContactsData(data);
-                console.log("Contacts API data:", data);
             } catch {
                 if (!cancelled) {
                     setContactsData(null);

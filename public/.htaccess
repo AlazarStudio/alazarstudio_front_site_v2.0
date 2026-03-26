@@ -1,8 +1,12 @@
 RewriteEngine On
 
-# Редирект с alazarstudio.ru на алазар.рф (301, сохраняем путь и query)
+# Редирект с alazarstudio.ru на canonical-домен (301, сохраняем путь и query)
 RewriteCond %{HTTP_HOST} ^(www\.)?alazarstudio\.ru$ [NC]
-RewriteRule ^(.*)$ https://алазар.рф/$1 [R=301,L,QSA]
+RewriteRule ^(.*)$ https://xn--80aaa1as7a.xn--p1ai/$1 [R=301,L,QSA]
+
+# Legacy detail URL -> canonical detail URL
+RewriteRule ^case/(.+)$ /cases/$1 [R=301,L,QSA,NC]
+RewriteRule ^new/(.+)$ /news/$1 [R=301,L,QSA,NC]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

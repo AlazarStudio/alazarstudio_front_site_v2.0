@@ -154,6 +154,11 @@ function Main_Page({ children, ...props }) {
                     "@id": `${origin}/#website`,
                     url: pageUrl,
                     name: SITE_NAME,
+                    potentialAction: {
+                        "@type": "SearchAction",
+                        target: `${origin}/cases?search={search_term_string}`,
+                        "query-input": "required name=search_term_string",
+                    },
                     publisher: {
                         "@id": `${origin}/#organization`
                     }

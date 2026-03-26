@@ -1,4 +1,4 @@
-export const SITE_BASE_URL = "https://алазар.рф";
+export const SITE_BASE_URL = "https://xn--80aaa1as7a.xn--p1ai";
 export const SITE_NAME = "Alazar Studio";
 export const SITE_NAME_UPPER = "ALAZAR STUDIO";
 export const DEFAULT_OG_IMAGE_PATH = "/alazar-logo.png";

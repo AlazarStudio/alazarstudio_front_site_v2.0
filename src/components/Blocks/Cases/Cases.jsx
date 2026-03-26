@@ -14,6 +14,7 @@ import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/comp
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import NotFound from "@/app/NotFound";
 
 function Cases({ children, ...props }) {
     const { filterCategories, filterLoading } = useSiteFilterCategories();
@@ -330,11 +331,8 @@ function Cases({ children, ...props }) {
             if (!isCasesLoaded) return;
             const itemFromUrl = findItemByUrlText(routeUrlText);
             const normalizedItemType = normalizeEntityType(itemFromUrl?.type);
-            // Если url_text не найден (невалидный URL) — закрываем и возвращаем на главную
+            // Если url_text не найден (невалидный URL) — показываем 404 без silent redirect.
             if (!itemFromUrl || (normalizedRouteType && normalizedItemType !== normalizedRouteType)) {
-                setIsModalOpen(false);
-                setSelectedItem(null);
-                navigate("/", { replace: true });
                 return;
             }
 
@@ -400,7 +398,8 @@ function Cases({ children, ...props }) {
     );
     const shouldShowLoader = !isCasesLoaded || isLoading;
     const isDetailRoute = /^\/(case|new|banner|shopitem)\//.test(location.pathname);
-    const seoDetailItem = isDetailRoute ? selectedItem : null;
+    const routeDetailItem = isDetailRoute && routeUrlText ? findItemByUrlText(routeUrlText) : null;
+    const seoDetailItem = isDetailRoute ? (routeDetailItem || selectedItem) : null;
     const seoTitle = seoDetailItem
         ? withSiteName(`${seoDetailItem.title} — проект`)
         : "";
@@ -422,6 +421,7 @@ function Cases({ children, ...props }) {
         title: seoDetailItem?.title,
         fallbackDescription: seoDescription,
     });
+    const isInvalidDetailRoute = isDetailRoute && isCasesLoaded && !routeDetailItem;
 
     const schemaTypeByItem = (item) => {
         if (!item) return "WebPage";
@@ -455,6 +455,10 @@ function Cases({ children, ...props }) {
             : null,
         schemaId: "schema-home-detail-page",
     });
+
+    if (isInvalidDetailRoute) {
+        return <NotFound />;
+    }
 
     // Функция для рендеринга фильтра
     const renderFilter = (containerClass = classes.filterContainer) => (

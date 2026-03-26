@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import classes from './Shop.module.css';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
@@ -9,6 +10,7 @@ import { isCaseForShop, mapCaseRecordToShopCard } from '@/components/Blocks/Case
 import ShopDetailsModal from '@/components/Blocks/Cases/ShopDetailsModal';
 import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import NotFound from "@/app/NotFound";
 
 // Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
@@ -60,11 +62,12 @@ function Shop({ children, ...props }) {
         () => (routeUrlText ? shopData.find((item) => item.url_text === routeUrlText) || null : null),
         [routeUrlText, shopData]
     );
+    const seoItemTitle = extractTextFromJSX(seoItem?.title);
     const seoTitle = seoItem
-        ? withSiteName(`${extractTextFromJSX(seoItem.title)} — магазин`)
+        ? withSiteName(`${seoItemTitle} — цена и описание`)
         : `Магазин | ${SITE_NAME}`;
     const seoDescription = seoItem
-        ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
+        ? truncateText(seoItem.description || `${seoItemTitle}. Актуальная карточка товара и услуги Alazar Studio.`, 170)
         : "Магазин Alazar Studio: цифровые продукты, услуги и готовые решения для вашего проекта.";
     const seoImageMeta = resolveImageMeta({
         alt: seoItem?.imageAlt,
@@ -114,6 +117,7 @@ function Shop({ children, ...props }) {
             url: `${SITE_BASE_URL}/shop`,
             description: seoDescription,
         };
+    const isInvalidDetailRoute = Boolean(routeUrlText) && isShopLoaded && !seoItem;
 
     useSeo({
         title: seoTitle,
@@ -289,16 +293,15 @@ function Shop({ children, ...props }) {
         if (!isShopLoaded) return;
 
         const itemFromUrl = shopData.find((n) => n.url_text === routeUrlText);
-        if (!itemFromUrl) {
-            setIsModalOpen(false);
-            setSelectedItem(null);
-            navigate("/shop", { replace: true });
-            return;
-        }
+        if (!itemFromUrl) return;
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
     }, [routeUrlText, navigate, shopData]);
+
+    if (isInvalidDetailRoute) {
+        return <NotFound />;
+    }
 
     // Скролл к карточке товара при открытии по URL
     useEffect(() => {
@@ -367,14 +370,13 @@ function Shop({ children, ...props }) {
                 <header className={classes.blogTitle}>
                     <h1 id="shop-page-title" className={classes.blogTitle_text}>
                         Магазин
-
-                        <div className={classes.sideLight_right}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
-                        <div className={classes.sideLight_left}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
                     </h1>
+                    <div className={classes.sideLight_right} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
+                    <div className={classes.sideLight_left} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
                 </header>
 
                 <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Лента магазина">
@@ -428,11 +430,16 @@ function Shop({ children, ...props }) {
                 </div>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                {selectedItem && (
-                    <ShopDetailsModal item={selectedItem} />
-                )}
-            </Modal>
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                        {selectedItem && (
+                            <ShopDetailsModal item={selectedItem} />
+                        )}
+                    </Modal>,
+                    document.body
+                )
+                : null}
         </section>
     );
 }

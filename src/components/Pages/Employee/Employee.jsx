@@ -105,7 +105,6 @@ function Employee() {
                 if (cancelled) return;
                 const teamList = Array.isArray(teamRes.data?.team) ? teamRes.data.team : [];
                 setTeam(teamList);
-                console.log("Team data (from backend, as on About page):", teamList);
             } catch {
                 if (!cancelled) setTeam([]);
             }
@@ -245,6 +244,14 @@ function Employee() {
                             "@id": `${SITE_BASE_URL}/team/${memberSlug}#person`,
                         },
                     },
+                {
+                    "@type": "BreadcrumbList",
+                    itemListElement: [
+                        { "@type": "ListItem", position: 1, name: "Главная", item: `${SITE_BASE_URL}/` },
+                        { "@type": "ListItem", position: 2, name: "О нас", item: `${SITE_BASE_URL}/about` },
+                        { "@type": "ListItem", position: 3, name: member.name, item: `${SITE_BASE_URL}/team/${memberSlug}` },
+                    ],
+                },
                 ],
             }
             : {

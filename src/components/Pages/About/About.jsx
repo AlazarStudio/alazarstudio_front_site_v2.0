@@ -68,6 +68,19 @@ function About({ children, ...props }) {
       <Services_block services={services} />
       <Work_block/>
       <Team_block team={team} />
+      {Array.isArray(team) && team.length > 0 && (
+        <nav className={classes.visuallyHidden} aria-label="Профили команды Alazar Studio">
+          <ul>
+            {team
+              .filter((member) => member?.isPublished !== false && member?.id)
+              .map((member) => (
+                <li key={member.id}>
+                  <a href={`/team/${member.id}`}>{member.fio || member.id}</a>
+                </li>
+              ))}
+          </ul>
+        </nav>
+      )}
       <Discuss source="Страница «О нас»: обсудить проект" />
     </>
   );

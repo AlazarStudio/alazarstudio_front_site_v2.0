@@ -62,6 +62,15 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
     };
 
     const members = (type === 'case' || type === 'shop') ? mapTeamItems(teamItems || [], sourceRecord || {}) : [];
+    const detailHref = url_text
+        ? (
+            type === "case" ? `/cases/${url_text}` :
+            type === "new" ? `/news/${url_text}` :
+            type === "shop" ? `/shop/${url_text}` :
+            type === "banner" ? `/banner/${url_text}` :
+            ""
+        )
+        : "";
 
     return (
         <>
@@ -77,6 +86,19 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     style={{ cursor: 'pointer' }}
                     data-url-text={url_text}
                 >
+                    {detailHref && (
+                        <a
+                            href={detailHref}
+                            aria-label={`Открыть: ${title}`}
+                            onClick={(e) => {
+                                if (onClick) {
+                                    e.preventDefault();
+                                    onClick();
+                                }
+                            }}
+                            style={{ position: "absolute", inset: 0, zIndex: 2 }}
+                        />
+                    )}
                     {isHovered && (
                         <div
                             className={classes.case_glow}
@@ -146,6 +168,19 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     style={{ cursor: 'pointer' }}
                     data-url-text={url_text}
                 >
+                    {detailHref && (
+                        <a
+                            href={detailHref}
+                            aria-label={`Открыть: ${title}`}
+                            onClick={(e) => {
+                                if (onClick) {
+                                    e.preventDefault();
+                                    onClick();
+                                }
+                            }}
+                            style={{ position: "absolute", inset: 0, zIndex: 2 }}
+                        />
+                    )}
                     {isHovered && (
                         <div
                             className={classes.case_glow}
@@ -180,6 +215,19 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     style={{ cursor: 'pointer' }}
                     data-url-text={url_text}
                 >
+                    {detailHref && (
+                        <a
+                            href={detailHref}
+                            aria-label={`Открыть: ${title}`}
+                            onClick={(e) => {
+                                if (onClick) {
+                                    e.preventDefault();
+                                    onClick();
+                                }
+                            }}
+                            style={{ position: "absolute", inset: 0, zIndex: 2 }}
+                        />
+                    )}
                     {isHovered && (
                         <div
                             className={classes.case_glow}
@@ -216,6 +264,19 @@ function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price
                     style={{ cursor: 'pointer' }}
                     data-url-text={url_text}
                 >
+                    {detailHref && (
+                        <a
+                            href={detailHref}
+                            aria-label={`Открыть: ${title}`}
+                            onClick={(e) => {
+                                if (onClick) {
+                                    e.preventDefault();
+                                    onClick();
+                                }
+                            }}
+                            style={{ position: "absolute", inset: 0, zIndex: 2 }}
+                        />
+                    )}
                     {isHovered && (
                         <div
                             className={classes.case_glow_blue}

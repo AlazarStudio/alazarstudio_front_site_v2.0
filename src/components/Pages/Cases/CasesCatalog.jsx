@@ -11,6 +11,7 @@ import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
 import caseDetailsModalClasses from '@/components/Blocks/Cases/CaseDetailsModal.module.css';
 import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import NotFound from "@/app/NotFound";
 
 function extractTextFromJSX(element) {
     if (typeof element === 'string') {
@@ -74,11 +75,13 @@ function CasesCatalog({ children, ...props }) {
         () => (routeUrlText ? casesData.find((item) => item.url_text === routeUrlText) || null : null),
         [routeUrlText, casesData]
     );
+    const seoItemTitle = extractTextFromJSX(seoItem?.title);
+    const seoItemCategory = Array.isArray(seoItem?.tags) && seoItem.tags.length > 0 ? seoItem.tags[0] : "веб-разработке и дизайну";
     const seoTitle = seoItem
-        ? withSiteName(`${extractTextFromJSX(seoItem.title)} — кейс`)
+        ? withSiteName(`${seoItemTitle} — кейс по ${seoItemCategory}`)
         : `Кейсы | ${SITE_NAME}`;
     const seoDescription = seoItem
-        ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
+        ? truncateText(seoItem.description || `${seoItemTitle}. Реализованный проект Alazar Studio.`, 170)
         : "Кейсы Alazar Studio: реализованные проекты по веб-разработке, дизайну и цифровым продуктам.";
     const seoImageMeta = resolveImageMeta({
         alt: seoItem?.imageAlt,
@@ -128,6 +131,7 @@ function CasesCatalog({ children, ...props }) {
             url: `${SITE_BASE_URL}/cases`,
             description: seoDescription,
         };
+    const isInvalidDetailRoute = Boolean(routeUrlText) && isCasesLoaded && !seoItem;
 
     useSeo({
         title: seoTitle,
@@ -331,16 +335,15 @@ function CasesCatalog({ children, ...props }) {
         if (!isCasesLoaded) return;
 
         const itemFromUrl = casesData.find((n) => n.url_text === routeUrlText);
-        if (!itemFromUrl) {
-            setIsModalOpen(false);
-            setSelectedItem(null);
-            navigate("/cases", { replace: true });
-            return;
-        }
+        if (!itemFromUrl) return;
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
     }, [routeUrlText, navigate, casesData]);
+
+    if (isInvalidDetailRoute) {
+        return <NotFound />;
+    }
 
     useEffect(() => {
         if (!location.state?.openFirstCaseRequest || autoActionHandledRef.current || !isCasesLoaded) {
@@ -435,14 +438,13 @@ function CasesCatalog({ children, ...props }) {
                 <header className={classes.blogTitle}>
                     <h1 id="cases-page-title" className={classes.blogTitle_text}>
                         Кейсы
-
-                        <div className={classes.sideLight_right}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
-                        <div className={classes.sideLight_left}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
                     </h1>
+                    <div className={classes.sideLight_right} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
+                    <div className={classes.sideLight_left} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
                 </header>
 
                 <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Каталог кейсов">

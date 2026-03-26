@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useSeo } from '@/hooks/useSeo'
 import { SITE_NAME } from '@/lib/seo'
+import classes from './NotFound.module.css'
 
 export default function NotFound() {
   useSeo({
@@ -15,30 +16,23 @@ export default function NotFound() {
   })
 
   return (
-    <main
-      style={{
-        padding: '2rem',
-        textAlign: 'center',
-        minHeight: '60vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <h1 style={{ fontSize: '4rem', margin: 0 }}>404</h1>
-      <p style={{ fontSize: '1.25rem', color: '#64748b' }}>
-        Страница не найдена
-      </p>
-      <p>
-        <Link to="/" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-          На главную
-        </Link>
-        {' · '}
-        <Link to="/admin" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-          В админ-панель
-        </Link>
-      </p>
+    <main className={classes.root}>
+      <section className={classes.card}>
+        <div className={classes.code}>404</div>
+        <h1 className={classes.title}>Страница не найдена</h1>
+        <p className={classes.text}>
+          Похоже, ссылка устарела или была введена с ошибкой.
+          Вернитесь на главную или перейдите в раздел с кейсами.
+        </p>
+        <div className={classes.actions}>
+          <Link to="/" className={classes.btnPrimary}>
+            На главную
+          </Link>
+          <Link to="/cases" className={classes.btnSecondary}>
+            Смотреть кейсы
+          </Link>
+        </div>
+      </section>
     </main>
   )
 }

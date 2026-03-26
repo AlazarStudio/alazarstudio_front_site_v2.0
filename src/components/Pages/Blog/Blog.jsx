@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import classes from './Blog.module.css';
 import { IconButton, Tooltip } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
@@ -11,6 +12,7 @@ import NewsDetailsModal from '../../Blocks/Cases/NewsDetailsModal';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import NotFound from "@/app/NotFound";
 
 function Blog({ children, ...props }) {
     const { filterCategories } = useSiteFilterCategories();
@@ -42,7 +44,7 @@ function Blog({ children, ...props }) {
     );
 
     const seoTitle = seoItem
-        ? withSiteName(`${seoItem.title} — блог`)
+        ? withSiteName(`${seoItem.title} — статья Alazar Studio`)
         : `Блог | ${SITE_NAME}`;
     const seoDescription = seoItem
         ? truncateText(seoItem.description || seoItem.title, 170)
@@ -103,6 +105,7 @@ function Blog({ children, ...props }) {
             url: `${SITE_BASE_URL}/news`,
             description: seoDescription,
         };
+    const isInvalidDetailRoute = Boolean(routeUrlText) && isNewsLoaded && !seoItem;
 
     useSeo({
         title: seoTitle,
@@ -285,16 +288,15 @@ function Blog({ children, ...props }) {
         if (!isNewsLoaded) return;
 
         const itemFromUrl = newsData.find(n => n.url_text === routeUrlText);
-        if (!itemFromUrl) {
-            setIsModalOpen(false);
-            setSelectedItem(null);
-            navigate("/news", { replace: true });
-            return;
-        }
+        if (!itemFromUrl) return;
 
         setSelectedItem(itemFromUrl);
         setIsModalOpen(true);
     }, [routeUrlText, navigate, newsData, isNewsLoaded]);
+
+    if (isInvalidDetailRoute) {
+        return <NotFound />;
+    }
 
     // Скролл к карточке новости при открытии по URL
     useEffect(() => {
@@ -325,14 +327,13 @@ function Blog({ children, ...props }) {
                 <header className={classes.blogTitle}>
                     <h1 id="blog-page-title" className={classes.blogTitle_text}>
                         Блог
-
-                        <div className={classes.sideLight_right}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
-                        <div className={classes.sideLight_left}>
-                            <img src="/sideLight.png" alt="" />
-                        </div>
                     </h1>
+                    <div className={classes.sideLight_right} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
+                    <div className={classes.sideLight_left} aria-hidden="true">
+                        <img src="/sideLight.png" alt="" aria-hidden="true" />
+                    </div>
                 </header>
 
                 <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Лента новостей">
@@ -412,11 +413,16 @@ function Blog({ children, ...props }) {
                 </div>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                {selectedItem && (
-                    <NewsDetailsModal item={selectedItem} />
-                )}
-            </Modal>
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                        {selectedItem && (
+                            <NewsDetailsModal item={selectedItem} />
+                        )}
+                    </Modal>,
+                    document.body
+                )
+                : null}
         </section>
     );
 }
