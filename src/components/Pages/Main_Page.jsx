@@ -6,7 +6,7 @@ import Discuss from "../Blocks/Discuss/Discuss";
 import VideoStart from "../Blocks/VideoStart/VideoStart";
 import SiteDevGate from '@/components/SiteDevGate'
 import { useSeo } from "@/hooks/useSeo";
-import { ORG_CONTACT, SITE_BASE_URL, SITE_NAME } from "@/lib/seo";
+import { buildSchemaImageObject, ORG_CONTACT, resolveImageMeta, SITE_BASE_URL, SITE_NAME } from "@/lib/seo";
 import { publicCasesAPI, publicNewsAPI, publicStocksAPI } from "@/lib/api";
 import { isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from "@/components/Blocks/Cases/casesHelpers";
 import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from "@/components/Blocks/Cases/newsHelpers";
@@ -96,7 +96,23 @@ function Main_Page({ children, ...props }) {
                     url: itemUrl,
                 };
                 if (item.description) itemNode.description = String(item.description);
-                if (item.imgSrc) itemNode.image = String(item.imgSrc);
+                if (item.imgSrc) {
+                    const imageMeta = resolveImageMeta({
+                        alt: item.imageAlt,
+                        caption: item.imageCaption,
+                        description: item.imageDescription,
+                        title: item.title,
+                        fallbackDescription: item.description,
+                    });
+                    itemNode.image = buildSchemaImageObject({
+                        url: item.imgSrc,
+                        alt: imageMeta.alt,
+                        caption: imageMeta.caption,
+                        description: imageMeta.description,
+                        title: item.title,
+                        fallbackDescription: item.description,
+                    }) || String(item.imgSrc);
+                }
                 return {
                     "@type": "ListItem",
                     position: index + 1,
@@ -239,6 +255,7 @@ function Main_Page({ children, ...props }) {
         robots: "index,follow",
         ogType: "website",
         ogImage: "/alazar-logo.png",
+        ogImageAlt: "Логотип Alazar Studio",
         schema: homeSchema,
         schemaId: "schema-main-page",
     });

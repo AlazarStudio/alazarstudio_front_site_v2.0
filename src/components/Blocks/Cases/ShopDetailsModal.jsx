@@ -144,7 +144,7 @@ function renderBlock(block, index) {
     if (values.length === 0) return null;
     return (
       <section key={key} className={classes.blockCard}>
-        {heading ? <h4 className={classes.blockTitle}>{heading}</h4> : null}
+        {heading ? <h3 className={classes.blockTitle}>{heading}</h3> : null}
         <div className={classes.contentTags}>
           {values.map((value, valueIndex) => (
             <span key={`${key}-tag-${valueIndex}`} className={classes.contentTag}>{text(value)}</span>
@@ -159,7 +159,7 @@ function renderBlock(block, index) {
     if (items.length === 0) return null;
     return (
       <section key={key} className={classes.blockCard}>
-        {heading ? <h4 className={classes.blockTitle}>{heading}</h4> : null}
+        {heading ? <h3 className={classes.blockTitle}>{heading}</h3> : null}
         <ul className={classes.list}>
           {items.map((itemValue, itemIndex) => (
             <li key={`${key}-li-${itemIndex}`}>{text(itemValue?.text || itemValue)}</li>
@@ -171,7 +171,7 @@ function renderBlock(block, index) {
 
   return (
     <section key={key} className={classes.blockCard}>
-      {heading ? <h4 className={classes.blockTitle}>{heading}</h4> : null}
+      {heading ? <h3 className={classes.blockTitle}>{heading}</h3> : null}
       {contentHtml ? (
         <div className={classes.richText} dangerouslySetInnerHTML={{ __html: contentHtml }} />
       ) : (
@@ -269,7 +269,7 @@ export default function ShopDetailsModal({ item, teamItems }) {
 
   return (
     <div className={classes.modalInner}>
-      <h2 className={classes.title}>{title}</h2>
+      <h1 className={classes.title}>{title}</h1>
       {dateLabel ? <div className={classes.subtitle}>Добавлено: {dateLabel}</div> : null}
 
       <div className={classes.top}>
@@ -296,7 +296,7 @@ export default function ShopDetailsModal({ item, teamItems }) {
                     aria-label={`Слайд ${index + 1}`}
                     ref={(el) => { thumbButtonRefs.current[index] = el; }}
                   >
-                    <img src={url} alt="" className={classes.thumbImage} />
+                    <img src={url} alt={`${title} — миниатюра ${index + 1}`} className={classes.thumbImage} />
                   </button>
                 ))}
               </div>
@@ -328,7 +328,7 @@ export default function ShopDetailsModal({ item, teamItems }) {
 
       {(shopDescriptionHtml || shopDescriptionText) ? (
         <section className={classes.contentSection}>
-          <h3 className={classes.sectionTitle}>Описание</h3>
+          <h2 className={classes.sectionTitle}>Описание</h2>
           {shopDescriptionHtml ? (
             <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: shopDescriptionHtml }} />
           ) : (

@@ -43,8 +43,8 @@ function InstallButton({ children, ...props }) {
   }
 
   return (
-    <button onClick={handleInstallClick} style={buttonStyle}>
-      <img src="/download.png" alt="" style={buttonStyleImg} />
+    <button type="button" onClick={handleInstallClick} style={buttonStyle} aria-label="Установить приложение">
+      <img src="/download.png" alt="Установить приложение" style={buttonStyleImg} />
     </button>
   );
 }

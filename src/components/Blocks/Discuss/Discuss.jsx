@@ -148,10 +148,10 @@ function Discuss({ formOnly = false, source = "Главная: обсудить 
       className={`${classes.discuss_form} ${formOnly ? classes.discuss_formOnly : ""}`}
     >
       <form onSubmit={handleSubmit} noValidate>
-        <label className={classes.formTitle}>
+        <h2 className={classes.formTitle}>
           {FORM_COPY.title}
           <span> {FORM_COPY.titleAccent}</span>
-        </label>
+        </h2>
 
         {submitSuccess ? (
           <p className={`${classes.formAlert} ${classes.formAlertSuccess}`} role="status">
@@ -227,7 +227,7 @@ function Discuss({ formOnly = false, source = "Главная: обсудить 
           {submitting ? FORM_COPY.submitting : FORM_COPY.submit}
         </button>
       </form>
-      <img src="/formBG.png" alt="" className={classes.formBG} />
+      <img src="/formBG.png" alt="" aria-hidden="true" className={classes.formBG} />
     </div>
   );
 
@@ -236,7 +236,7 @@ function Discuss({ formOnly = false, source = "Главная: обсудить 
   }
 
   return (
-    <div className={classes.discussContainer}>
+    <section className={classes.discussContainer} aria-label="Форма обсуждения проекта">
       <div className={"centerBlock"}>
         <div className={classes.discuss}>
           {formBlock}
@@ -252,7 +252,7 @@ function Discuss({ formOnly = false, source = "Главная: обсудить 
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

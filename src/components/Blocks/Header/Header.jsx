@@ -149,6 +149,9 @@ function Header() {
 
     return (
         <header className={`${classes.header} ${(hasBackground || mobileMenuOpen) ? classes.header_withBackground : ""}`}>
+            <a href="#main-content" className={classes.skipLink}>
+                Перейти к основному контенту
+            </a>
             <div className={classes.header_main}>
                 <div className={classes.widthlogo}>
                     <Link to="/" className={classes.logoLink} onClick={closeMobileMenu}>
@@ -224,9 +227,10 @@ function Header() {
                 </button>
             </div>
 
-            <div
+            <aside
                 id="mobile-header-menu"
                 className={`${classes.mobileMenu} ${mobileMenuOpen ? classes.mobileMenuOpen : ""}`}
+                aria-label="Мобильное меню"
             >
                 <nav className={classes.mobileNav} aria-label="Мобильная навигация">
                     {navItems.map((item) => (
@@ -256,7 +260,7 @@ function Header() {
                         Оставить заявку
                     </button>
                 </div>
-            </div>
+            </aside>
 
             {typeof document !== "undefined"
                 ? createPortal(

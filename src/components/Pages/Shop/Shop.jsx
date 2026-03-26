@@ -8,7 +8,7 @@ import { publicCasesAPI } from '@/lib/api';
 import { isCaseForShop, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
 import ShopDetailsModal from '@/components/Blocks/Cases/ShopDetailsModal';
 import { useSeo } from "@/hooks/useSeo";
-import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 // Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
@@ -66,6 +66,21 @@ function Shop({ children, ...props }) {
     const seoDescription = seoItem
         ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
         : "Магазин Alazar Studio: цифровые продукты, услуги и готовые решения для вашего проекта.";
+    const seoImageMeta = resolveImageMeta({
+        alt: seoItem?.imageAlt,
+        caption: seoItem?.imageCaption,
+        description: seoItem?.imageDescription,
+        title: extractTextFromJSX(seoItem?.title),
+        fallbackDescription: seoDescription,
+    });
+    const seoImageObject = buildSchemaImageObject({
+        url: seoItem?.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+        alt: seoImageMeta.alt,
+        caption: seoImageMeta.caption,
+        description: seoImageMeta.description,
+        title: extractTextFromJSX(seoItem?.title),
+        fallbackDescription: seoDescription,
+    });
     const seoSchema = seoItem
         ? {
             "@context": "https://schema.org",
@@ -75,7 +90,7 @@ function Shop({ children, ...props }) {
                     "@id": `${SITE_BASE_URL}/shop/${seoItem.url_text}#product`,
                     name: extractTextFromJSX(seoItem.title),
                     description: seoDescription,
-                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    image: seoImageObject || (seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`),
                     url: `${SITE_BASE_URL}/shop/${seoItem.url_text}`,
                     brand: {
                         "@type": "Brand",
@@ -106,6 +121,7 @@ function Shop({ children, ...props }) {
         pathname: routeUrlText ? `/shop/${routeUrlText}` : "/shop",
         ogType: "website",
         ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        ogImageAlt: seoImageMeta.alt,
         schema: seoSchema,
         schemaId: "schema-shop-page",
     });
@@ -345,11 +361,11 @@ function Shop({ children, ...props }) {
     };
 
     return (
-        <div className={classes.blogContainer}>
+        <section className={classes.blogContainer} aria-labelledby="shop-page-title">
             <div className={classes.blogContent}>
                 {/* Заголовок */}
-                <div className={classes.blogTitle}>
-                    <div className={classes.blogTitle_text}>
+                <header className={classes.blogTitle}>
+                    <h1 id="shop-page-title" className={classes.blogTitle_text}>
                         Магазин
 
                         <div className={classes.sideLight_right}>
@@ -358,10 +374,10 @@ function Shop({ children, ...props }) {
                         <div className={classes.sideLight_left}>
                             <img src="/sideLight.png" alt="" />
                         </div>
-                    </div>
-                </div>
+                    </h1>
+                </header>
 
-                <div className={classes.blogContent_info} ref={casesContainerRef}>
+                <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Лента магазина">
                     <div className={classes.filterBarRow}>
                         <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
                             {renderFilter()}
@@ -404,7 +420,7 @@ function Shop({ children, ...props }) {
                             )}
                         </>
                     )}
-                </div>
+                </section>
 
                 {/* Фиксированный фильтр внизу экрана */}
                 <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
@@ -417,7 +433,7 @@ function Shop({ children, ...props }) {
                     <ShopDetailsModal item={selectedItem} />
                 )}
             </Modal>
-        </div>
+        </section>
     );
 }
 

@@ -62,6 +62,7 @@ function About({ children, ...props }) {
 
   return (
     <>
+      <h1 className={classes.visuallyHidden}>О нас — Alazar Studio</h1>
       <Present_block />
       <Scalable_block/>
       <Services_block services={services} />

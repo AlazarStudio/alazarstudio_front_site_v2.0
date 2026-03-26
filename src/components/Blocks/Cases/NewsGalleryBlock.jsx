@@ -8,8 +8,18 @@ import 'swiper/css/navigation';
 import { getImageUrl } from '@/lib/api';
 import styles from './NewsGalleryBlock.module.css';
 
-export default function NewsGalleryBlock({ images = [], className = '' }) {
-  const photos = (Array.isArray(images) ? images : []).filter(Boolean).map((url) => ({ src: getImageUrl(url) }));
+export default function NewsGalleryBlock({ images = [], className = '', imageAltBase = 'Изображение галереи' }) {
+  const photos = (Array.isArray(images) ? images : [])
+    .map((image, index) => {
+      const rawUrl = typeof image === 'string' ? image : image?.url || image?.src || image?.value || '';
+      if (!rawUrl) return null;
+      const customAlt = typeof image === 'object' ? image?.alt || image?.description || image?.caption || image?.label : '';
+      return {
+        src: getImageUrl(rawUrl),
+        alt: String(customAlt || `${imageAltBase} ${index + 1}`).trim(),
+      };
+    })
+    .filter(Boolean);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [portalTarget, setPortalTarget] = useState(null);
@@ -89,7 +99,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
           onMouseMove={handleGalleryImageMove}
           onMouseLeave={handleGalleryImageLeave}
         >
-          <img src={photos[0]?.src} alt="" />
+          <img src={photos[0]?.src} alt={photos[0]?.alt || `${imageAltBase} 1`} />
         </div>
       );
     }
@@ -97,10 +107,10 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
       return (
         <>
           <div className={styles.galleryHalf} onClick={() => openModal(0)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-            <img src={photos[0]?.src} alt="" />
+            <img src={photos[0]?.src} alt={photos[0]?.alt || `${imageAltBase} 1`} />
           </div>
           <div className={styles.galleryHalf} onClick={() => openModal(1)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-            <img src={photos[1]?.src} alt="" />
+            <img src={photos[1]?.src} alt={photos[1]?.alt || `${imageAltBase} 2`} />
           </div>
         </>
       );
@@ -109,14 +119,14 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
       return (
         <>
           <div className={styles.galleryThirdLeft} onClick={() => openModal(0)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-            <img src={photos[0]?.src} alt="" />
+              <img src={photos[0]?.src} alt={photos[0]?.alt || `${imageAltBase} 1`} />
           </div>
           <div className={styles.galleryThirdRight}>
             <div className={styles.galleryThirdRightItem} onClick={() => openModal(1)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-              <img src={photos[1]?.src} alt="" />
+              <img src={photos[1]?.src} alt={photos[1]?.alt || `${imageAltBase} 2`} />
             </div>
             <div className={styles.galleryThirdRightItem} onClick={() => openModal(2)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-              <img src={photos[2]?.src} alt="" />
+              <img src={photos[2]?.src} alt={photos[2]?.alt || `${imageAltBase} 3`} />
             </div>
           </div>
         </>
@@ -125,7 +135,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
     return (
       <>
         <div className={styles.galleryMain} onClick={() => openModal(0)} onMouseMove={handleGalleryImageMove} onMouseLeave={handleGalleryImageLeave}>
-          <img src={photos[0]?.src} alt="" />
+          <img src={photos[0]?.src} alt={photos[0]?.alt || `${imageAltBase} 1`} />
         </div>
         <div className={styles.galleryGrid}>
           <div className={styles.galleryGridRow}>
@@ -139,7 +149,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
                   onMouseMove={handleGalleryImageMove}
                   onMouseLeave={handleGalleryImageLeave}
                 >
-                  <img src={photo.src} alt="" />
+                  <img src={photo.src} alt={photo.alt || `${imageAltBase} ${photoIndex + 1}`} />
                 </div>
               );
             })}
@@ -156,7 +166,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
                   onMouseMove={handleGalleryImageMove}
                   onMouseLeave={handleGalleryImageLeave}
                 >
-                  <img src={photo.src} alt="" />
+                  <img src={photo.src} alt={photo.alt || `${imageAltBase} ${photoIndex + 1}`} />
                   {isLast ? (
                     <div
                       className={styles.moreButton}
@@ -222,7 +232,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
                         {photos.map((photo, index) => (
                           <SwiperSlide key={index}>
                             <div className={styles.galleryModalSlide}>
-                              <img src={photo.src} alt="" />
+                              <img src={photo.src} alt={photo.alt || `${imageAltBase} ${index + 1}`} />
                             </div>
                           </SwiperSlide>
                         ))}
@@ -239,7 +249,7 @@ export default function NewsGalleryBlock({ images = [], className = '' }) {
                             swiperRef.current?.swiper?.slideToLoop(index);
                           }}
                         >
-                          <img src={photo.src} alt="" />
+                          <img src={photo.src} alt={photo.alt || `${imageAltBase} ${index + 1}`} />
                         </div>
                       ))}
                     </div>

@@ -10,7 +10,7 @@ import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCa
 import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
 import caseDetailsModalClasses from '@/components/Blocks/Cases/CaseDetailsModal.module.css';
 import { useSeo } from "@/hooks/useSeo";
-import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function extractTextFromJSX(element) {
     if (typeof element === 'string') {
@@ -80,6 +80,21 @@ function CasesCatalog({ children, ...props }) {
     const seoDescription = seoItem
         ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
         : "Кейсы Alazar Studio: реализованные проекты по веб-разработке, дизайну и цифровым продуктам.";
+    const seoImageMeta = resolveImageMeta({
+        alt: seoItem?.imageAlt,
+        caption: seoItem?.imageCaption,
+        description: seoItem?.imageDescription,
+        title: extractTextFromJSX(seoItem?.title),
+        fallbackDescription: seoDescription,
+    });
+    const seoImageObject = buildSchemaImageObject({
+        url: seoItem?.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+        alt: seoImageMeta.alt,
+        caption: seoImageMeta.caption,
+        description: seoImageMeta.description,
+        title: extractTextFromJSX(seoItem?.title),
+        fallbackDescription: seoDescription,
+    });
     const seoSchema = seoItem
         ? {
             "@context": "https://schema.org",
@@ -89,7 +104,7 @@ function CasesCatalog({ children, ...props }) {
                     "@id": `${SITE_BASE_URL}/cases/${seoItem.url_text}#work`,
                     name: extractTextFromJSX(seoItem.title),
                     description: seoDescription,
-                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    image: seoImageObject || (seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`),
                     url: `${SITE_BASE_URL}/cases/${seoItem.url_text}`,
                     creator: {
                         "@type": "Organization",
@@ -120,6 +135,7 @@ function CasesCatalog({ children, ...props }) {
         pathname: routeUrlText ? `/cases/${routeUrlText}` : "/cases",
         ogType: "website",
         ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        ogImageAlt: seoImageMeta.alt,
         schema: seoSchema,
         schemaId: "schema-cases-page",
     });
@@ -414,10 +430,10 @@ function CasesCatalog({ children, ...props }) {
     };
 
     return (
-        <div className={classes.blogContainer}>
+        <section className={classes.blogContainer} aria-labelledby="cases-page-title">
             <div className={classes.blogContent}>
-                <div className={classes.blogTitle}>
-                    <div className={classes.blogTitle_text}>
+                <header className={classes.blogTitle}>
+                    <h1 id="cases-page-title" className={classes.blogTitle_text}>
                         Кейсы
 
                         <div className={classes.sideLight_right}>
@@ -426,10 +442,10 @@ function CasesCatalog({ children, ...props }) {
                         <div className={classes.sideLight_left}>
                             <img src="/sideLight.png" alt="" />
                         </div>
-                    </div>
-                </div>
+                    </h1>
+                </header>
 
-                <div className={classes.blogContent_info} ref={casesContainerRef}>
+                <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Каталог кейсов">
                     <div className={classes.filterBarRow}>
                         <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
                             {renderFilter()}
@@ -470,7 +486,7 @@ function CasesCatalog({ children, ...props }) {
                             )}
                         </>
                     )}
-                </div>
+                </section>
 
                 <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
                     {renderFilter(classes.filterContainerFixed)}
@@ -493,7 +509,7 @@ function CasesCatalog({ children, ...props }) {
                     document.body
                 )
                 : null}
-        </div>
+        </section>
     );
 }
 

@@ -12,6 +12,22 @@
     transition: background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out;
 }
 
+.skipLink {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #fff;
+    color: #000;
+    z-index: 5100;
+    transition: top 0.2s ease;
+}
+
+.skipLink:focus {
+    top: 8px;
+}
+
 .header_main {
     display: flex;
     justify-content: space-between;

@@ -12,8 +12,7 @@ function Present_block({ children, ...props }) {
                         <div className={classes.present_block_left_text_second}>графический дизайн</div>
 
                         <div className={classes.present_block_left_text_min}>
-                            Комплексные цифровые решения
-                            под ключ: от идеи до готового продукта с последующей поддержкой
+                            Комплексные цифровые решения: от идеи до запуска
                         </div>
                     </div>
                     <div className={classes.present_block_right}>

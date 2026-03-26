@@ -145,6 +145,16 @@ function resolveShopCardDescription(record) {
   return extractPlainText(resolveField(record, 'reshenie'));
 }
 
+function buildImageMeta(title, description) {
+  const safeTitle = extractPlainText(title) || 'Изображение';
+  const safeDescription = extractPlainText(description);
+  return {
+    imageAlt: safeTitle,
+    imageCaption: safeDescription || safeTitle,
+    imageDescription: safeDescription || safeTitle,
+  };
+}
+
 export function extractRecordTags(record, resolveTagLabelById) {
   const tagKeyPattern = /(tag|tegi|metk|filter|fil[_-]?tr|filtr|kategori|category)/i;
   const tagLabelPattern = /(тег|метк|фильтр|tag|filter|category|катег)/i;
@@ -264,6 +274,8 @@ export function mapCaseRecordToCard(record, resolveTagLabelById) {
 
   const logoSrc = resolveLogoImage(record || {});
   const previewSrc = resolvePreviewImage(record || {});
+  const description = resolveDescription(record || {});
+  const imageMeta = buildImageMeta(title, description);
   return {
     id,
     sourceRecord: record,
@@ -271,7 +283,8 @@ export function mapCaseRecordToCard(record, resolveTagLabelById) {
     imgSrc: previewSrc || logoSrc,
     logoSrc,
     title,
-    description: resolveDescription(record || {}),
+    description,
+    ...imageMeta,
     tags,
     date: normalizeCaseDate(record?.created_at || record?.createdAt),
     url_text: transliterate(title) || `case-${id}`,
@@ -284,10 +297,13 @@ export function isCaseForShop(record) {
 
 export function mapCaseRecordToShopCard(record, resolveTagLabelById) {
   const base = mapCaseRecordToCard(record, resolveTagLabelById);
+  const description = resolveShopCardDescription(record || {});
+  const imageMeta = buildImageMeta(base.title, description);
   return {
     ...base,
     type: 'shop',
-    description: resolveShopCardDescription(record || {}),
+    description,
+    ...imageMeta,
     price: getShopPrice(record),
   };
 }

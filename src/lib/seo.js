@@ -36,3 +36,27 @@ export function withSiteName(title) {
   return cleanTitle ? `${cleanTitle} | ${SITE_NAME}` : SITE_NAME;
 }
 
+export function resolveImageMeta({ alt, caption, description, title, fallbackDescription }) {
+  const normalizedAlt = sanitizeText(alt) || sanitizeText(title) || sanitizeText(fallbackDescription);
+  const normalizedCaption = sanitizeText(caption) || sanitizeText(title) || normalizedAlt;
+  const normalizedDescription = sanitizeText(description) || sanitizeText(fallbackDescription) || normalizedCaption;
+  return {
+    alt: normalizedAlt,
+    caption: normalizedCaption,
+    description: normalizedDescription,
+  };
+}
+
+export function buildSchemaImageObject({ url, alt, caption, description, title, fallbackDescription }) {
+  const absoluteUrl = toAbsoluteUrl(url);
+  if (!absoluteUrl) return null;
+  const meta = resolveImageMeta({ alt, caption, description, title, fallbackDescription });
+  return {
+    "@type": "ImageObject",
+    url: absoluteUrl,
+    name: meta.alt || undefined,
+    caption: meta.caption || undefined,
+    description: meta.description || undefined,
+  };
+}
+

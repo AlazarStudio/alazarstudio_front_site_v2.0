@@ -94,6 +94,16 @@ function resolveDate(record) {
   return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
 }
 
+function buildImageMeta(title, description) {
+  const safeTitle = extractPlainText(title) || 'Изображение';
+  const safeDescription = extractPlainText(description);
+  return {
+    imageAlt: safeTitle,
+    imageCaption: safeDescription || safeTitle,
+    imageDescription: safeDescription || safeTitle,
+  };
+}
+
 export function getNewsAdditionalBlocks(record) {
   const additionalRaw = resolveField(record, 'additionalBlocks');
   return asArray(additionalRaw)
@@ -117,6 +127,8 @@ export function mapNewsRecordToCard(record) {
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
   const tags = extractRecordTags(record || {});
   const isStock = resolveIsStock(record || {});
+  const description = resolveDescription(record || {});
+  const imageMeta = buildImageMeta(title, description);
   return {
     id,
     sourceRecord: record,
@@ -124,7 +136,8 @@ export function mapNewsRecordToCard(record) {
     isStock,
     imgSrc: resolvePreviewImage(record || {}),
     title,
-    description: resolveDescription(record || {}),
+    description,
+    ...imageMeta,
     tags: tags.length > 0 ? tags : ['Новости'],
     date: resolveDate(record || {}),
     url_text: transliterate(title) || `news-${id}`,
@@ -161,13 +174,16 @@ export function mapStockRecordToCard(record) {
   const title = resolveTitle(record || {});
   const id = String(record?.id || record?._id?.$oid || record?._id || title);
   const tags = extractRecordTags(record || {});
+  const description = resolveDescription(record || {});
+  const imageMeta = buildImageMeta(title, description);
   return {
     id,
     sourceRecord: record,
     type: 'banner',
     imgSrc: resolvePreviewImage(record || {}),
     title,
-    description: resolveDescription(record || {}),
+    description,
+    ...imageMeta,
     tags: tags.length > 0 ? tags : ['Акция'],
     date: resolveStockDate(record || {}),
     url_text: transliterate(title) || `stock-${id}`,

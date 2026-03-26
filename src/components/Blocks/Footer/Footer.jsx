@@ -31,7 +31,7 @@ function Footer() {
                             ALAZAR STUDIO
                         </Link>
 
-                        <div className={classes.socialList}>
+                        <nav className={classes.socialList} aria-label="Социальные сети">
                             {SOCIAL.map((social) => (
                                 <a
                                     key={social.label}
@@ -42,12 +42,12 @@ function Footer() {
                                     <img src={social.icon} alt="" className={classes.socialIcon} aria-hidden="true" />
                                 </a>
                             ))}
-                        </div>
+                        </nav>
                     </div>
 
-                    <div className={classes.contactSide}>
+                    <address className={classes.contactSide}>
                         <div className={classes.officeCol}>
-                            <div className={classes.officeTitle}>{OFFICE_REGION}</div>
+                            <p className={classes.officeTitle}>{OFFICE_REGION}</p>
                             <a
                                 href={OFFICE_MAP_URL}
                                 target="_blank"
@@ -56,23 +56,17 @@ function Footer() {
                             >
                                 {OFFICE_ADDRESS}
                             </a>
-                            {/* <a href="tel:+79283995384" className={classes.officePhone}>
-                                +7 928 399-53-84
-                            </a> */}
                         </div>
 
                         <div className={classes.leftCol}>
                             <a href="mailto:info@alazarstudio.ru" className={classes.email}>
                                 info@alazarstudio.ru
                             </a>
-                            {/* <a href="mailto:info@alazarstudio.com" className={classes.email}>
-                                info@alazarstudio.com
-                            </a> */}
                             <a href="tel:+79283995384" className={classes.officePhone}>
                                 +7 928 399-53-84
                             </a>
                         </div>
-                    </div>
+                    </address>
                 </div>
             </div>
 
@@ -81,21 +75,21 @@ function Footer() {
             <div className={classes.section}>
                 <div className={classes.bottomRow}>
                     <div className={classes.legalWrap}>
-                        <div className={classes.legalPills}>
+                        <nav className={classes.legalPills} aria-label="Юридическая информация">
                             {LEGAL_LINE1.map((text, i) => (
                                 <a key={i} href="#" className={classes.legalPill}>
                                     {text}
                                 </a>
                             ))}
-                        </div>
+                        </nav>
                         {LEGAL_LINE2.length > 0 && (
-                            <div className={classes.legalPills}>
+                            <nav className={classes.legalPills} aria-label="Дополнительная юридическая информация">
                                 {LEGAL_LINE2.map((text, i) => (
                                     <a key={i} href="#" className={classes.legalPill}>
                                         {text}
                                     </a>
                                 ))}
-                            </div>
+                            </nav>
                         )}
                     </div>
                 </div>

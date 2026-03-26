@@ -259,6 +259,9 @@ function Employee() {
 
     return (
         <>
+            <h1 className={classes.visuallyHidden}>
+                {member ? `${member.name} — ${member.role || "сотрудник"} ${SITE_NAME}` : "Сотрудник команды"}
+            </h1>
             <Present_block2>
                 {!member ? (
                     <div className={classes.notFound}>Сотрудник не найден</div>

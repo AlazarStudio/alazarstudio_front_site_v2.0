@@ -83,7 +83,9 @@ function Empty({ children, ...props }) {
         <>
             <CustomCursor />
             <Header/>
-            <Outlet />
+            <main id="main-content">
+                <Outlet />
+            </main>
             <Footer/>
             {isPageTransitionLoading && (
                 <div className={classes.pageLoaderOverlay} aria-hidden="true">

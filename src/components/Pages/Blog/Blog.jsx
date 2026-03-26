@@ -10,7 +10,7 @@ import { mapNewsRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
 import NewsDetailsModal from '../../Blocks/Cases/NewsDetailsModal';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import { useSeo } from "@/hooks/useSeo";
-import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function Blog({ children, ...props }) {
     const { filterCategories } = useSiteFilterCategories();
@@ -47,6 +47,21 @@ function Blog({ children, ...props }) {
     const seoDescription = seoItem
         ? truncateText(seoItem.description || seoItem.title, 170)
         : "Новости, статьи и материалы Alazar Studio о веб-разработке, дизайне и цифровых проектах.";
+    const seoImageMeta = resolveImageMeta({
+        alt: seoItem?.imageAlt,
+        caption: seoItem?.imageCaption,
+        description: seoItem?.imageDescription,
+        title: seoItem?.title,
+        fallbackDescription: seoDescription,
+    });
+    const seoImageObject = buildSchemaImageObject({
+        url: seoItem?.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+        alt: seoImageMeta.alt,
+        caption: seoImageMeta.caption,
+        description: seoImageMeta.description,
+        title: seoItem?.title,
+        fallbackDescription: seoDescription,
+    });
     const seoSchema = seoItem
         ? {
             "@context": "https://schema.org",
@@ -56,7 +71,7 @@ function Blog({ children, ...props }) {
                     "@id": `${SITE_BASE_URL}/news/${seoItem.url_text}#article`,
                     headline: seoItem.title,
                     description: seoDescription,
-                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    image: seoImageObject || (seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`),
                     mainEntityOfPage: `${SITE_BASE_URL}/news/${seoItem.url_text}`,
                     author: {
                         "@type": "Organization",
@@ -95,6 +110,7 @@ function Blog({ children, ...props }) {
         pathname: routeUrlText ? `/news/${routeUrlText}` : "/news",
         ogType: seoItem ? "article" : "website",
         ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        ogImageAlt: seoImageMeta.alt,
         schema: seoSchema,
         schemaId: "schema-blog-page",
     });
@@ -303,11 +319,11 @@ function Blog({ children, ...props }) {
     }, [selectedItem]);
 
     return (
-        <div className={classes.blogContainer}>
+        <section className={classes.blogContainer} aria-labelledby="blog-page-title">
             <div className={classes.blogContent}>
                 {/* Заголовок */}
-                <div className={classes.blogTitle}>
-                    <div className={classes.blogTitle_text}>
+                <header className={classes.blogTitle}>
+                    <h1 id="blog-page-title" className={classes.blogTitle_text}>
                         Блог
 
                         <div className={classes.sideLight_right}>
@@ -316,10 +332,10 @@ function Blog({ children, ...props }) {
                         <div className={classes.sideLight_left}>
                             <img src="/sideLight.png" alt="" />
                         </div>
-                    </div>
-                </div>
+                    </h1>
+                </header>
 
-                <div className={classes.blogContent_info} ref={casesContainerRef}>
+                <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Лента новостей">
                     <div className={classes.filterBarRow}>
                         <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
                             {renderFilter()}
@@ -388,7 +404,7 @@ function Blog({ children, ...props }) {
                             )}
                         </>
                     )}
-                </div>
+                </section>
 
                 {/* Фиксированный фильтр внизу экрана */}
                 <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
@@ -401,7 +417,7 @@ function Blog({ children, ...props }) {
                     <NewsDetailsModal item={selectedItem} />
                 )}
             </Modal>
-        </div>
+        </section>
     );
 }
 

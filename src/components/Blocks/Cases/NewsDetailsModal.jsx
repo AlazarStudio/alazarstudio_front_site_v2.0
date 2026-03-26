@@ -41,7 +41,7 @@ function text(value) {
   return '';
 }
 
-function renderBlock(block, index) {
+function renderBlock(block, index, pageTitle) {
   const type = String(block?.type || '').toLowerCase();
   const data = parseMaybeJson(block?.data) || {};
   const label = typeof block?.label === 'string' ? block.label.trim() : '';
@@ -60,7 +60,7 @@ function renderBlock(block, index) {
   if (type === 'text' || type === 'quote') {
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <div className={type === 'quote' ? classes.quote : classes.richText} dangerouslySetInnerHTML={{ __html: html(data) || '<p>—</p>' }} />
       </section>
     );
@@ -71,7 +71,7 @@ function renderBlock(block, index) {
     if (!url) return null;
     return (
       <section key={key} className={classes.imageSection}>
-        <img src={getImageUrl(url)} alt={label || 'Изображение'} className={classes.image} />
+        <img src={getImageUrl(url)} alt={label || pageTitle || 'Изображение материала'} className={classes.image} />
       </section>
     );
   }
@@ -81,8 +81,8 @@ function renderBlock(block, index) {
     if (images.length === 0) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
-        <NewsGalleryBlock images={images} />
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
+        <NewsGalleryBlock images={images} imageAltBase={label || pageTitle || 'Изображение галереи'} />
       </section>
     );
   }
@@ -94,7 +94,7 @@ function renderBlock(block, index) {
     const embedUrl = youtubeMatch ? `https://www.youtube.com/embed/${youtubeMatch[1]}` : '';
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         {embedUrl ? (
           <div className={classes.videoWrap}>
             <iframe src={embedUrl} title="Видео" allowFullScreen />
@@ -111,7 +111,7 @@ function renderBlock(block, index) {
     if (!url) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <audio className={classes.media} src={url} controls />
       </section>
     );
@@ -123,7 +123,7 @@ function renderBlock(block, index) {
     const ListTag = data?.ordered ? 'ol' : 'ul';
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <ListTag className={classes.list}>
           {items.map((item, itemIndex) => (
             <li key={`${key}-item-${itemIndex}`}>{text(item?.text || item)}</li>
@@ -139,7 +139,7 @@ function renderBlock(block, index) {
     if (headers.length === 0 && rows.length === 0) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <div className={classes.tableWrap}>
           <table className={classes.table}>
             {headers.length > 0 ? (
@@ -167,7 +167,7 @@ function renderBlock(block, index) {
     if (items.length === 0) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <div className={classes.accordion}>
           {items.map((item, itemIndex) => (
             <details key={`${key}-acc-${itemIndex}`} className={classes.accordionItem}>
@@ -185,11 +185,11 @@ function renderBlock(block, index) {
     if (tabs.length === 0) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <div className={classes.tabs}>
           {tabs.map((tab, tabIndex) => (
             <article key={`${key}-tab-${tabIndex}`} className={classes.tabItem}>
-              <h4>{text(tab?.label || tab?.title || `Раздел ${tabIndex + 1}`)}</h4>
+              <h3>{text(tab?.label || tab?.title || `Раздел ${tabIndex + 1}`)}</h3>
               <div className={classes.richText} dangerouslySetInnerHTML={{ __html: html(tab?.content || tab?.text) || '<p>—</p>' }} />
             </article>
           ))}
@@ -227,7 +227,7 @@ function renderBlock(block, index) {
     if (values.length === 0) return null;
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <div className={classes.tags}>
           {values.map((value, valueIndex) => (
             <span key={`${key}-tag-${valueIndex}`} className={classes.tag}>{text(value)}</span>
@@ -241,7 +241,7 @@ function renderBlock(block, index) {
   if (primitiveValue) {
     return (
       <section key={key} className={classes.section}>
-        {label ? <h3 className={classes.blockTitle}>{label}</h3> : null}
+        {label ? <h2 className={classes.blockTitle}>{label}</h2> : null}
         <p className={classes.paragraph}>{primitiveValue}</p>
       </section>
     );
@@ -268,7 +268,7 @@ export default function NewsDetailsModal({ item }) {
 
       <div className={classes.content}>
         {blocks.length > 0
-          ? blocks.map((block, index) => renderBlock(block, index))
+          ? blocks.map((block, index) => renderBlock(block, index, title))
           : (description ? <p className={classes.paragraph}>{description}</p> : <p className={classes.paragraph}>Контент новости пуст.</p>)}
       </div>
     </div>

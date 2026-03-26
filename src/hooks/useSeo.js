@@ -51,6 +51,7 @@ export function useSeo({
   robots = "index,follow",
   ogType = "website",
   ogImage,
+  ogImageAlt,
   schema,
   schemaId = "schema-page",
 }) {
@@ -61,6 +62,7 @@ export function useSeo({
     const normalizedDescription = truncateText(description, 180);
     const canonical = buildCanonical(pathname);
     const absoluteOgImage = toAbsoluteUrl(ogImage || DEFAULT_OG_IMAGE_PATH);
+    const normalizedOgImageAlt = sanitizeText(ogImageAlt || normalizedTitle || normalizedDescription);
 
     document.title = normalizedTitle;
     upsertMetaByName("description", normalizedDescription);
@@ -75,6 +77,7 @@ export function useSeo({
     upsertMetaByProperty("og:description", normalizedDescription);
     if (absoluteOgImage) {
       upsertMetaByProperty("og:image", absoluteOgImage);
+      upsertMetaByProperty("og:image:alt", normalizedOgImageAlt);
     }
 
     if (schema) {
@@ -94,6 +97,6 @@ export function useSeo({
       const existingScript = document.getElementById(schemaId);
       if (existingScript) existingScript.remove();
     };
-  }, [enabled, title, description, pathname, robots, ogType, ogImage, schema, schemaId]);
+  }, [enabled, title, description, pathname, robots, ogType, ogImage, ogImageAlt, schema, schemaId]);
 }
 

@@ -186,6 +186,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
 }
 
 .case_bottom_desc {
@@ -521,6 +522,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
 }
 
 .new_container_desc {

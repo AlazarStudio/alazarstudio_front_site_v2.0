@@ -363,7 +363,7 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
                 >
                   <span className={classes.casesFixedThumb}>
                     {c.imgSrc ? (
-                      <img src={c.imgSrc} alt="" />
+                      <img src={c.imgSrc} alt={c.imageAlt || c.title || 'Превью кейса'} />
                     ) : (
                       <span className={classes.casesFixedPlaceholder} />
                     )}
@@ -379,7 +379,7 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
       <div className={`${classes.headerStickyWrap} ${isHeaderSticky ? classes.headerStickyWrap_visible : ''}`}>
         <div className={`${classes.headerSticky} ${isHeaderSticky ? classes.headerSticky_visible : ''}`}>
           <div className={classes.headerStickyLeft}>
-            <h2 className={classes.headerStickyTitle}>{caseTitle}</h2>
+            <div className={classes.headerStickyTitle}>{caseTitle}</div>
           </div>
           <div className={classes.headerStickyRight}>
             {members.length > 0 && (
@@ -439,7 +439,7 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
 
       <div className={classes.hero}>
         <div className={classes.heroLeft}>
-          <h2 className={classes.caseTitle}>{caseTitle}</h2>
+          <h1 className={classes.caseTitle}>{caseTitle}</h1>
           <div className={classes.metaLeft}>
             {/* <span>{views}</span> */}
             {/* <Eye size={16} /> */}
@@ -514,11 +514,11 @@ export default function CaseDetailsModal({ item, teamItems, cases = [], onSelect
       <div className={classes.darkSection}>
         <div className={classes.twoCols}>
           <section>
-            <h3 className={classes.sectionTitle}>ЗАДАЧА</h3>
+            <h2 className={classes.sectionTitle}>ЗАДАЧА</h2>
             <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: task || '<p>—</p>' }} />
           </section>
           <section>
-            <h3 className={`${classes.sectionTitle} ${classes.pink}`}>РЕШЕНИЕ</h3>
+            <h2 className={`${classes.sectionTitle} ${classes.pink}`}>РЕШЕНИЕ</h2>
             <div className={classes.sectionText} dangerouslySetInnerHTML={{ __html: solution || '<p>—</p>' }} />
           </section>
         </div>

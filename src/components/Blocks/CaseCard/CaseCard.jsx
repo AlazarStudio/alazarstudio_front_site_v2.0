@@ -4,7 +4,7 @@ import { mapTeamItems } from '@/components/Blocks/Cases/casesHelpers';
 
 const MAX_VISIBLE_AVATARS = 4;
 
-function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date, onClick, url_text, isStock, sourceRecord, teamItems = [] }) {
+function CaseCard({ imgSrc, imageAlt, title, description, tags = [], type, price = 0, date, onClick, url_text, isStock, sourceRecord, teamItems = [] }) {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
@@ -89,7 +89,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                     <div className={classes.case_img}>
                         <img
                             src={imgSrc}
-                            alt=""
+                            alt={imageAlt || title || 'Изображение карточки'}
                             style={{
                                 transform: isHovered
                                     ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
@@ -120,7 +120,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                         )}
                     </div>
                     <div className={classes.case_bottom}>
-                        <div className={classes.case_bottom_title}>{title}</div>
+                        <h2 className={classes.case_bottom_title}>{title}</h2>
                         {tags.length > 0 && (
                             <div className={classes.case_bottom_tags}>
                                 {tags.map((tag, index) => (
@@ -161,7 +161,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                             <div className={classes.new_container_dot}></div>
                             <div className={classes.new_container_date}>{formatDate(date)}</div>
                         </div>
-                        <div className={classes.new_container_title}>{title}</div>
+                        <h2 className={classes.new_container_title}>{title}</h2>
                         <div className={classes.new_container_desc}>{description}</div>
                         <button type="button" className={classes.new_container_readMore}>Читать далее</button>
                     </div>
@@ -197,7 +197,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                                 {isStock ? 'Акция' : 'Новости'}
                             </div>
                         </div>
-                        <div className={classes.new_container_title}>{title}</div>
+                        <h2 className={classes.new_container_title}>{title}</h2>
                         <div className={classes.new_container_desc}>{description}</div>
                         <button type="button" className={classes.new_container_readMore}>Читать далее</button>
                     </div>
@@ -228,7 +228,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                     <div className={classes.case_img}>
                         <img
                             src={imgSrc}
-                            alt=""
+                            alt={imageAlt || title || 'Изображение карточки'}
                             style={{
                                 transform: isHovered
                                     ? `scale(1.1) translate(${imageOffset.x}px, ${imageOffset.y}px)`
@@ -259,7 +259,7 @@ function CaseCard({ imgSrc, title, description, tags = [], type, price = 0, date
                         )}
                     </div>
                     <div className={classes.case_bottom}>
-                        <div className={`${classes.case_bottom_title} ${classes.single_line}`}>{title}</div>
+                        <h2 className={`${classes.case_bottom_title} ${classes.single_line}`}>{title}</h2>
                         <div className={classes.case_bottom_tail}>
                             {tags.length > 0 && (
                                 <div className={classes.case_bottom_tags}>

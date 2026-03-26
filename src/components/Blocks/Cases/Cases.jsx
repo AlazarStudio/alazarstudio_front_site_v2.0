@@ -13,7 +13,7 @@ import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCa
 import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
 import { useSeo } from "@/hooks/useSeo";
-import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
+import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function Cases({ children, ...props }) {
     const { filterCategories, filterLoading } = useSiteFilterCategories();
@@ -407,6 +407,21 @@ function Cases({ children, ...props }) {
     const seoDescription = seoDetailItem
         ? truncateText(seoDetailItem.description || seoDetailItem.title, 170)
         : "";
+    const seoImageMeta = resolveImageMeta({
+        alt: seoDetailItem?.imageAlt,
+        caption: seoDetailItem?.imageCaption,
+        description: seoDetailItem?.imageDescription,
+        title: seoDetailItem?.title,
+        fallbackDescription: seoDescription,
+    });
+    const seoImageObject = buildSchemaImageObject({
+        url: seoDetailItem?.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+        alt: seoImageMeta.alt,
+        caption: seoImageMeta.caption,
+        description: seoImageMeta.description,
+        title: seoDetailItem?.title,
+        fallbackDescription: seoDescription,
+    });
 
     const schemaTypeByItem = (item) => {
         if (!item) return "WebPage";
@@ -423,6 +438,7 @@ function Cases({ children, ...props }) {
         pathname: location.pathname,
         ogType: seoDetailItem?.type === "new" || seoDetailItem?.type === "banner" ? "article" : "website",
         ogImage: seoDetailItem?.imgSrc || "/alazar-logo.png",
+        ogImageAlt: seoImageMeta.alt,
         schema: seoDetailItem
             ? {
                 "@context": "https://schema.org",
@@ -430,7 +446,7 @@ function Cases({ children, ...props }) {
                 name: seoDetailItem.title,
                 description: seoDescription,
                 url: `${SITE_BASE_URL}${location.pathname}`,
-                image: seoDetailItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                image: seoImageObject || (seoDetailItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`),
                 publisher: {
                     "@type": "Organization",
                     name: SITE_NAME,
@@ -476,7 +492,10 @@ function Cases({ children, ...props }) {
 
     return (
         <>
-        <div className={classes.casesContainer}>
+        <section className={classes.casesContainer} aria-labelledby="home-cases-section-title">
+                <h2 id="home-cases-section-title" className={classes.visuallyHidden}>
+                    Подборка кейсов, новостей, предложений магазина и акций
+                </h2>
                 <div className={classes.cases} ref={casesContainerRef}>
                     {/* Оригинальный фильтр */}
                     <div ref={filterRef} data-filter-container="true">
@@ -498,7 +517,7 @@ function Cases({ children, ...props }) {
                         <>
                             {rows.length > 0 ? (
                                 rows.map((row, rowIndex) => (
-                                    <div key={rowIndex} className={classes.casesRow}>
+                                    <section key={rowIndex} className={classes.casesRow} aria-label={`Ряд карточек ${rowIndex + 1}`}>
                                         {row.map((caseData, index) => (
                                             <CaseCard 
                                                 key={`${rowIndex}-${index}`} 
@@ -507,7 +526,7 @@ function Cases({ children, ...props }) {
                                                 onClick={() => handleItemClick(caseData)}
                                             />
                                         ))}
-                                    </div>
+                                    </section>
                                 ))
                             ) : (
                                 <div className={classes.noResults}>
@@ -525,7 +544,7 @@ function Cases({ children, ...props }) {
             </div>
             {/* )} */}
 
-        </div>
+        </section>
 
             {/* Модальное окно */}
             {typeof document !== 'undefined'
