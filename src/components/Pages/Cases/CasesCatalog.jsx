@@ -9,6 +9,8 @@ import { publicCasesAPI, publicDynamicPageRecordsAPI, publicTeamAPI } from '@/li
 import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard } from '@/components/Blocks/Cases/casesHelpers';
 import CaseDetailsModal from '@/components/Blocks/Cases/CaseDetailsModal';
 import caseDetailsModalClasses from '@/components/Blocks/Cases/CaseDetailsModal.module.css';
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function extractTextFromJSX(element) {
     if (typeof element === 'string') {
@@ -68,6 +70,59 @@ function CasesCatalog({ children, ...props }) {
         [casesFromApi, resolveRelatedTagLabel]
     );
     const shouldShowLoader = !isCasesLoaded || isLoading;
+    const seoItem = useMemo(
+        () => (routeUrlText ? casesData.find((item) => item.url_text === routeUrlText) || null : null),
+        [routeUrlText, casesData]
+    );
+    const seoTitle = seoItem
+        ? withSiteName(`${extractTextFromJSX(seoItem.title)} — кейс`)
+        : `Кейсы | ${SITE_NAME}`;
+    const seoDescription = seoItem
+        ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
+        : "Кейсы Alazar Studio: реализованные проекты по веб-разработке, дизайну и цифровым продуктам.";
+    const seoSchema = seoItem
+        ? {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "CreativeWork",
+                    "@id": `${SITE_BASE_URL}/cases/${seoItem.url_text}#work`,
+                    name: extractTextFromJSX(seoItem.title),
+                    description: seoDescription,
+                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    url: `${SITE_BASE_URL}/cases/${seoItem.url_text}`,
+                    creator: {
+                        "@type": "Organization",
+                        name: SITE_NAME,
+                    },
+                },
+                {
+                    "@type": "BreadcrumbList",
+                    itemListElement: [
+                        { "@type": "ListItem", position: 1, name: "Главная", item: `${SITE_BASE_URL}/` },
+                        { "@type": "ListItem", position: 2, name: "Кейсы", item: `${SITE_BASE_URL}/cases` },
+                        { "@type": "ListItem", position: 3, name: extractTextFromJSX(seoItem.title), item: `${SITE_BASE_URL}/cases/${seoItem.url_text}` },
+                    ],
+                },
+            ],
+        }
+        : {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Кейсы",
+            url: `${SITE_BASE_URL}/cases`,
+            description: seoDescription,
+        };
+
+    useSeo({
+        title: seoTitle,
+        description: seoDescription,
+        pathname: routeUrlText ? `/cases/${routeUrlText}` : "/cases",
+        ogType: "website",
+        ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        schema: seoSchema,
+        schemaId: "schema-cases-page",
+    });
 
     useEffect(() => {
         let cancelled = false;

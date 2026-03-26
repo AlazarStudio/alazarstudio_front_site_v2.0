@@ -9,6 +9,8 @@ import { publicNewsAPI } from '@/lib/api';
 import { mapNewsRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
 import NewsDetailsModal from '../../Blocks/Cases/NewsDetailsModal';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function Blog({ children, ...props }) {
     const { filterCategories } = useSiteFilterCategories();
@@ -34,6 +36,68 @@ function Blog({ children, ...props }) {
         [newsFromApi]
     );
     const shouldShowLoader = !isNewsLoaded || isLoading;
+    const seoItem = useMemo(
+        () => (routeUrlText ? newsData.find((item) => item.url_text === routeUrlText) || null : null),
+        [routeUrlText, newsData]
+    );
+
+    const seoTitle = seoItem
+        ? withSiteName(`${seoItem.title} — блог`)
+        : `Блог | ${SITE_NAME}`;
+    const seoDescription = seoItem
+        ? truncateText(seoItem.description || seoItem.title, 170)
+        : "Новости, статьи и материалы Alazar Studio о веб-разработке, дизайне и цифровых проектах.";
+    const seoSchema = seoItem
+        ? {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Article",
+                    "@id": `${SITE_BASE_URL}/news/${seoItem.url_text}#article`,
+                    headline: seoItem.title,
+                    description: seoDescription,
+                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    mainEntityOfPage: `${SITE_BASE_URL}/news/${seoItem.url_text}`,
+                    author: {
+                        "@type": "Organization",
+                        name: SITE_NAME,
+                    },
+                    publisher: {
+                        "@type": "Organization",
+                        name: SITE_NAME,
+                        logo: {
+                            "@type": "ImageObject",
+                            url: `${SITE_BASE_URL}/alazar-logo.png`,
+                        },
+                    },
+                },
+                {
+                    "@type": "BreadcrumbList",
+                    itemListElement: [
+                        { "@type": "ListItem", position: 1, name: "Главная", item: `${SITE_BASE_URL}/` },
+                        { "@type": "ListItem", position: 2, name: "Блог", item: `${SITE_BASE_URL}/news` },
+                        { "@type": "ListItem", position: 3, name: seoItem.title, item: `${SITE_BASE_URL}/news/${seoItem.url_text}` },
+                    ],
+                },
+            ],
+        }
+        : {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Блог",
+            url: `${SITE_BASE_URL}/news`,
+            description: seoDescription,
+        };
+
+    useSeo({
+        title: seoTitle,
+        description: seoDescription,
+        pathname: routeUrlText ? `/news/${routeUrlText}` : "/news",
+        ogType: seoItem ? "article" : "website",
+        ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        schema: seoSchema,
+        schemaId: "schema-blog-page",
+    });
 
     useEffect(() => {
         let cancelled = false;

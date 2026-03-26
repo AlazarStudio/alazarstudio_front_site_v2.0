@@ -7,6 +7,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { publicCasesAPI } from '@/lib/api';
 import { isCaseForShop, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
 import ShopDetailsModal from '@/components/Blocks/Cases/ShopDetailsModal';
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 // Функция для извлечения текста из JSX элемента
 function extractTextFromJSX(element) {
@@ -54,6 +56,59 @@ function Shop({ children, ...props }) {
         [casesFromApi]
     );
     const shouldShowLoader = !isShopLoaded || isLoading;
+    const seoItem = useMemo(
+        () => (routeUrlText ? shopData.find((item) => item.url_text === routeUrlText) || null : null),
+        [routeUrlText, shopData]
+    );
+    const seoTitle = seoItem
+        ? withSiteName(`${extractTextFromJSX(seoItem.title)} — магазин`)
+        : `Магазин | ${SITE_NAME}`;
+    const seoDescription = seoItem
+        ? truncateText(seoItem.description || extractTextFromJSX(seoItem.title), 170)
+        : "Магазин Alazar Studio: цифровые продукты, услуги и готовые решения для вашего проекта.";
+    const seoSchema = seoItem
+        ? {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Product",
+                    "@id": `${SITE_BASE_URL}/shop/${seoItem.url_text}#product`,
+                    name: extractTextFromJSX(seoItem.title),
+                    description: seoDescription,
+                    image: seoItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                    url: `${SITE_BASE_URL}/shop/${seoItem.url_text}`,
+                    brand: {
+                        "@type": "Brand",
+                        name: SITE_NAME,
+                    },
+                },
+                {
+                    "@type": "BreadcrumbList",
+                    itemListElement: [
+                        { "@type": "ListItem", position: 1, name: "Главная", item: `${SITE_BASE_URL}/` },
+                        { "@type": "ListItem", position: 2, name: "Магазин", item: `${SITE_BASE_URL}/shop` },
+                        { "@type": "ListItem", position: 3, name: extractTextFromJSX(seoItem.title), item: `${SITE_BASE_URL}/shop/${seoItem.url_text}` },
+                    ],
+                },
+            ],
+        }
+        : {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Магазин",
+            url: `${SITE_BASE_URL}/shop`,
+            description: seoDescription,
+        };
+
+    useSeo({
+        title: seoTitle,
+        description: seoDescription,
+        pathname: routeUrlText ? `/shop/${routeUrlText}` : "/shop",
+        ogType: "website",
+        ogImage: seoItem?.imgSrc || "/alazar-logo.png",
+        schema: seoSchema,
+        schemaId: "schema-shop-page",
+    });
 
     useEffect(() => {
         let cancelled = false;

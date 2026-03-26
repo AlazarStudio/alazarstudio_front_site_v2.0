@@ -5,6 +5,8 @@ import CaseCard from "../../Blocks/CaseCard/CaseCard";
 import { isCaseForShop, mapCaseRecordToCard, mapTeamItems } from "../../Blocks/Cases/casesHelpers";
 import { publicCasesAPI, publicTeamAPI } from "@/lib/api";
 import classes from "./Employee.module.css";
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 const BACKEND_BASE = import.meta.env.VITE_BACKEND_IMAGE_BASE || "https://backend.alazarstudio.ru";
 
@@ -203,6 +205,57 @@ function Employee() {
             cancelled = true;
         };
     }, [member]);
+
+    const seoTitle = member
+        ? withSiteName(`${member.name} — ${member.role || "команда"}`)
+        : `Команда | ${SITE_NAME}`;
+    const seoDescription = member
+        ? truncateText(`${member.name} — ${member.role || "сотрудник"} в ${SITE_NAME}.`, 170)
+        : "Команда Alazar Studio: специалисты по веб-разработке, дизайну и цифровым проектам.";
+
+    useSeo({
+        title: seoTitle,
+        description: seoDescription,
+        pathname: memberSlug ? `/team/${memberSlug}` : "/team",
+        ogType: "profile",
+        ogImage: member?.image || "/alazar-logo.png",
+        schema: member
+            ? {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "Person",
+                        "@id": `${SITE_BASE_URL}/team/${memberSlug}#person`,
+                        name: member.name,
+                        image: member.image || `${SITE_BASE_URL}/alazar-logo.png`,
+                        jobTitle: member.role || "Сотрудник",
+                        worksFor: {
+                            "@type": "Organization",
+                            name: SITE_NAME,
+                            url: `${SITE_BASE_URL}/`,
+                        },
+                    },
+                    {
+                        "@type": "ProfilePage",
+                        "@id": `${SITE_BASE_URL}/team/${memberSlug}#webpage`,
+                        url: `${SITE_BASE_URL}/team/${memberSlug}`,
+                        name: member.name,
+                        description: seoDescription,
+                        mainEntity: {
+                            "@id": `${SITE_BASE_URL}/team/${memberSlug}#person`,
+                        },
+                    },
+                ],
+            }
+            : {
+                "@context": "https://schema.org",
+                "@type": "ProfilePage",
+                name: "Сотрудник",
+                url: `${SITE_BASE_URL}/team/${memberSlug || ""}`,
+                description: seoDescription,
+            },
+        schemaId: "schema-employee-page",
+    });
 
     return (
         <>

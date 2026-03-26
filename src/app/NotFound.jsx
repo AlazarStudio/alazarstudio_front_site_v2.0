@@ -1,6 +1,19 @@
 import { Link } from 'react-router-dom'
+import { useSeo } from '@/hooks/useSeo'
+import { SITE_NAME } from '@/lib/seo'
 
 export default function NotFound() {
+  useSeo({
+    title: `404 — Страница не найдена | ${SITE_NAME}`,
+    description: "Запрошенная страница не найдена. Перейдите на главную страницу Alazar Studio.",
+    pathname: "/404",
+    robots: "noindex,nofollow",
+    ogType: "website",
+    ogImage: "/alazar-logo.png",
+    schema: null,
+    schemaId: "schema-not-found-page",
+  })
+
   return (
     <main
       style={{

@@ -3,6 +3,8 @@ import classes from "./Contacts.module.css";
 import Discuss from "../../Blocks/Discuss/Discuss";
 import YandexMapRoute from "../../YandexMapRoute";
 import { publicContactsAPI } from "@/lib/api";
+import { useSeo } from "@/hooks/useSeo";
+import { ORG_CONTACT, SITE_BASE_URL, SITE_NAME, truncateText } from "@/lib/seo";
 
 const UI_TEXT = {
     pageTitle: "КОНТАКТЫ",
@@ -184,6 +186,53 @@ function Contacts() {
                 : [],
         [contactCoords]
     );
+    const seoDescription = useMemo(() => {
+        const pieces = [
+            "Контакты Alazar Studio.",
+            address ? `Адрес: ${address}.` : "",
+            phoneDisplay ? `Телефон: ${phoneDisplay}.` : "",
+            email ? `E-mail: ${email}.` : "",
+        ].filter(Boolean);
+        return truncateText(pieces.join(" "), 170);
+    }, [address, phoneDisplay, email]);
+
+    const sameAs = useMemo(
+        () => socialItems.map((item) => item.url).filter((url) => /^https?:\/\//i.test(String(url || ""))),
+        [socialItems]
+    );
+
+    useSeo({
+        title: `Контакты | ${SITE_NAME}`,
+        description: seoDescription || "Контакты Alazar Studio: адрес, телефон, e-mail и социальные сети.",
+        pathname: "/contacts",
+        ogType: "website",
+        ogImage: "/alazar-logo.png",
+        schema: {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Organization",
+                    "@id": `${SITE_BASE_URL}/#organization`,
+                    name: SITE_NAME,
+                    url: `${SITE_BASE_URL}/`,
+                    email: email || ORG_CONTACT.email,
+                    telephone: phoneDisplay || ORG_CONTACT.telephone,
+                    sameAs,
+                },
+                {
+                    "@type": "ContactPage",
+                    "@id": `${SITE_BASE_URL}/contacts#webpage`,
+                    url: `${SITE_BASE_URL}/contacts`,
+                    name: "Контакты",
+                    description: seoDescription || "Контакты Alazar Studio",
+                    about: {
+                        "@id": `${SITE_BASE_URL}/#organization`,
+                    },
+                },
+            ],
+        },
+        schemaId: "schema-contacts-page",
+    });
 
     const activePlace = useMemo(
         () => officePlace.find((place) => place.id === activePlaceId) ?? officePlace[0] ?? null,

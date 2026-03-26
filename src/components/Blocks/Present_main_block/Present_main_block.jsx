@@ -34,7 +34,7 @@ function Present_main_block({ children, ...props }) {
                             ALAZAR STUDIO
                         </h1>
                         <p id="main-hero-description" className={classes.prespresent_block_right_description_secondary}>
-                            Комплексные цифровые решения под ключ: от идеи до готового продукта с последующей поддержкой
+                            Комплексные цифровые решения: от идеи до запуска
                         </p>
                     </div>
                 </div>

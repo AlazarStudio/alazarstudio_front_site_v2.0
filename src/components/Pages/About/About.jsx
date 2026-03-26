@@ -7,6 +7,8 @@ import Work_block from "../../Blocks/Work_block/Work_block";
 import Team_block from "../../Blocks/Team_block/Team_block";
 import Discuss from "../../Blocks/Discuss/Discuss";
 import { publicServicesAPI, publicTeamAPI } from "@/lib/api";
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME } from "@/lib/seo";
 
 function About({ children, ...props }) {
   const [services, setServices] = useState([]);
@@ -36,6 +38,27 @@ function About({ children, ...props }) {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  useSeo({
+    title: `О нас | ${SITE_NAME}`,
+    description: "О студии Alazar: экспертиза в веб-разработке, дизайне и комплексной реализации цифровых проектов.",
+    pathname: "/about",
+    ogType: "website",
+    ogImage: "/alazar-logo.png",
+    schema: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      name: "О нас",
+      url: `${SITE_BASE_URL}/about`,
+      description: "Информация о студии Alazar и ключевых направлениях работы.",
+      isPartOf: {
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: `${SITE_BASE_URL}/`,
+      },
+    },
+    schemaId: "schema-about-page",
+  });
 
   return (
     <>

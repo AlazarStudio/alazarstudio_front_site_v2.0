@@ -12,6 +12,8 @@ import ShopDetailsModal from './ShopDetailsModal';
 import { extractPlainText, extractTagRelations, isCaseForShop, mapCaseRecordToCard, mapCaseRecordToShopCard } from '@/components/Blocks/Cases/casesHelpers';
 import { isStockActual, mapNewsRecordToCard, mapStockRecordToCard } from '@/components/Blocks/Cases/newsHelpers';
 import { publicCasesAPI, publicDynamicPageRecordsAPI, publicNewsAPI, publicStocksAPI, publicTeamAPI } from '@/lib/api';
+import { useSeo } from "@/hooks/useSeo";
+import { SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function Cases({ children, ...props }) {
     const { filterCategories, filterLoading } = useSiteFilterCategories();
@@ -397,6 +399,46 @@ function Cases({ children, ...props }) {
         [availableTags, availableTagCounts]
     );
     const shouldShowLoader = !isCasesLoaded || isLoading;
+    const isDetailRoute = /^\/(case|new|banner|shopitem)\//.test(location.pathname);
+    const seoDetailItem = isDetailRoute ? selectedItem : null;
+    const seoTitle = seoDetailItem
+        ? withSiteName(`${seoDetailItem.title} — проект`)
+        : "";
+    const seoDescription = seoDetailItem
+        ? truncateText(seoDetailItem.description || seoDetailItem.title, 170)
+        : "";
+
+    const schemaTypeByItem = (item) => {
+        if (!item) return "WebPage";
+        if (item.type === "new" || item.type === "banner") return "Article";
+        if (item.type === "shop") return "Product";
+        if (item.type === "case") return "CreativeWork";
+        return "WebPage";
+    };
+
+    useSeo({
+        enabled: isDetailRoute && Boolean(seoDetailItem),
+        title: seoTitle,
+        description: seoDescription,
+        pathname: location.pathname,
+        ogType: seoDetailItem?.type === "new" || seoDetailItem?.type === "banner" ? "article" : "website",
+        ogImage: seoDetailItem?.imgSrc || "/alazar-logo.png",
+        schema: seoDetailItem
+            ? {
+                "@context": "https://schema.org",
+                "@type": schemaTypeByItem(seoDetailItem),
+                name: seoDetailItem.title,
+                description: seoDescription,
+                url: `${SITE_BASE_URL}${location.pathname}`,
+                image: seoDetailItem.imgSrc || `${SITE_BASE_URL}/alazar-logo.png`,
+                publisher: {
+                    "@type": "Organization",
+                    name: SITE_NAME,
+                },
+            }
+            : null,
+        schemaId: "schema-home-detail-page",
+    });
 
     // Функция для рендеринга фильтра
     const renderFilter = (containerClass = classes.filterContainer) => (
