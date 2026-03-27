@@ -5,20 +5,29 @@ function Present_block({ heroTitle, heroIntroLines, children, ...props }) {
     const aboutHero = Boolean(heroTitle);
     return (
         <>
-            <div className={classes.present_block}>
+            <div className={`${classes.present_block} ${aboutHero ? classes.present_block_aboutRoot : ""}`}>
                 <div className={classes.present_block_center}>
                     <div className={classes.present_block_left}>
                         {aboutHero ? (
-                            <>
+                            <div className={classes.present_block_about}>
                                 <h1 className={classes.present_block_about_h1}>{heroTitle}</h1>
                                 {Array.isArray(heroIntroLines) && heroIntroLines.length > 0 && (
                                     <div className={classes.present_block_about_body}>
                                         {heroIntroLines.map((line, i) => (
-                                            <p key={i} className={classes.present_block_about_line}>{line}</p>
+                                            <p
+                                                key={i}
+                                                className={
+                                                    i === heroIntroLines.length - 1 && heroIntroLines.length > 1
+                                                        ? `${classes.present_block_about_line} ${classes.present_block_about_tagline}`
+                                                        : classes.present_block_about_line
+                                                }
+                                            >
+                                                {line}
+                                            </p>
                                         ))}
                                     </div>
                                 )}
-                            </>
+                            </div>
                         ) : (
                             <>
                                 <div className={classes.present_block_left_text}>Веб-разработка</div>
