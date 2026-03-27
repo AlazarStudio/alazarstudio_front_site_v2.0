@@ -199,15 +199,36 @@
   margin: 20px 0;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
   .hero,
   .content {
-    padding-left: 22px;
-    padding-right: 22px;
+    padding: 20px;
   }
 
   .title {
-    font-size: 32px;
+    font-size: 26px;
+    margin-top: 20px;
   }
 
+  .description{
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  .blockTitle{
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .richText{
+    font-size: 14px;
+  }
+
+  .content{
+    gap: 20px;
+  }
+
+  .richText ul{
+    padding-left: 20px;
+  }
 }

@@ -62,6 +62,35 @@
     color: #fff;
 }
 
+.present_block_about_h1 {
+    font-weight: 500;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+    line-height: 110%;
+    letter-spacing: 0;
+    margin: 0 0 1.5rem;
+    position: relative;
+    z-index: 1;
+    max-width: 920px;
+}
+
+.present_block_about_body {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+}
+
+.present_block_about_line {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 150%;
+    letter-spacing: 0;
+    margin: 0 0 1rem;
+}
+
+.present_block_about_line:last-child {
+    margin-bottom: 0;
+}
+
 .present_block_right{
     display: flex;
     flex-direction: column;

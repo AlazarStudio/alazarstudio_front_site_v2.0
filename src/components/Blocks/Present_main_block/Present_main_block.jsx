@@ -11,16 +11,21 @@ function Present_main_block({ children, ...props }) {
             <section className={classes.present_block} aria-labelledby="main-hero-title">
                 <div className={classes.present_block_center}>
                     <div className={classes.prespresent_block_left}>
-                        <ParticleImageCanvas
-                            alt="Alazar Studio A"
-                            className={classes.presentParticle}
-                            bleedMultiplier={4}
-                            bleedViewportRatio={1}
-                            constrainBleedByView={false}
-                            assembleOnFirstVisible={true}
-                            initialScatterStrength={1.5}
-                            initialScatterShape={SCATTER_VARIANT}
-                        />
+                        <div className={classes.presentLetterContainer}>
+                            <img src="/mainLetter.svg" alt="Alazar Studio A" className={classes.presentLetter} />
+                        </div>
+                        <div className={classes.presentParticleContainer}>
+                            <ParticleImageCanvas
+                                alt="Alazar Studio A"
+                                className={classes.presentParticle}
+                                bleedMultiplier={4}
+                                bleedViewportRatio={1}
+                                constrainBleedByView={false}
+                                assembleOnFirstVisible={true}
+                                initialScatterStrength={1.5}
+                                initialScatterShape={SCATTER_VARIANT}
+                            />
+                        </div>
                     </div>
                     <div className={classes.prespresent_block_right}>
                         <h1

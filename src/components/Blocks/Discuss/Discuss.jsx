@@ -243,11 +243,12 @@ function Discuss({ formOnly = false, source = "Главная: обсудить 
 
           {!hideParticleOnMobile && (
             <div className={classes.discuss_img}>
-              <ParticleImageCanvas
+              <img src="/bottomPicture.jpg" alt="" aria-hidden="true" />
+              {/* <ParticleImageCanvas
                 alt="Alazar Studio A"
                 className={classes.discuss_particle}
                 style={particleStyle}
-              />
+              /> */}
             </div>
           )}
         </div>

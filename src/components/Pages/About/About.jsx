@@ -11,6 +11,14 @@ import { useSeo } from "@/hooks/useSeo";
 import { SITE_BASE_URL, SITE_NAME } from "@/lib/seo";
 import { transliterate } from "@/components/Blocks/Cases/casesHelpers";
 
+const ABOUT_PAGE_TITLE = "О студии Alazar";
+const ABOUT_META_DESCRIPTION =
+  "Alazar — студия, создающая комплексные цифровые решения: от проекта до запуска готового продукта.";
+const ABOUT_HERO_LINES = [
+  ABOUT_META_DESCRIPTION,
+  "Ваши идеи — наше решение.",
+];
+
 function About({ children, ...props }) {
   const [services, setServices] = useState([]);
   const [team, setTeam] = useState([]);
@@ -41,17 +49,17 @@ function About({ children, ...props }) {
   }, []);
 
   useSeo({
-    title: `О нас | ${SITE_NAME}`,
-    description: "О студии Alazar: экспертиза в веб-разработке, дизайне и комплексной реализации цифровых проектов.",
+    title: ABOUT_PAGE_TITLE,
+    description: ABOUT_META_DESCRIPTION,
     pathname: "/about",
     ogType: "website",
     ogImage: "/alazar-logo.png",
     schema: {
       "@context": "https://schema.org",
       "@type": "AboutPage",
-      name: "О нас",
+      name: ABOUT_PAGE_TITLE,
       url: `${SITE_BASE_URL}/about`,
-      description: "Информация о студии Alazar и ключевых направлениях работы.",
+      description: ABOUT_META_DESCRIPTION,
       isPartOf: {
         "@type": "WebSite",
         name: SITE_NAME,
@@ -63,8 +71,7 @@ function About({ children, ...props }) {
 
   return (
     <>
-      <h1 className={classes.visuallyHidden}>О нас — Alazar Studio</h1>
-      <Present_block />
+      <Present_block heroTitle={ABOUT_PAGE_TITLE} heroIntroLines={ABOUT_HERO_LINES} />
       <Scalable_block/>
       <Services_block services={services} />
       <Work_block/>

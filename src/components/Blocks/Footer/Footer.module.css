@@ -1,5 +1,5 @@
 .footer {
-    background-color: #0D0D0D;
+    /* background-color: #0D0D0D; */
     color: #fff;
     margin-top: 150px;
     padding: 0;
@@ -279,7 +279,7 @@
         display: inline-flex;
         flex: 1 1 auto;
         min-width: 0;
-        font-size: clamp(16px, 4.6vw, 20px);
+        font-size: 36px;
         letter-spacing: 0.12em;
     }
 
@@ -348,6 +348,12 @@
 }
 
 @media (max-width: 560px) {
+    .brandCol {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
     .officeTitle,
     .officeAddress,
     .email,
@@ -357,12 +363,18 @@
 }
 
 @media (max-width: 420px) {
+    .brandCol {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
     .contactSide {
         width: 100%;
     }
 
     .logo {
-        font-size: 20px;
+        font-size: 36px;
         letter-spacing: 0.14em;
         white-space: nowrap;
     }

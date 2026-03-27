@@ -12,13 +12,20 @@ const outputPath = path.join(publicDir, "sitemap.xml");
 const SITE_BASE_URL = "https://xn--80aaa1as7a.xn--p1ai";
 const DEFAULT_LASTMOD = new Date().toISOString();
 
+/** Пока нет стабильного наполнения блога и магазина — не включаем в sitemap */
+const INCLUDE_NEWS_AND_SHOP_IN_SITEMAP = false;
+
 const STATIC_URLS = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/about", changefreq: "monthly", priority: "0.9" },
   { path: "/cases", changefreq: "daily", priority: "0.9" },
   { path: "/contacts", changefreq: "monthly", priority: "0.9" },
-  { path: "/news", changefreq: "daily", priority: "0.8" },
-  { path: "/shop", changefreq: "daily", priority: "0.8" },
+  ...(INCLUDE_NEWS_AND_SHOP_IN_SITEMAP
+    ? [
+        { path: "/news", changefreq: "daily", priority: "0.8" },
+        { path: "/shop", changefreq: "daily", priority: "0.8" },
+      ]
+    : []),
 ];
 
 function readBackendApiUrl() {
@@ -225,17 +232,19 @@ async function collectDynamicEntries(apiBase) {
     const urlText = urlTextFromRecord(record, "case");
     const lastmod = resolveRecordDate(record);
     dynamic.push(createUrlEntry(`/cases/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
-    if (boolField(record, "dlya_magazina")) {
+    if (INCLUDE_NEWS_AND_SHOP_IN_SITEMAP && boolField(record, "dlya_magazina")) {
       dynamic.push(createUrlEntry(`/shop/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
       dynamic.push(createUrlEntry(`/shopitem/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.7" }));
     }
   });
 
-  news.forEach((record) => {
-    const urlText = urlTextFromRecord(record, "news");
-    const lastmod = resolveRecordDate(record);
-    dynamic.push(createUrlEntry(`/news/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
-  });
+  if (INCLUDE_NEWS_AND_SHOP_IN_SITEMAP) {
+    news.forEach((record) => {
+      const urlText = urlTextFromRecord(record, "news");
+      const lastmod = resolveRecordDate(record);
+      dynamic.push(createUrlEntry(`/news/${urlText}`, { lastmod, changefreq: "weekly", priority: "0.8" }));
+    });
+  }
 
   stocks.forEach((record) => {
     const urlText = urlTextFromRecord(record, "stock");

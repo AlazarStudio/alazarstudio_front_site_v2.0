@@ -29,6 +29,16 @@
     overflow: visible;
 }
 
+.presentLetterContainer {
+    display: none;
+}
+
+.presentLetterContainer img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+}
+
 .presentParticle {
     width: min(34vw, 460px);
     aspect-ratio: 3599.16 / 3120.19;
@@ -65,7 +75,7 @@
     font-size: 12px;
     font-weight: 700;
     line-height: 1.4;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     margin-bottom: 14px;
 }
 
@@ -90,13 +100,32 @@
 }
 
 @media (max-width: 1024px) {
+    .present_block {
+        padding-top: 100px;
+    }
+
     .present_block_center {
         width: 100%;
         padding: 0 20px;
-        margin-top: -80px;
         flex-direction: column;
         align-items: flex-start;
         gap: 28px;
+    }
+
+    .prespresent_block_left,
+    .prespresent_block_right {
+        width: 100%;
+    }
+
+    .presentLetterContainer {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .presentParticleContainer {
+        display: none;
     }
 
     .presentParticle {
@@ -106,17 +135,21 @@
 
     .prespresent_block_right_name {
         font-size: 42px;
+        text-align: center;
     }
 
     .prespresent_block_right_description {
+        text-align: center;
         font-size: 18px;
     }
 
     .prespresent_block_right_description_secondary {
         font-size: 16px;
+        text-align: center;
     }
 
     .prespresent_block_right_name_subtitle {
-        font-size: 11px;
+        font-size: 10px;
+        text-align: center;
     }
 }

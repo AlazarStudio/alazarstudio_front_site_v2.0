@@ -31,7 +31,18 @@ function unlockPageScroll() {
     window[MODAL_LOCK_COUNT_KEY] = lockCount - 1;
 }
 
-function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonAriaLabel = "\u0417\u0430\u043A\u0440\u044B\u0442\u044C", nested = false, compact = false, closeButtonWrapClassName }) {
+function Modal({
+    isOpen,
+    onClose,
+    children,
+    showCloseButton = true,
+    closeButtonAriaLabel = "\u0417\u0430\u043A\u0440\u044B\u0442\u044C",
+    nested = false,
+    compact = false,
+    closeButtonWrapClassName,
+    contentClassName = "",
+    bodyClassName = "",
+}) {
     const [isClosing, setIsClosing] = useState(false);
     const scrollContainerRef = useRef(null);
     const isScrollLockedByThisModalRef = useRef(false);
@@ -96,12 +107,12 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
             onClick={handleClose}
         >
             <div 
-                className={`${classes.modalContent} ${compact ? classes.modalContent_compact : ''} ${isClosing ? classes.modalContent_closing : ''}`} 
+                className={`${classes.modalContent} ${compact ? classes.modalContent_compact : ''} ${isClosing ? classes.modalContent_closing : ''} ${contentClassName}`.trim()} 
                 onClick={(e) => e.stopPropagation()}
                 data-closing={isClosing || undefined}
             >
                 {showCloseButton && (
-                    <div className={compact ? classes.closeButtonWrap_compact : `${classes.closeButtonWrap} ${closeButtonWrapClassName || ''}`.trim()}>
+                    <div className={`${compact ? classes.closeButtonWrap_compact : classes.closeButtonWrap} ${closeButtonWrapClassName || ''}`.trim()}>
                         <button
                             type="button"
                             className={compact ? classes.closeButton_compact : classes.closeButton}
@@ -113,7 +124,7 @@ function Modal({ isOpen, onClose, children, showCloseButton = true, closeButtonA
                     </div>
                 )}
                 <ModalScrollContext.Provider value={scrollContainerRef}>
-                <div className={classes.modalBody} data-modal-scroll ref={scrollContainerRef}>
+                <div className={`${classes.modalBody} ${bodyClassName}`.trim()} data-modal-scroll ref={scrollContainerRef}>
                     {children}
                 </div>
                 </ModalScrollContext.Provider>

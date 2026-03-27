@@ -1,19 +1,35 @@
 import React from "react";
 import classes from './Present_block.module.css';
 
-function Present_block({ children, ...props }) {
+function Present_block({ heroTitle, heroIntroLines, children, ...props }) {
+    const aboutHero = Boolean(heroTitle);
     return (
         <>
             <div className={classes.present_block}>
                 <div className={classes.present_block_center}>
                     <div className={classes.present_block_left}>
-                        <div className={classes.present_block_left_text}>Веб-разработка</div>
-                        <div className={classes.present_block_left_text_large}>&</div>
-                        <div className={classes.present_block_left_text_second}>графический дизайн</div>
+                        {aboutHero ? (
+                            <>
+                                <h1 className={classes.present_block_about_h1}>{heroTitle}</h1>
+                                {Array.isArray(heroIntroLines) && heroIntroLines.length > 0 && (
+                                    <div className={classes.present_block_about_body}>
+                                        {heroIntroLines.map((line, i) => (
+                                            <p key={i} className={classes.present_block_about_line}>{line}</p>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <div className={classes.present_block_left_text}>Веб-разработка</div>
+                                <div className={classes.present_block_left_text_large}>&</div>
+                                <div className={classes.present_block_left_text_second}>графический дизайн</div>
 
-                        <div className={classes.present_block_left_text_min}>
-                            Комплексные цифровые решения: от идеи до запуска
-                        </div>
+                                <div className={classes.present_block_left_text_min}>
+                                    Комплексные цифровые решения: от идеи до запуска
+                                </div>
+                            </>
+                        )}
                     </div>
                     <div className={classes.present_block_right}>
                         <img src="/star_glass.png" alt="" />

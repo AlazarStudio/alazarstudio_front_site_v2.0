@@ -128,7 +128,7 @@ function Header() {
         { key: "home", to: "/", label: "Главная", active: isHome, icon: HomeRoundedIcon },
         { key: "cases", to: "/cases", label: "Кейсы", active: isCases, icon: WorkOutlineRoundedIcon },
         { key: "news", to: "/news", label: "Блог", active: isBlog, icon: ArticleRoundedIcon },
-        { key: "shop", to: "/shop", label: "Магазин", active: isShop, icon: StorefrontRoundedIcon },
+        // { key: "shop", to: "/shop", label: "Магазин", active: isShop, icon: StorefrontRoundedIcon },
         { key: "about", to: "/about", label: "О нас", active: isAbout, icon: InfoOutlinedIcon },
         { key: "contacts", to: "/contacts", label: "Контакты", active: isContacts, icon: ContactMailRoundedIcon },
     ];

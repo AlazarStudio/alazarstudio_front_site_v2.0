@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import classes from './Shop.module.css';
+import caseFilterClasses from '@/components/Blocks/Cases/Cases.module.css';
 import { useSiteFilterCategories } from '@/hooks/useSiteFilterCategories';
 import CaseCard from "../../Blocks/CaseCard/CaseCard.jsx";
 import Modal from "../../Standart/Modal/Modal.jsx";
@@ -36,7 +37,20 @@ function extractTextFromJSX(element) {
 }
 
 function Shop({ children, ...props }) {
+    const MOBILE_BREAKPOINT = 1024;
     const { filterCategories } = useSiteFilterCategories();
+    const mobileDefaultCategoryKey = useMemo(() => {
+        const entries = Object.entries(filterCategories || {});
+        if (entries.length === 0) return 'all';
+        const sphereEntry = entries.find(([key, value]) => {
+            if (key === 'all') return false;
+            const name = String(value?.name || '').toLowerCase();
+            return name.includes('сфер');
+        });
+        if (sphereEntry) return sphereEntry[0];
+        const firstNonAll = entries.find(([key]) => key !== 'all');
+        return firstNonAll ? firstNonAll[0] : 'all';
+    }, [filterCategories]);
     const [selectedCategory, setSelectedCategory] = useState('all'); // По умолчанию "Все"
     const [selectedTag, setSelectedTag] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -47,6 +61,11 @@ function Shop({ children, ...props }) {
     const [filteredItems, setFilteredItems] = useState([]);
     const filterRef = useRef(null);
     const casesContainerRef = useRef(null);
+    const listStartRef = useRef(null);
+    const [isMobileViewport, setIsMobileViewport] = useState(false);
+    const [isMobileFilterModalOpen, setIsMobileFilterModalOpen] = useState(false);
+    const [draftCategory, setDraftCategory] = useState('all');
+    const [draftTag, setDraftTag] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isShopLoaded, setIsShopLoaded] = useState(false);
@@ -123,6 +142,7 @@ function Shop({ children, ...props }) {
         title: seoTitle,
         description: seoDescription,
         pathname: routeUrlText ? `/shop/${routeUrlText}` : "/shop",
+        robots: "noindex,nofollow",
         ogType: "website",
         ogImage: seoItem?.imgSrc || "/alazar-logo.png",
         ogImageAlt: seoImageMeta.alt,
@@ -177,6 +197,27 @@ function Shop({ children, ...props }) {
             window.removeEventListener('scroll', handleScroll);
             window.removeEventListener('resize', handleScroll);
         };
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+        const handleViewportChange = (event) => {
+            setIsMobileViewport(event.matches);
+            if (!event.matches) {
+                setIsMobileFilterModalOpen(false);
+            }
+        };
+
+        handleViewportChange(mediaQuery);
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleViewportChange);
+            return () => mediaQuery.removeEventListener('change', handleViewportChange);
+        }
+
+        mediaQuery.addListener(handleViewportChange);
+        return () => mediaQuery.removeListener(handleViewportChange);
     }, []);
 
     // Показ лоадера при изменении фильтров
@@ -258,6 +299,62 @@ function Shop({ children, ...props }) {
         setSelectedTag(prev => prev === tag ? null : tag);
     };
 
+    const handleDraftCategorySelect = (category) => {
+        if (category === draftCategory) {
+            setDraftCategory(null);
+            setDraftTag(null);
+            return;
+        }
+        setDraftCategory(category);
+        setDraftTag(null);
+    };
+
+    const handleDraftTagSelect = (tag) => {
+        setDraftTag((prev) => (prev === tag ? null : tag));
+    };
+
+    const handleOpenMobileFilterModal = () => {
+        const cat = selectedCategory === 'all' || selectedCategory == null
+            ? mobileDefaultCategoryKey
+            : selectedCategory;
+        setDraftCategory(cat);
+        setDraftTag(selectedTag);
+        setIsMobileFilterModalOpen(true);
+    };
+
+    const handleCloseMobileFilterModal = () => {
+        setIsMobileFilterModalOpen(false);
+    };
+
+    const scrollToListStart = () => {
+        if (typeof window !== 'undefined' && listStartRef.current) {
+            const elementPosition = listStartRef.current.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - 100;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth',
+            });
+        }
+    };
+
+    const applyMobileFilterSelection = (nextCategory, nextTag) => {
+        setSelectedCategory(nextCategory);
+        setSelectedTag(nextTag);
+        setIsMobileFilterModalOpen(false);
+        scrollToListStart();
+    };
+
+    const handleApplyMobileFilter = () => {
+        applyMobileFilterSelection(draftCategory, draftTag);
+    };
+
+    const handleResetMobileFilter = () => {
+        const defaultCategory = mobileDefaultCategoryKey;
+        setDraftCategory(defaultCategory);
+        setDraftTag(null);
+        applyMobileFilterSelection(defaultCategory, null);
+    };
+
     // Обработчик изменения поиска
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
@@ -321,36 +418,89 @@ function Shop({ children, ...props }) {
         return () => clearTimeout(timer);
     }, [selectedItem]);
 
-    // Функция для рендеринга фильтра
-    const renderFilter = (containerClass = classes.filterContainer) => {
-        const currentCategory = filterCategories[selectedCategory];
+    const draftCurrentCategory = filterCategories[draftCategory ?? 'all'];
+    const draftAvailableTags = draftCurrentCategory ? draftCurrentCategory.tags : [];
+    const draftTagCountSourceData = useMemo(() => [...shopData], [shopData]);
+    const draftAvailableTagCounts = useMemo(() => {
+        const counts = {};
+        draftAvailableTags.forEach((tag) => {
+            counts[tag] = draftTagCountSourceData.reduce(
+                (acc, item) => (item.tags.includes(tag) ? acc + 1 : acc),
+                0
+            );
+        });
+        return counts;
+    }, [draftAvailableTags, draftTagCountSourceData]);
+    const draftVisibleTags = useMemo(
+        () => draftAvailableTags
+            .filter((tag) => (draftAvailableTagCounts[tag] ?? 0) > 0)
+            .sort((a, b) => (draftAvailableTagCounts[b] ?? 0) - (draftAvailableTagCounts[a] ?? 0)),
+        [draftAvailableTags, draftAvailableTagCounts]
+    );
+    const hasAppliedMobileFilter = selectedTag !== null || (selectedCategory !== null && selectedCategory !== mobileDefaultCategoryKey);
+
+    const handleQuickResetMobileFilter = () => {
+        if (!hasAppliedMobileFilter) return;
+        const defaultCategory = mobileDefaultCategoryKey;
+        setDraftCategory(defaultCategory);
+        setDraftTag(null);
+        applyMobileFilterSelection(defaultCategory, null);
+    };
+
+    const renderFilter = ({
+        containerClass = classes.filterContainer,
+        activeCategory = selectedCategory,
+        activeTags = null,
+        activeTagCounts = null,
+        activeTag = selectedTag,
+        excludeCategoryKeys = [],
+        onSelectCategory = handleCategorySelect,
+        onSelectTag = handleTagSelect,
+        styleModule = classes,
+    } = {}) => {
+        const currentCategory = filterCategories[activeCategory ?? 'all'];
         const availableTags = currentCategory ? currentCategory.tags : [];
+        const computedCounts = availableTags.reduce((acc, tag) => {
+            acc[tag] = shopData.reduce(
+                (sum, item) => (item.tags.includes(tag) ? sum + 1 : sum),
+                0
+            );
+            return acc;
+        }, {});
+        const tagCounts = activeTagCounts ?? computedCounts;
+        const visibleTags = activeTags ?? availableTags
+            .filter((tag) => (tagCounts[tag] ?? 0) > 0)
+            .sort((a, b) => (tagCounts[b] ?? 0) - (tagCounts[a] ?? 0));
+        const fc = styleModule;
 
         return (
             <div className={containerClass}>
-                {/* Верхние категории */}
-                <div className={classes.filterCategories}>
-                    {Object.keys(filterCategories).map((key) => (
-                        <button
-                            key={key}
-                            className={`${classes.filterCategory} ${selectedCategory === key ? classes.filterCategory_active : ''}`}
-                            onClick={() => handleCategorySelect(key)}
-                        >
-                            {filterCategories[key].name}
-                        </button>
-                    ))}
+                <div className={fc.filterCategories}>
+                    {Object.keys(filterCategories)
+                        .filter((key) => !excludeCategoryKeys.includes(key))
+                        .map((key) => (
+                            <button
+                                key={key}
+                                type="button"
+                                className={`${fc.filterCategory} ${activeCategory === key ? fc.filterCategory_active : ''}`}
+                                onClick={() => onSelectCategory(key)}
+                            >
+                                {filterCategories[key].name}
+                            </button>
+                        ))}
                 </div>
 
-                {/* Нижние теги */}
-                {availableTags.length > 0 && (
-                    <div className={classes.filterTags}>
-                        {availableTags.map((tag) => (
+                {visibleTags.length > 0 && (
+                    <div className={fc.filterTags}>
+                        {visibleTags.map((tag) => (
                             <button
                                 key={tag}
-                                className={`${classes.filterTag} ${selectedTag === tag ? classes.filterTag_active : ''}`}
-                                onClick={() => handleTagSelect(tag)}
+                                type="button"
+                                className={`${fc.filterTag} ${activeTag === tag ? fc.filterTag_active : ''}`}
+                                onClick={() => onSelectTag(tag)}
                             >
-                                {tag}
+                                <span>{tag}</span>
+                                <span className={fc.filterTagCount}>{tagCounts[tag] ?? 0}</span>
                             </button>
                         ))}
                     </div>
@@ -362,6 +512,7 @@ function Shop({ children, ...props }) {
     return isInvalidDetailRoute ? (
         <NotFound />
     ) : (
+        <>
         <section className={classes.blogContainer} aria-labelledby="shop-page-title">
             <div className={classes.blogContent}>
                 {/* Заголовок */}
@@ -379,8 +530,8 @@ function Shop({ children, ...props }) {
 
                 <section className={classes.blogContent_info} ref={casesContainerRef} aria-label="Лента магазина">
                     <div className={classes.filterBarRow}>
-                        <div className={classes.filterBarFilters} ref={filterRef} data-filter-container="true">
-                            {renderFilter()}
+                        <div className={`${classes.filterBarFilters} ${caseFilterClasses.filterTopDesktop}`} ref={filterRef} data-filter-container="true">
+                            {renderFilter({})}
                         </div>
                         <div className={classes.filterBarSearch}>
                             <input
@@ -392,6 +543,7 @@ function Shop({ children, ...props }) {
                             />
                         </div>
                     </div>
+                    <div ref={listStartRef} />
 
                     {/* Прелоадер */}
                     {shouldShowLoader && (
@@ -424,9 +576,58 @@ function Shop({ children, ...props }) {
 
                 {/* Фиксированный фильтр внизу экрана */}
                 <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
-                    {renderFilter(classes.filterContainerFixed)}
+                    {renderFilter({ containerClass: classes.filterContainerFixed })}
                 </div>
+
+                {isMobileViewport && (
+                    <div className={caseFilterClasses.mobileFilterControls}>
+                        <button
+                            type="button"
+                            className={`${caseFilterClasses.mobileFilterButton} ${hasAppliedMobileFilter ? caseFilterClasses.mobileFilterButtonActive : ''}`}
+                            onClick={handleOpenMobileFilterModal}
+                            aria-label="Открыть фильтры"
+                        >
+                            <svg
+                                className={caseFilterClasses.mobileFilterButtonIcon}
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path d="M4 7H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                <path d="M7 12H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                <path d="M10 17H14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                        </button>
+                        {hasAppliedMobileFilter && (
+                            <button
+                                type="button"
+                                className={caseFilterClasses.mobileFilterQuickResetButton}
+                                onClick={handleQuickResetMobileFilter}
+                                aria-label="Сбросить фильтр"
+                            >
+                                <svg
+                                    className={caseFilterClasses.mobileFilterQuickResetIcon}
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M20 12C20 16.4183 16.4183 20 12 20C8.77508 20 5.99574 18.0922 4.73244 15.3458" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                    <path d="M4 12C4 7.58172 7.58172 4 12 4C15.2249 4 18.0043 5.90782 19.2676 8.65422" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                    <path d="M4.6 16.8L4.6 14.2L7.2 14.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path d="M19.4 7.2L19.4 9.8L16.8 9.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
+        </section>
 
             {typeof document !== 'undefined'
                 ? createPortal(
@@ -438,7 +639,52 @@ function Shop({ children, ...props }) {
                     document.body
                 )
                 : null}
-        </section>
+
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal
+                        isOpen={isMobileFilterModalOpen}
+                        onClose={handleCloseMobileFilterModal}
+                        compact
+                        contentClassName={caseFilterClasses.mobileFilterModalShell}
+                        bodyClassName={caseFilterClasses.mobileFilterModalBody}
+                        closeButtonWrapClassName={caseFilterClasses.mobileFilterModalCloseWrap}
+                    >
+                        <div className={caseFilterClasses.mobileFilterModalContent}>
+                            <h3 className={caseFilterClasses.mobileFilterModalTitle}>Фильтры</h3>
+                            {renderFilter({
+                                containerClass: caseFilterClasses.filterContainerMobileModal,
+                                activeCategory: draftCategory,
+                                activeTags: draftVisibleTags,
+                                activeTagCounts: draftAvailableTagCounts,
+                                activeTag: draftTag,
+                                excludeCategoryKeys: ['all'],
+                                onSelectCategory: handleDraftCategorySelect,
+                                onSelectTag: handleDraftTagSelect,
+                                styleModule: caseFilterClasses,
+                            })}
+                            <div className={caseFilterClasses.mobileFilterActions}>
+                                <button
+                                    type="button"
+                                    className={caseFilterClasses.mobileFilterResetButton}
+                                    onClick={handleResetMobileFilter}
+                                >
+                                    Сбросить
+                                </button>
+                                <button
+                                    type="button"
+                                    className={caseFilterClasses.mobileFilterApplyButton}
+                                    onClick={handleApplyMobileFilter}
+                                >
+                                    Применить
+                                </button>
+                            </div>
+                        </div>
+                    </Modal>,
+                    document.body
+                )
+                : null}
+        </>
     );
 }
 

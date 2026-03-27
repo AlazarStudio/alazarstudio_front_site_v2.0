@@ -16,6 +16,7 @@ import { useSeo } from "@/hooks/useSeo";
 import { buildSchemaImageObject, resolveImageMeta, SITE_BASE_URL, SITE_NAME, truncateText, withSiteName } from "@/lib/seo";
 
 function Cases({ children, ...props }) {
+    const MOBILE_BREAKPOINT = 1024;
     const { filterCategories, filterLoading } = useSiteFilterCategories();
     // Состояния для фильтрации (по умолчанию "Все")
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -32,6 +33,10 @@ function Cases({ children, ...props }) {
     const [teamFromApi, setTeamFromApi] = useState([]);
     const [relatedTagLabelsByKey, setRelatedTagLabelsByKey] = useState({});
     const [isCasesLoaded, setIsCasesLoaded] = useState(false);
+    const [isMobileViewport, setIsMobileViewport] = useState(false);
+    const [isMobileFilterModalOpen, setIsMobileFilterModalOpen] = useState(false);
+    const [draftCategory, setDraftCategory] = useState('all');
+    const [draftTag, setDraftTag] = useState(null);
     const navigate = useNavigate();
     const resolveRelatedTagLabel = useMemo(
         () => (id, resourceSlug = '') => relatedTagLabelsByKey[`${String(resourceSlug || '').toLowerCase()}:${String(id)}`] || '',
@@ -147,6 +152,27 @@ function Cases({ children, ...props }) {
     const casesRef = useRef(null);
     const casesContainerRef = useRef(null);
 
+    useEffect(() => {
+        if (typeof window === 'undefined') return undefined;
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
+        const handleViewportChange = (event) => {
+            setIsMobileViewport(event.matches);
+            if (!event.matches) {
+                setIsMobileFilterModalOpen(false);
+            }
+        };
+
+        handleViewportChange(mediaQuery);
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleViewportChange);
+            return () => mediaQuery.removeEventListener('change', handleViewportChange);
+        }
+
+        mediaQuery.addListener(handleViewportChange);
+        return () => mediaQuery.removeListener(handleViewportChange);
+    }, []);
+
     const findItemByUrlText = (urlText) => {
         if (!urlText) return null;
         const allItems = [...casesData, ...newsData, ...shopData, ...bannersData];
@@ -261,6 +287,81 @@ function Cases({ children, ...props }) {
     const handleTypeSelect = (type) => {
         // Если выбран тот же тип, снимаем выбор
         setSelectedType(prev => prev === type ? null : type);
+    };
+
+    const handleDraftCategorySelect = (category) => {
+        if (category === draftCategory) {
+            setDraftCategory(null);
+            setDraftTag(null);
+            return;
+        }
+
+        setDraftCategory(category);
+        setDraftTag(null);
+    };
+
+    const handleDraftTagSelect = (tag) => {
+        setDraftTag((prev) => (prev === tag ? null : tag));
+    };
+
+    const getMobileDefaultCategoryKey = () => {
+        const entries = Object.entries(filterCategories || {});
+        if (entries.length === 0) return 'all';
+        const sphereEntry = entries.find(([key, value]) => {
+            if (key === 'all') return false;
+            const name = String(value?.name || '').toLowerCase();
+            return name.includes('сфер');
+        });
+        if (sphereEntry) return sphereEntry[0];
+        const firstNonAll = entries.find(([key]) => key !== 'all');
+        return firstNonAll ? firstNonAll[0] : 'all';
+    };
+
+    const handleOpenMobileFilterModal = () => {
+        setDraftCategory(selectedCategory === 'all' ? getMobileDefaultCategoryKey() : selectedCategory);
+        setDraftTag(selectedTag);
+        setIsMobileFilterModalOpen(true);
+    };
+
+    const handleCloseMobileFilterModal = () => {
+        setIsMobileFilterModalOpen(false);
+    };
+
+    const scrollToCasesStart = () => {
+        if (typeof window !== 'undefined' && casesRef.current) {
+            const elementPosition = casesRef.current.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - 100;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth',
+            });
+        }
+    };
+
+    const applyMobileFilterSelection = (nextCategory, nextTag) => {
+        setSelectedCategory(nextCategory);
+        setSelectedTag(nextTag);
+        setIsMobileFilterModalOpen(false);
+        scrollToCasesStart();
+    };
+
+    const handleApplyMobileFilter = () => {
+        applyMobileFilterSelection(draftCategory, draftTag);
+    };
+
+    const handleResetMobileFilter = () => {
+        const defaultCategory = getMobileDefaultCategoryKey();
+        setDraftCategory(defaultCategory);
+        setDraftTag(null);
+        applyMobileFilterSelection(defaultCategory, null);
+    };
+
+    const handleQuickResetMobileFilter = () => {
+        if (!hasAppliedMobileFilter) return;
+        const defaultCategory = getMobileDefaultCategoryKey();
+        setDraftCategory(defaultCategory);
+        setDraftTag(null);
+        applyMobileFilterSelection(defaultCategory, null);
     };
 
     // Функция фильтрации данных
@@ -395,6 +496,44 @@ function Cases({ children, ...props }) {
             .sort((a, b) => (availableTagCounts[b] ?? 0) - (availableTagCounts[a] ?? 0)),
         [availableTags, availableTagCounts]
     );
+    const draftCurrentCategory = filterCategories[draftCategory ?? 'all'];
+    const draftAvailableTags = draftCurrentCategory ? draftCurrentCategory.tags : [];
+    const draftTagCountSourceData = useMemo(() => {
+        let source = [...casesData, ...newsData, ...shopData, ...bannersData];
+        if (draftCategory === 'all' && selectedType !== null) {
+            source = source.filter((item) => item.type === selectedType);
+        }
+        return source;
+    }, [casesData, newsData, shopData, bannersData, draftCategory, selectedType]);
+    const draftAvailableTagCounts = useMemo(() => {
+        const counts = {};
+        draftAvailableTags.forEach((tag) => {
+            counts[tag] = draftTagCountSourceData.reduce(
+                (acc, item) => (item.tags.includes(tag) ? acc + 1 : acc),
+                0
+            );
+        });
+        return counts;
+    }, [draftAvailableTags, draftTagCountSourceData]);
+    const draftVisibleTags = useMemo(
+        () => draftAvailableTags
+            .filter((tag) => (draftAvailableTagCounts[tag] ?? 0) > 0)
+            .sort((a, b) => (draftAvailableTagCounts[b] ?? 0) - (draftAvailableTagCounts[a] ?? 0)),
+        [draftAvailableTags, draftAvailableTagCounts]
+    );
+    const mobileDefaultCategoryKey = useMemo(() => {
+        const entries = Object.entries(filterCategories || {});
+        if (entries.length === 0) return 'all';
+        const sphereEntry = entries.find(([key, value]) => {
+            if (key === 'all') return false;
+            const name = String(value?.name || '').toLowerCase();
+            return name.includes('сфер');
+        });
+        if (sphereEntry) return sphereEntry[0];
+        const firstNonAll = entries.find(([key]) => key !== 'all');
+        return firstNonAll ? firstNonAll[0] : 'all';
+    }, [filterCategories]);
+    const hasAppliedMobileFilter = selectedTag !== null || (selectedCategory !== null && selectedCategory !== mobileDefaultCategoryKey);
     const shouldShowLoader = !isCasesLoaded || isLoading;
     const isDetailRoute = /^\/(case|new|banner|shopitem)\//.test(location.pathname);
     const routeDetailItem = isDetailRoute && routeUrlText ? findItemByUrlText(routeUrlText) : null;
@@ -460,32 +599,43 @@ function Cases({ children, ...props }) {
     }
 
     // Функция для рендеринга фильтра
-    const renderFilter = (containerClass = classes.filterContainer) => (
+    const renderFilter = ({
+        containerClass = classes.filterContainer,
+        activeCategory = selectedCategory,
+        activeTags = visibleTags,
+        activeTagCounts = availableTagCounts,
+        activeTag = selectedTag,
+        excludeCategoryKeys = [],
+        onSelectCategory = handleCategorySelect,
+        onSelectTag = handleTagSelect,
+    } = {}) => (
         <div className={containerClass}>
             {/* Верхние категории */}
             <div className={classes.filterCategories}>
-                {Object.keys(filterCategories).map((key) => (
+                {Object.keys(filterCategories)
+                    .filter((key) => !excludeCategoryKeys.includes(key))
+                    .map((key) => (
                     <button
                         key={key}
-                        className={`${classes.filterCategory} ${selectedCategory === key ? classes.filterCategory_active : ''}`}
-                        onClick={() => handleCategorySelect(key)}
+                        className={`${classes.filterCategory} ${activeCategory === key ? classes.filterCategory_active : ''}`}
+                        onClick={() => onSelectCategory(key)}
                     >
                         {filterCategories[key].name}
                     </button>
-                ))}
+                    ))}
             </div>
 
             {/* Нижние теги */}
-            {visibleTags.length > 0 && (
+            {activeTags.length > 0 && (
                 <div className={classes.filterTags}>
-                    {visibleTags.map((tag) => (
+                    {activeTags.map((tag) => (
                         <button
                             key={tag}
-                            className={`${classes.filterTag} ${selectedTag === tag ? classes.filterTag_active : ''}`}
-                            onClick={() => handleTagSelect(tag)}
+                            className={`${classes.filterTag} ${activeTag === tag ? classes.filterTag_active : ''}`}
+                            onClick={() => onSelectTag(tag)}
                         >
                             <span>{tag}</span>
-                            <span className={classes.filterTagCount}>{availableTagCounts[tag] ?? 0}</span>
+                            <span className={classes.filterTagCount}>{activeTagCounts[tag] ?? 0}</span>
                         </button>
                     ))}
                 </div>
@@ -500,9 +650,9 @@ function Cases({ children, ...props }) {
                     Подборка кейсов, новостей, предложений магазина и акций
                 </h2>
                 <div className={classes.cases} ref={casesContainerRef}>
-                    <h2 className={classes.sectionHeading}>Кейсы, публикации и продукты студии</h2>
+                    {/* <h2 className={classes.sectionHeading}>Кейсы, публикации и продукты студии</h2> */}
                     {/* Оригинальный фильтр */}
-                    <div ref={filterRef} data-filter-container="true">
+                    <div ref={filterRef} data-filter-container="true" className={classes.filterTopDesktop}>
                         {renderFilter()}
                     </div>
 
@@ -544,16 +694,64 @@ function Cases({ children, ...props }) {
             {/* Фиксированный фильтр внизу экрана */}
             {/* {!isFilterVisible && ( */}
             <div className={`${classes.filterFixed} ${isCasesEnded ? classes.animateTopVisible : (isFilterVisible ? classes.animateTopVisible : classes.animateBottomVisible)}`}>
-                {renderFilter(classes.filterContainerFixed)}
+                {renderFilter({ containerClass: classes.filterContainerFixed })}
             </div>
             {/* )} */}
+
+            {isMobileViewport && (
+                <div className={classes.mobileFilterControls}>
+                    <button
+                        type="button"
+                        className={`${classes.mobileFilterButton} ${hasAppliedMobileFilter ? classes.mobileFilterButtonActive : ''}`}
+                        onClick={handleOpenMobileFilterModal}
+                        aria-label="Открыть фильтры"
+                    >
+                        <svg
+                            className={classes.mobileFilterButtonIcon}
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true"
+                        >
+                            <path d="M4 7H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            <path d="M7 12H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            <path d="M10 17H14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                        </svg>
+                    </button>
+                    {hasAppliedMobileFilter && (
+                        <button
+                            type="button"
+                            className={classes.mobileFilterQuickResetButton}
+                            onClick={handleQuickResetMobileFilter}
+                            aria-label="Сбросить фильтр"
+                        >
+                            <svg
+                                className={classes.mobileFilterQuickResetIcon}
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <path d="M20 12C20 16.4183 16.4183 20 12 20C8.77508 20 5.99574 18.0922 4.73244 15.3458" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                <path d="M4 12C4 7.58172 7.58172 4 12 4C15.2249 4 18.0043 5.90782 19.2676 8.65422" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                <path d="M4.6 16.8L4.6 14.2L7.2 14.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M19.4 7.2L19.4 9.8L16.8 9.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            )}
 
         </section>
 
             {/* Модальное окно */}
             {typeof document !== 'undefined'
                 ? createPortal(
-                    <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={selectedItem?.type === 'case' ? caseDetailsModalClasses.closeButtonWrapCase : undefined}>
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal} closeButtonWrapClassName={caseDetailsModalClasses.closeButtonWrapCase}>
             {selectedItem && (
                 (selectedItem.type === 'case')
                     ? <CaseDetailsModal item={selectedItem} teamItems={teamFromApi} cases={casesData} onSelectCase={(c) => setSelectedItem({ ...c, type: 'case' })} />
@@ -568,6 +766,50 @@ function Cases({ children, ...props }) {
                         </div>
                     )
             )}
+                    </Modal>,
+                    document.body
+                )
+                : null}
+
+            {typeof document !== 'undefined'
+                ? createPortal(
+                    <Modal
+                        isOpen={isMobileFilterModalOpen}
+                        onClose={handleCloseMobileFilterModal}
+                        compact
+                        contentClassName={classes.mobileFilterModalShell}
+                        bodyClassName={classes.mobileFilterModalBody}
+                        closeButtonWrapClassName={classes.mobileFilterModalCloseWrap}
+                    >
+                        <div className={classes.mobileFilterModalContent}>
+                            <h3 className={classes.mobileFilterModalTitle}>Фильтры</h3>
+                            {renderFilter({
+                                containerClass: classes.filterContainerMobileModal,
+                                activeCategory: draftCategory,
+                                activeTags: draftVisibleTags,
+                                activeTagCounts: draftAvailableTagCounts,
+                                activeTag: draftTag,
+                                excludeCategoryKeys: ['all'],
+                                onSelectCategory: handleDraftCategorySelect,
+                                onSelectTag: handleDraftTagSelect,
+                            })}
+                            <div className={classes.mobileFilterActions}>
+                                <button
+                                    type="button"
+                                    className={classes.mobileFilterResetButton}
+                                    onClick={handleResetMobileFilter}
+                                >
+                                    Сбросить
+                                </button>
+                                <button
+                                    type="button"
+                                    className={classes.mobileFilterApplyButton}
+                                    onClick={handleApplyMobileFilter}
+                                >
+                                    Применить
+                                </button>
+                            </div>
+                        </div>
                     </Modal>,
                     document.body
                 )

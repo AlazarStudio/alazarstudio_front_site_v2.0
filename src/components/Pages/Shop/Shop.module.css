@@ -30,6 +30,34 @@
     /* overflow: hidden; */
 }
 
+.blogTitle_withIntro {
+    height: auto;
+    min-height: 300px;
+    padding-bottom: 48px;
+}
+
+.blogTitle_stack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.blogTitle_intro {
+    max-width: 920px;
+    margin: 0;
+    padding: 28px 24px 0;
+    font-family: Mulish;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 155%;
+    letter-spacing: 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .blogTitle_text {
     font-family: Mulish;
     font-weight: 500;
@@ -341,6 +369,10 @@
         --side-light-width: clamp(280px, 34vw, 420px);
         --side-light-edge-offset: -120px;
     }
+
+    .filterFixed {
+        display: none;
+    }
 }
 
 /* Стили для фильтров */
@@ -468,6 +500,17 @@
 
     .blogTitle {
         height: 220px;
+    }
+
+    .blogTitle_withIntro {
+        height: auto;
+        min-height: 220px;
+        padding-bottom: 28px;
+    }
+
+    .blogTitle_intro {
+        font-size: 15px;
+        padding-top: 20px;
     }
 
     .blogTitle_text {

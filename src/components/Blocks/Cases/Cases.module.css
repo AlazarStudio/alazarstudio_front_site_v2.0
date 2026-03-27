@@ -25,6 +25,10 @@
     gap: 25px;
 }
 
+.filterTopDesktop {
+    width: 100%;
+}
+
 .filterFixed {
     position: fixed;
     bottom: 0;
@@ -90,11 +94,7 @@
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
-    justify-content: center;
-}
-
-.filterFixed .filterCategories {
-    justify-content: center;
+    /* justify-content: center; */
 }
 
 .filterCategory {
@@ -129,7 +129,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
-    justify-content: center;
+    /* justify-content: center; */
 }
 
 .filterTag {
@@ -180,6 +180,185 @@
 }
 .animateBottomVisible{
     transform: translateY(0px);
+}
+
+.mobileFilterButton {
+    display: none;
+}
+
+.mobileFilterControls {
+    display: none;
+}
+
+.mobileFilterButtonIcon {
+    display: block;
+}
+
+.mobileFilterButtonActive {
+    border-color: #FFFFFF;
+    background: rgba(46, 46, 46, 0.95);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.mobileFilterButtonActive::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.mobileFilterQuickResetButton {
+    display: none;
+}
+
+.mobileFilterQuickResetIcon {
+    display: block;
+}
+
+.mobileFilterModalShell {
+    background: #0D0D0D !important;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+.mobileFilterModalBody {
+    background: #0D0D0D;
+}
+
+.mobileFilterModalCloseWrap {
+    top: 12px;
+    right: 12px;
+}
+
+.mobileFilterModalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px 20px;
+}
+
+.mobileFilterModalTitle {
+    margin: 0;
+    color: #FFFFFF;
+    font-family: Mulish;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 120%;
+    text-transform: uppercase;
+}
+
+.filterContainerMobileModal {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filterContainerMobileModal .filterCategories,
+.filterContainerMobileModal .filterTags {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    overflow-x: visible;
+    gap: 8px;
+    padding-bottom: 0;
+}
+
+.filterContainerMobileModal .filterCategories {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.filterContainerMobileModal .filterCategories::-webkit-scrollbar {
+    display: none;
+}
+
+.filterContainerMobileModal .filterTags {
+    gap: 10px;
+}
+
+.filterContainerMobileModal .filterCategory,
+.filterContainerMobileModal .filterTag {
+    padding: 10px 14px;
+    font-size: 11px;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.filterContainerMobileModal .filterCategory {
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.filterContainerMobileModal .filterTag {
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: none;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.filterContainerMobileModal .filterCategory.filterCategory_active,
+.filterContainerMobileModal .filterTag.filterTag_active {
+    background-color: #2e2e2e;
+    border-color: #2e2e2e;
+}
+
+.mobileFilterActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.mobileFilterResetButton {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    background: transparent;
+    color: #FFFFFF;
+    font-family: Mulish;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 120%;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+.mobileFilterResetButton:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.mobileFilterApplyButton {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    background: #1C1C1C;
+    color: #FFFFFF;
+    font-family: Mulish;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 120%;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.mobileFilterApplyButton:hover {
+    background: #2b2b2b;
 }
 
 .cases {
@@ -247,14 +426,14 @@
     flex-wrap: wrap;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
     .casesContainer {
-        padding-top: 96px;
+        padding-top: 35px;
     }
 
     .cases {
         gap: 18px;
-        padding: 0 12px 24px;
+        padding: 0 16px;
     }
 
     .sectionHeading {
@@ -268,6 +447,10 @@
     .filterContainer,
     .filterContainerFixed {
         gap: 12px;
+    }
+
+    .filterTopDesktop {
+        display: none;
     }
 
     .filterCategories,
@@ -294,6 +477,51 @@
 
     .filterFixed {
         display: none;
+    }
+
+    .mobileFilterControls {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .mobileFilterButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #FFFFFF66;
+        border-radius: 999px;
+        background: rgba(13, 13, 13, 0.92);
+        color: #FFFFFF;
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .mobileFilterQuickResetButton {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 999px;
+        background: rgba(13, 13, 13, 0.92);
+        color: #FFFFFF;
+        height: 50px;
+        width: 50px;
+        padding: 0;
+        cursor: pointer;
+        transition: opacity 0.25s ease-in-out, border-color 0.25s ease-in-out;
+    }
+
+    .mobileFilterQuickResetButton:disabled {
+        opacity: 0.45;
+        cursor: default;
     }
 
     .loaderContainer,

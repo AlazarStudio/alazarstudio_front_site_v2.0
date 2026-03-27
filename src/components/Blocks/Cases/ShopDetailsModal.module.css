@@ -394,7 +394,8 @@
 
 @media (max-width: 1200px) {
   .modalInner {
-    padding: 24px 20px 34px;
+    padding: 20px;
+    min-height: 100vh;
   }
 
   .top {
@@ -432,5 +433,23 @@
 
   .teamList {
     grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    margin-top: 20px;
+  }
+  .price{
+    font-size: 26px;
+  }
+  .sectionText{
+    font-size: 14px;
+  }
+  .sectionTitle{
+    font-size: 22px;
   }
 }

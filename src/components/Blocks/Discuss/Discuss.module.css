@@ -17,6 +17,7 @@
     position: relative;
     width: 40%;
     flex: 0 0 40%;
+    z-index: 1;
 }
 
 .discuss_form form {
@@ -184,6 +185,7 @@
     /* z-index: 999999; */
 }
 
+
 .discuss_particle {
     width: var(--particle-width, min(100%, 820px));
     height: var(--particle-height, auto);
@@ -195,6 +197,13 @@
 .discuss_img img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+}
+
+
+.discuss_img img{
+    width: 650px;
+    height: 650px;
     object-fit: contain;
 }
 
@@ -318,9 +327,9 @@
     .discuss_img {
         display: none;
     }
-
+/* 
     .formBG {
         width: 115%;
         max-width: 420px;
-    }
+    } */
 }
