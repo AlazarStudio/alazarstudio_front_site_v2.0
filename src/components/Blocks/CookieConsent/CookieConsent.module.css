@@ -1,0 +1,53 @@
+.banner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    background: rgba(13, 13, 13, 0.96);
+    backdrop-filter: blur(6px);
+}
+
+.text {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.acceptButton {
+    border: none;
+    border-radius: 10px;
+    background: #e5097e;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.acceptButton:hover {
+    background: #ff1f96;
+}
+
+@media (max-width: 767px) {
+    .banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .acceptButton {
+        width: 100%;
+    }
+}

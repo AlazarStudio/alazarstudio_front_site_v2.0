@@ -14,11 +14,11 @@ const DEFAULT_LASTMOD = new Date().toISOString();
 
 const STATIC_URLS = [
   { path: "/", changefreq: "daily", priority: "1.0" },
+  { path: "/about", changefreq: "monthly", priority: "0.9" },
   { path: "/cases", changefreq: "daily", priority: "0.9" },
-  { path: "/news", changefreq: "daily", priority: "0.9" },
-  { path: "/shop", changefreq: "daily", priority: "0.9" },
-  { path: "/about", changefreq: "monthly", priority: "0.7" },
-  { path: "/contacts", changefreq: "monthly", priority: "0.7" },
+  { path: "/contacts", changefreq: "monthly", priority: "0.9" },
+  { path: "/news", changefreq: "daily", priority: "0.8" },
+  { path: "/shop", changefreq: "daily", priority: "0.8" },
 ];
 
 function readBackendApiUrl() {
@@ -257,21 +257,8 @@ async function collectDynamicEntries(apiBase) {
 }
 
 async function main() {
-  const apiBase = normalizeApiBase(readBackendApiUrl() || process.env.SITEMAP_API_BASE || process.env.VITE_BACKEND_URL);
   const staticEntries = STATIC_URLS.map((entry) => createUrlEntry(entry.path, entry));
-  let dynamicEntries = [];
-
-  if (apiBase) {
-    try {
-      dynamicEntries = await collectDynamicEntries(apiBase);
-    } catch (error) {
-      console.warn("[sitemap] dynamic URLs fetch failed, fallback to static only:", error?.message || error);
-    }
-  } else {
-    console.warn("[sitemap] API base URL not found, generating static sitemap only.");
-  }
-
-  const entries = dedupeEntries([...staticEntries, ...dynamicEntries]);
+  const entries = dedupeEntries(staticEntries);
   const xml = toSitemapXml(entries);
   fs.writeFileSync(outputPath, xml, "utf-8");
   console.log(`[sitemap] generated: ${entries.length} URLs -> ${outputPath}`);

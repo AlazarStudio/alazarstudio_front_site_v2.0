@@ -34,7 +34,7 @@
     font-weight: 600;
     color: #fff;
     text-decoration: none;
-    letter-spacing: 0.18em;
+    /* letter-spacing: 0.18em; */
     line-height: 1;
     text-transform: uppercase;
     white-space: nowrap;
@@ -81,12 +81,16 @@
 .contactSide {
     margin-left: auto;
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: flex-start;
-    gap: clamp(16px, 4vw, 56px);
-    flex: 1;
+    gap: 10px;
+    width: fit-content;
     min-width: 0;
+    max-width: 100%;
+    padding: 0;
     flex-wrap: nowrap;
+    font-style: normal;
 }
 
 .divider {
@@ -95,17 +99,11 @@
     width: 100%;
 }
 
-.leftCol {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-    flex: 1 1 0;
-}
-
 .email {
     color: #fff;
     font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
     text-decoration: none;
     transition: color 0.25s ease;
 }
@@ -114,24 +112,27 @@
     color: #e5097e;
 }
 
-.officeCol {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-    flex: 1 1 0;
-}
-
 .officeTitle {
-    font-size: 16px;
+    display: inline-flex;
+    font-size: 20px;
     font-weight: 600;
     color: #fff;
+    line-height: 1;
+    margin-bottom: 6px;
+    text-decoration: none;
+    transition: color 0.25s ease;
+}
+
+.officeTitle:hover {
+    color: #e5097e;
 }
 
 .officeAddress {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.75);
-    line-height: 1.4;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.25;
+    white-space: normal;
     text-decoration: none;
     transition: color 0.25s ease;
 }
@@ -141,7 +142,9 @@
 }
 
 .officePhone {
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.2;
     color: #fff;
     text-decoration: none;
     transition: color 0.25s ease;
@@ -154,7 +157,14 @@
 .officeAddress,
 .email,
 .officePhone {
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+}
+
+.contactLabel {
+    display: inline-block;
+    min-width: 88px;
+    color: rgba(255, 255, 255, 0.72);
+    margin-right: 6px;
 }
 
 /* Нижняя секция: юридические ссылки + резидент */
@@ -234,16 +244,7 @@
 
 @media (min-width: 769px) {
     .contactSide {
-        flex: 0 0 auto;
-        width: auto;
-        max-width: min(100%, 560px);
-        gap: clamp(18px, 2vw, 28px);
-    }
-
-    .leftCol,
-    .officeCol {
-        /* flex: 0 1 260px; */
-        /* width: min(260px, 100%); */
+        margin-left: auto;
     }
 }
 
@@ -292,26 +293,21 @@
 
     .contactSide {
         margin-left: 0;
-        gap: 16px;
-        flex-wrap: nowrap;
-        align-items: flex-start;
-        
-        flex-direction: column;
-    }
-
-    .leftCol,
-    .officeCol {
-        /* width: calc(50% - 8px); */
-    }
-
-    .leftCol {
         gap: 12px;
+        align-items: flex-start;
+        padding: 0;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .officeTitle,
     .email,
     .officePhone {
-        font-size: 14px;
+        font-size: 16px;
+    }
+
+    .officeAddress {
+        font-size: 16px;
     }
 
     .bottomRow {
@@ -344,7 +340,27 @@
     }
 }
 
+@media (max-width: 1200px) {
+    .contactSide {
+        width: fit-content;
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 560px) {
+    .officeTitle,
+    .officeAddress,
+    .email,
+    .officePhone {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 420px) {
+    .contactSide {
+        width: 100%;
+    }
+
     .logo {
         font-size: 20px;
         letter-spacing: 0.14em;
@@ -367,11 +383,6 @@
     .contactSide {
         flex-direction: column;
         gap: 14px;
-    }
-
-    .officeCol,
-    .leftCol {
-        width: 100%;
     }
 
     .legalPills {

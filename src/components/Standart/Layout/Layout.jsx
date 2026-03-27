@@ -5,6 +5,7 @@ import classes from "./Layout.module.css";
 import Header from "../../Blocks/Header/Header"
 import Footer from "../../Blocks/Footer/Footer";
 import CustomCursor from "../../Cursor/CustomCursor";
+import CookieConsent from "../../Blocks/CookieConsent/CookieConsent";
 
 const PAGE_LOADER_DURATION_MS = 450;
 
@@ -86,6 +87,7 @@ function Empty({ children, ...props }) {
             <main id="main-content">
                 <Outlet />
             </main>
+            <CookieConsent />
             <Footer/>
             {isPageTransitionLoading && (
                 <div className={classes.pageLoaderOverlay} aria-hidden="true">

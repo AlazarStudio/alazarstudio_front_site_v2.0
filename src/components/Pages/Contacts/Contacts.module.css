@@ -22,19 +22,40 @@
     padding-top: 12px;
 }
 
+.contactsAddressBlock {
+    margin: 0;
+    font-style: normal;
+}
+
 .contactsTitle {
     font-size: clamp(40px, 3.5vw, 52px);
     font-weight: 500;
     line-height: 1;
-    margin-bottom: 64px;
+    margin-bottom: 20px;
+}
+
+.contactsIntro {
+    margin: 0 0 42px;
+    color: rgba(255, 255, 255, 1);
+    font-size: clamp(16px, 1.2vw, 20px);
+    line-height: 1.5;
+    max-width: 750px;
+}
+
+.contactsIntroFirst {
+    margin: 0 0 10px;
 }
 
 .contactsGroup {
     margin-bottom: 34px;
 }
 
+.contactsValueWrap {
+    margin: 0;
+}
+
 .contactsLabel {
-    font-size: clamp(18px, 1.4vw, 24px);
+    font-size: clamp(14px, 1vw, 18px);
     font-weight: 500;
     color: rgba(229, 9, 127, 1);
     line-height: 1;
@@ -43,7 +64,7 @@
 
 .contactsValue {
     color: #fff;
-    font-size: clamp(28px, 2vw, 35px);
+    font-size: clamp(20px, 1.45vw, 26px);
     font-weight: 500;
     line-height: 1.25;
     text-decoration: none;
@@ -56,9 +77,10 @@
 
 .socialList {
     display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin: 10px 0 42px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin: 8px 0 34px;
 }
 
 .socialLink {
@@ -67,7 +89,7 @@
     gap: 10px;
     width: fit-content;
     color: rgba(229, 9, 127, 1);
-    font-size: clamp(28px, 2vw, 38px);
+    font-size: clamp(16px, 1.2vw, 22px);
     font-weight: 500;
     line-height: 1;
     text-decoration: none;

@@ -14,6 +14,12 @@ const UI_TEXT = {
     mapAriaLabel: "Карта офиса ALAZAR STUDIO",
     routeButton: "ПРОЛОЖИТЬ МАРШРУТ",
     recenterAriaLabel: "Вернуть точку в центр карты",
+    introText:
+        "Связаться с Alazar Studio можно удобным для вас способом:",
+    introTextSecondLine:
+        "по телефону, email, через форму обратной связи или социальные сети.",
+    introTextThirdLine:
+        "Студия взаимодействует с клиентами из разных регионов России, сохраняя удобный и гибкий формат коммуникации.",
 };
 
 const MAP_CARD_MARGIN = 18;
@@ -155,6 +161,13 @@ function Contacts() {
         () => contact?.adres ?? "",
         [contact]
     );
+    const formattedAddress = useMemo(() => {
+        const raw = String(address || "").trim();
+        if (!raw) return "";
+        if (/^Карачаево-Черкесская Республика,\s*г\./i.test(raw)) return raw;
+        if (/^г\./i.test(raw)) return `Карачаево-Черкесская Республика, ${raw}`;
+        return `Карачаево-Черкесская Республика, г. ${raw}`;
+    }, [address]);
     const phoneDisplay = useMemo(
         () => contact?.nomer ?? "",
         [contact]
@@ -186,15 +199,14 @@ function Contacts() {
                 : [],
         [contactCoords]
     );
-    const seoDescription = useMemo(() => {
-        const pieces = [
-            "Контакты Alazar Studio.",
-            address ? `Адрес: ${address}.` : "",
-            phoneDisplay ? `Телефон: ${phoneDisplay}.` : "",
-            email ? `E-mail: ${email}.` : "",
-        ].filter(Boolean);
-        return truncateText(pieces.join(" "), 170);
-    }, [address, phoneDisplay, email]);
+    const seoDescription = useMemo(
+        () =>
+            truncateText(
+                "Связаться с Alazar Studio можно по телефону, email, через форму обратной связи или социальные сети. Студия взаимодействует с клиентами из разных регионов России.",
+                170
+            ),
+        []
+    );
 
     const sameAs = useMemo(
         () => socialItems.map((item) => item.url).filter((url) => /^https?:\/\//i.test(String(url || ""))),
@@ -202,8 +214,8 @@ function Contacts() {
     );
 
     useSeo({
-        title: `Контакты | ${SITE_NAME}`,
-        description: seoDescription || "Контакты Alazar Studio: адрес, телефон, e-mail и социальные сети.",
+        title: "Контакты Alazar Studio",
+        description: seoDescription,
         pathname: "/contacts",
         ogType: "website",
         ogImage: "/alazar-logo.png",
@@ -211,13 +223,31 @@ function Contacts() {
             "@context": "https://schema.org",
             "@graph": [
                 {
-                    "@type": "Organization",
+                    "@type": "LocalBusiness",
                     "@id": `${SITE_BASE_URL}/#organization`,
                     name: SITE_NAME,
                     url: `${SITE_BASE_URL}/`,
+                    logo: `${SITE_BASE_URL}/alazar-logo.png`,
                     email: email || ORG_CONTACT.email,
                     telephone: phoneDisplay || ORG_CONTACT.telephone,
                     sameAs,
+                    address: {
+                        "@type": "PostalAddress",
+                        streetAddress: formattedAddress || address,
+                        addressLocality: "Черкесск",
+                        addressRegion: "Карачаево-Черкесская Республика",
+                        addressCountry: "RU",
+                    },
+                    contactPoint: [
+                        {
+                            "@type": "ContactPoint",
+                            contactType: "customer support",
+                            telephone: phoneDisplay || ORG_CONTACT.telephone,
+                            email: email || ORG_CONTACT.email,
+                            availableLanguage: ["ru"],
+                            areaServed: "RU",
+                        },
+                    ],
                 },
                 {
                     "@type": "ContactPage",
@@ -450,56 +480,69 @@ function Contacts() {
         <>
             <section className={classes.contactsPage}>
                 <div className={classes.contactsInner}>
-                    <div className={classes.contactsLeft}>
+                    <article className={classes.contactsLeft} aria-labelledby="contacts-page-title">
                         <h1 className={classes.contactsTitle}>{UI_TEXT.pageTitle}</h1>
+                        <p className={`${classes.contactsIntro} ${classes.contactsIntroFirst}`}>
+                            {UI_TEXT.introText} <br />
+                            {UI_TEXT.introTextSecondLine}
+                        </p>
+                        <p className={classes.contactsIntro}>
+                            {UI_TEXT.introTextThirdLine}
+                        </p>
 
-                        <div className={classes.contactsGroup}>
-                            <div className={classes.contactsLabel}>{UI_TEXT.addressLabel}</div>
-                            {contactCoords ? (
-                                <a
-                                    className={classes.contactsValue}
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); handleOpenRoute(); }}
-                                >
-                                    {address}
-                                </a>
-                            ) : (
-                                <span className={classes.contactsValue}>{address}</span>
-                            )}
-                        </div>
-
-                        <div className={classes.contactsGroup}>
-                            <div className={classes.contactsLabel}>{UI_TEXT.numberLabel}</div>
-                            <a className={classes.contactsValue} href={`tel:${phoneLink}`}>
-                                {phoneDisplay}
-                            </a>
-                        </div>
-
-                        {socialItems.length > 0 &&
-                            <div className={classes.socialList}>
-                                {
-                                    socialItems.map((item, i) => (
+                        <address className={classes.contactsAddressBlock}>
+                            <dl className={classes.contactsGroup}>
+                                <dt className={classes.contactsLabel}>{UI_TEXT.addressLabel}</dt>
+                                <dd className={classes.contactsValueWrap}>
+                                    {contactCoords ? (
                                         <a
-                                            key={i}
-                                            className={classes.socialLink}
-                                            href={item.url}
-                                            target="_blank"
-                                            rel="noreferrer"
+                                            className={classes.contactsValue}
+                                            href="#"
+                                            onClick={(e) => { e.preventDefault(); handleOpenRoute(); }}
                                         >
-                                            {item.label.toUpperCase()}
+                                            {formattedAddress || address}
                                         </a>
-                                    ))
-                                }
-                            </div>
-                        }
+                                    ) : (
+                                        <span className={classes.contactsValue}>{formattedAddress || address}</span>
+                                    )}
+                                </dd>
+                            </dl>
 
-                        <div className={classes.contactsGroup}>
-                            <div className={classes.contactsLabel}>E-MAIL</div>
-                            <a className={classes.contactsValue} href={`mailto:${email}`}>
-                                {email}
-                            </a>
-                        </div>
-                    </div>
+                            <dl className={classes.contactsGroup}>
+                                <dt className={classes.contactsLabel}>{UI_TEXT.numberLabel}</dt>
+                                <dd className={classes.contactsValueWrap}>
+                                    <a className={classes.contactsValue} href={`tel:${phoneLink}`}>
+                                        {phoneDisplay}
+                                    </a>
+                                </dd>
+                            </dl>
+
+                            <dl className={classes.contactsGroup}>
+                                <dt className={classes.contactsLabel}>E-MAIL</dt>
+                                <dd className={classes.contactsValueWrap}>
+                                    <a className={classes.contactsValue} href={`mailto:${email}`}>
+                                        {email}
+                                    </a>
+                                </dd>
+                            </dl>
+                        </address>
+
+                        {socialItems.length > 0 && (
+                            <nav className={classes.socialList} aria-label="Социальные сети">
+                                {socialItems.map((item, i) => (
+                                    <a
+                                        key={i}
+                                        className={classes.socialLink}
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        {item.label.toUpperCase()}
+                                    </a>
+                                ))}
+                            </nav>
+                        )}
+                    </article>
 
                     <div className={classes.contactsRight}>
                         <Discuss formOnly source="Страница «Контакты»: обсудить проект" />
